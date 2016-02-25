@@ -45,9 +45,15 @@ func SetConfigDir(dir string) {
 	configDir = dir
 }
 
+type CloudConfig struct {
+	AccessKey string `json:"accesskey"`
+	SecretKey string `json:"secretkey"`
+}
+
 // ConfigFile ~/.docker/config.json file info
 type ConfigFile struct {
 	AuthConfigs  map[string]types.AuthConfig `json:"auths"`
+	CloudConfig  map[string]CloudConfig      `json:"clouds"`
 	HTTPHeaders  map[string]string           `json:"HttpHeaders,omitempty"`
 	PsFormat     string                      `json:"psFormat,omitempty"`
 	ImagesFormat string                      `json:"imagesFormat,omitempty"`
@@ -59,6 +65,7 @@ type ConfigFile struct {
 func NewConfigFile(fn string) *ConfigFile {
 	return &ConfigFile{
 		AuthConfigs: make(map[string]types.AuthConfig),
+		CloudConfig: make(map[string]CloudConfig),
 		HTTPHeaders: make(map[string]string),
 		filename:    fn,
 	}
@@ -141,6 +148,7 @@ func LegacyLoadFromReader(configData io.Reader) (*ConfigFile, error) {
 func LoadFromReader(configData io.Reader) (*ConfigFile, error) {
 	configFile := ConfigFile{
 		AuthConfigs: make(map[string]types.AuthConfig),
+		CloudConfig: make(map[string]CloudConfig),
 	}
 	err := configFile.LoadFromReader(configData)
 	return &configFile, err
@@ -156,6 +164,7 @@ func Load(configDir string) (*ConfigFile, error) {
 
 	configFile := ConfigFile{
 		AuthConfigs: make(map[string]types.AuthConfig),
+		CloudConfig: make(map[string]CloudConfig),
 		filename:    filepath.Join(configDir, ConfigFileName),
 	}
 

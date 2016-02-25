@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // serverResponse is a wrapper for http API responses.
@@ -86,6 +87,13 @@ func (cli *Client) sendClientRequest(method, path string, query url.Values, body
 
 	if expectedPayload && req.Header.Get("Content-Type") == "" {
 		req.Header.Set("Content-Type", "text/plain")
+	}
+
+	req.Header.Set("Date", time.Unix(time.Now().Unix(), 0).Format("Mon, 2 Jan 2006 15:04:05 -0700"))
+	if signature, err := makeSign(cli.accessKey, cli.secretKey, req); err != nil {
+		return serverResp, err
+	} else {
+		req.Header.Set("Authorization", fmt.Sprintf(" HSC %s:%s", cli.accessKey, signature))
 	}
 
 	resp, err := cli.httpClient.Do(req)

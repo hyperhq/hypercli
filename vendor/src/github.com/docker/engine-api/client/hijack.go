@@ -44,6 +44,12 @@ func (cli *Client) postHijacked(path string, query url.Values, body interface{},
 	req.Header.Set("Connection", "Upgrade")
 	req.Header.Set("Upgrade", "tcp")
 
+	req.Header.Set("Date", time.Unix(time.Now().Unix(), 0).Format("Mon, 2 Jan 2006 15:04:05 -0700"))
+	if signature, err := makeSign(cli.accessKey, cli.secretKey, req); err != nil {
+		return types.HijackedResponse{}, err
+	} else {
+		req.Header.Set("Authorization", fmt.Sprintf(" HSC %s:%s", cli.accessKey, signature))
+	}
 	conn, err := dial(cli.proto, cli.addr, cli.tlsConfig)
 	if err != nil {
 		if strings.Contains(err.Error(), "connection refused") {

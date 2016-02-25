@@ -25,6 +25,9 @@ type Client struct {
 	basePath string
 	// scheme holds the scheme of the client i.e. https.
 	scheme string
+	// Cloud's Config
+	accessKey string
+	secretKey string
 	// tlsConfig holds the tls configuration to use in hijacked requests.
 	tlsConfig *tls.Config
 	// httpClient holds the client transport instance. Exported to keep the old code running.
@@ -63,14 +66,16 @@ func NewEnvClient() (*Client, error) {
 	if host == "" {
 		host = DefaultDockerHost
 	}
-	return NewClient(host, os.Getenv("DOCKER_API_VERSION"), transport, nil)
+	accessKey := os.Getenv("ACCESSKEY")
+	secretKey := os.Getenv("SECRETKEY")
+	return NewClient(host, os.Getenv("DOCKER_API_VERSION"), transport, nil, accessKey, secretKey)
 }
 
 // NewClient initializes a new API client for the given host and API version.
 // It won't send any version information if the version number is empty.
 // It uses the transport to create a new http client.
 // It also initializes the custom http headers to add to each request.
-func NewClient(host string, version string, transport *http.Transport, httpHeaders map[string]string) (*Client, error) {
+func NewClient(host string, version string, transport *http.Transport, httpHeaders map[string]string, ak, sk string) (*Client, error) {
 	var (
 		basePath       string
 		scheme         = "http"
@@ -96,6 +101,8 @@ func NewClient(host string, version string, transport *http.Transport, httpHeade
 		proto:             proto,
 		addr:              addr,
 		basePath:          basePath,
+		accessKey:         ak,
+		secretKey:         sk,
 		scheme:            scheme,
 		tlsConfig:         transport.TLSClientConfig,
 		httpClient:        &http.Client{Transport: transport},

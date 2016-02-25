@@ -146,8 +146,19 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		if err != nil {
 			return err
 		}
+		var cloudConfig cliconfig.CloudConfig
+		for _, cc := range configFile.CloudConfig {
+			if cc.AccessKey != "" && cc.SecretKey != "" {
+				cloudConfig.AccessKey = cc.AccessKey
+				cloudConfig.SecretKey = cc.SecretKey
+				break
+			}
+		}
+		if cloudConfig.AccessKey == "" || cloudConfig.SecretKey == "" {
+			return fmt.Errorf("null cloud config")
+		}
 
-		client, err := client.NewClient(host, verStr, clientTransport, customHeaders)
+		client, err := client.NewClient(host, verStr, clientTransport, customHeaders, cloudConfig.AccessKey, cloudConfig.SecretKey)
 		if err != nil {
 			return err
 		}
