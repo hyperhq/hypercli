@@ -113,6 +113,7 @@ func (cli *DockerCli) CmdVolumeCreate(args ...string) error {
 	flDriver := cmd.String([]string{"d", "-driver"}, "local", "Specify volume driver name")
 	flName := cmd.String([]string{"-name"}, "", "Specify volume name")
 	flSnapshot := cmd.String([]string{"-snapshot"}, "", "Specify snapshot to create volume")
+	flSize := cmd.Int([]string{"-size"}, 10, "Specify volume size")
 
 	flDriverOpts := opts.NewMapOpts(nil, nil)
 	cmd.Var(flDriverOpts, []string{"o", "-opt"}, "Set driver specific options")
@@ -126,8 +127,9 @@ func (cli *DockerCli) CmdVolumeCreate(args ...string) error {
 		Name:       *flName,
 	}
 	if *flSnapshot != "" {
-		volReq["snapshot"] = *flSnapshot
+		volReq.DriverOpts["snapshot"] = *flSnapshot
 	}
+	volReq.DriverOpts["size"] = fmt.Sprintf("%d", *flSize)
 
 	vol, err := cli.client.VolumeCreate(volReq)
 	if err != nil {
