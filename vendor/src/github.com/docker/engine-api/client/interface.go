@@ -70,6 +70,10 @@ type APIClient interface {
 	VolumeInspect(volumeID string) (types.Volume, error)
 	VolumeList(filter filters.Args) (types.VolumesListResponse, error)
 	VolumeRemove(volumeID string) error
+	SnapshotCreate(options types.SnapshotCreateRequest) (types.Snapshot, error)
+	SnapshotInspect(volumeID string) (types.Snapshot, error)
+	SnapshotList(filter filters.Args) (types.SnapshotsListResponse, error)
+	SnapshotRemove(id string) error
 }
 
 // Ensure that Client always implements APIClient.

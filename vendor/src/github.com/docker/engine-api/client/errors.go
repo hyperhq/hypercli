@@ -59,6 +59,16 @@ func IsErrNetworkNotFound(err error) bool {
 	return ok
 }
 
+// snapshotNotFoundError implements an error returned when a volume is not in the docker host.
+type snapshotNotFoundError struct {
+	snapshotID string
+}
+
+// Error returns a string representation of an networkNotFoundError
+func (e snapshotNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such snapshot: %s", e.snapshotID)
+}
+
 // volumeNotFoundError implements an error returned when a volume is not in the docker host.
 type volumeNotFoundError struct {
 	volumeID string

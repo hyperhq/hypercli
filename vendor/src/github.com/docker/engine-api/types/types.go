@@ -359,6 +359,23 @@ type MountPoint struct {
 	Propagation string
 }
 
+type Snapshot struct {
+	ID   string
+	Name string
+	Size int
+}
+
+type SnapshotsListResponse struct {
+	Snapshots []*Snapshot // Snapshots is the list of snapshots being returned
+	Warnings  []string    // Warnings is a list of warnings that occurred when getting the list from the snapshot drivers
+}
+
+type SnapshotCreateRequest struct {
+	Name   string // Name is the requested name of the snapshot
+	Volume string // Volume is the based volume which snapshot need
+	Force  bool
+}
+
 // Volume represents the configuration of a volume for the remote API
 type Volume struct {
 	Name       string // Name is the name of the volume
