@@ -16,7 +16,7 @@ const (
 	tableFormatKey = "table"
 	rawFormatKey   = "raw"
 
-	defaultContainerTableFormat       = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}} ago\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+	defaultContainerTableFormat       = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}} ago\t{{.Status}}\t{{.Ports}}\t{{.Names}}\t{{.PublicIP}}"
 	defaultImageTableFormat           = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}} ago\t{{.Size}}"
 	defaultImageTableFormatWithDigest = "table {{.Repository}}\t{{.Tag}}\t{{.Digest}}\t{{.ID}}\t{{.CreatedSince}} ago\t{{.Size}}"
 	defaultQuietFormat                = "{{.ID}}"
@@ -127,6 +127,7 @@ command: {{.Command}}
 created_at: {{.CreatedAt}}
 status: {{.Status}}
 names: {{.Names}}
+public_ip: {{.PublicIP}}
 labels: {{.Labels}}
 ports: {{.Ports}}
 `

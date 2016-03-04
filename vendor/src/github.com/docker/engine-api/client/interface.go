@@ -74,6 +74,11 @@ type APIClient interface {
 	SnapshotInspect(volumeID string) (types.Snapshot, error)
 	SnapshotList(filter filters.Args) (types.SnapshotsListResponse, error)
 	SnapshotRemove(id string) error
+	FipAllocate(count string) ([]string, error)
+	FipRelease(ip string) error
+	FipAssociate(ip, container string) error
+	FipDeassociate(container string) error
+	FipList(opts types.NetworkListOptions) ([]string, error)
 }
 
 // Ensure that Client always implements APIClient.
