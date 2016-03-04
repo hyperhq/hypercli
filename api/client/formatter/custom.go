@@ -15,6 +15,7 @@ import (
 
 const (
 	tableKey = "table"
+	fipLabel = "sh.hyper.fip"
 
 	containerIDHeader  = "CONTAINER ID"
 	imageHeader        = "IMAGE"
@@ -31,6 +32,7 @@ const (
 	repositoryHeader   = "REPOSITORY"
 	tagHeader          = "TAG"
 	digestHeader       = "DIGEST"
+	fipHeader          = "PUBLIC IP"
 )
 
 type containerContext struct {
@@ -140,6 +142,15 @@ func (c *containerContext) Label(name string) string {
 		return ""
 	}
 	return c.c.Labels[name]
+}
+
+func (c *containerContext) PublicIP() string {
+	c.addHeader(fipHeader)
+
+	if c.c.Labels == nil {
+		return ""
+	}
+	return c.c.Labels[fipHeader]
 }
 
 type imageContext struct {
