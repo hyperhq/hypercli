@@ -37,7 +37,7 @@ func (cli *DockerCli) CmdFipAllocate(args ...string) error {
 	if err != nil {
 		return err
 	}
-	for ip := range fips {
+	for _, ip := range fips {
 		fmt.Fprintf(cli.out, "%s\n", ip)
 	}
 	return nil
@@ -90,7 +90,12 @@ func (cli *DockerCli) CmdFipDeassociate(args ...string) error {
 		return err
 	}
 
-	return cli.client.FipDeassociate(cmd.Arg(0))
+	ip, err := cli.client.FipDeassociate(cmd.Arg(0))
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(cli.out, "%s\n", ip)
+	return nil
 }
 
 // CmdFipLs lists all the fips
@@ -125,7 +130,7 @@ func (cli *DockerCli) CmdFipLs(args ...string) error {
 	if err != nil {
 		return err
 	}
-	for ip := range fips {
+	for _, ip := range fips {
 		fmt.Fprintf(cli.out, "%s\n", ip)
 	}
 

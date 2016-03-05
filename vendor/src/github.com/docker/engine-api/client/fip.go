@@ -10,7 +10,7 @@ import (
 
 func (cli *Client) FipAllocate(count string) ([]string, error) {
 	var result []string
-	var v url.Values
+	var v = url.Values{}
 	v.Set("count", count)
 	serverResp, err := cli.post("/fips/allocate?"+v.Encode(), nil, nil, nil)
 	if err != nil {
@@ -23,7 +23,7 @@ func (cli *Client) FipAllocate(count string) ([]string, error) {
 }
 
 func (cli *Client) FipRelease(ip string) error {
-	var v url.Values
+	var v = url.Values{}
 	v.Set("ip", ip)
 	_, err := cli.post("/fips/release?"+v.Encode(), nil, nil, nil)
 	if err != nil {
@@ -33,7 +33,7 @@ func (cli *Client) FipRelease(ip string) error {
 }
 
 func (cli *Client) FipAssociate(ip, container string) error {
-	var v url.Values
+	var v = url.Values{}
 	v.Set("ip", ip)
 	v.Set("container", container)
 	_, err := cli.post("/fips/associate?"+v.Encode(), nil, nil, nil)
@@ -43,14 +43,17 @@ func (cli *Client) FipAssociate(ip, container string) error {
 	return nil
 }
 
-func (cli *Client) FipDeassociate(container string) error {
-	var v url.Values
+func (cli *Client) FipDeassociate(container string) (string, error) {
+	var result string
+	var v = url.Values{}
 	v.Set("container", container)
-	_, err := cli.post("/fips/deassociate?"+v.Encode(), nil, nil, nil)
+	resp, err := cli.post("/fips/deassociate?"+v.Encode(), nil, nil, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	json.NewDecoder(resp.body).Decode(&result)
+	ensureReaderClosed(resp)
+	return result, nil
 }
 
 func (cli *Client) FipList(options types.NetworkListOptions) ([]string, error) {
