@@ -150,7 +150,7 @@ func (c *containerContext) PublicIP() string {
 	if c.c.Labels == nil {
 		return ""
 	}
-	return c.c.Labels[fipHeader]
+	return c.c.Labels[fipLabel]
 }
 
 type imageContext struct {
