@@ -31,7 +31,7 @@ var (
 
 func init() {
 	if configDir == "" {
-		configDir = filepath.Join(homedir.Get(), ".docker")
+		configDir = filepath.Join(homedir.Get(), ".hyper")
 	}
 }
 

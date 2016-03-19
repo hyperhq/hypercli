@@ -155,7 +155,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 			}
 		}
 		if cloudConfig.AccessKey == "" || cloudConfig.SecretKey == "" {
-			return fmt.Errorf("null cloud config")
+			fmt.Fprintf(cli.err, "WARNING: null cloud config\n")
 		}
 
 		client, err := client.NewClient(host, verStr, clientTransport, customHeaders, cloudConfig.AccessKey, cloudConfig.SecretKey)
