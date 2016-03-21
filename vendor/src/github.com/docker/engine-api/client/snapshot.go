@@ -49,7 +49,13 @@ func (cli *Client) SnapshotInspect(snapshotID string) (types.Snapshot, error) {
 // SnapshotCreate creates a snapshot in the docker host.
 func (cli *Client) SnapshotCreate(options types.SnapshotCreateRequest) (types.Snapshot, error) {
 	var snapshot types.Snapshot
-	resp, err := cli.post("/snapshots/create", nil, options, nil)
+	v := url.Values{}
+	v.Set("volume", options.Volume)
+	v.Set("name", options.Name)
+	if options.Force {
+		v.Set("force", "true")
+	}
+	resp, err := cli.post("/snapshots/create?"+v.Encode(), nil, options, nil)
 	if err != nil {
 		return snapshot, err
 	}
