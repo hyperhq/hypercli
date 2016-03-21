@@ -360,14 +360,15 @@ type MountPoint struct {
 }
 
 type Snapshot struct {
-	ID   string
-	Name string
-	Size int
+	ID     string
+	Name   string
+	Volume string
+	Size   int
 }
 
 type SnapshotsListResponse struct {
 	Snapshots []*Snapshot // Snapshots is the list of snapshots being returned
-	Warnings  []string    // Warnings is a list of warnings that occurred when getting the list from the snapshot drivers
+	Warnings  []string
 }
 
 type SnapshotCreateRequest struct {

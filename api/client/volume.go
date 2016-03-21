@@ -110,7 +110,7 @@ func (cli *DockerCli) CmdVolumeInspect(args ...string) error {
 // Usage: docker volume create [OPTIONS]
 func (cli *DockerCli) CmdVolumeCreate(args ...string) error {
 	cmd := Cli.Subcmd("volume create", nil, "Create a volume", true)
-	flDriver := cmd.String([]string{"d", "-driver"}, "local", "Specify volume driver name")
+	flDriver := cmd.String([]string{"d", "-driver"}, "cinder", "Specify volume driver name")
 	flName := cmd.String([]string{"-name"}, "", "Specify volume name")
 	flSnapshot := cmd.String([]string{"-snapshot"}, "", "Specify snapshot to create volume")
 	flSize := cmd.Int([]string{"-size"}, 10, "Specify volume size")
@@ -126,10 +126,14 @@ func (cli *DockerCli) CmdVolumeCreate(args ...string) error {
 		DriverOpts: flDriverOpts.GetAll(),
 		Name:       *flName,
 	}
+
+	volReq.DriverOpts["size"] = fmt.Sprintf("%d", *flSize)
 	if *flSnapshot != "" {
 		volReq.DriverOpts["snapshot"] = *flSnapshot
+		if *flSize == 10 {
+			volReq.DriverOpts["size"] = ""
+		}
 	}
-	volReq.DriverOpts["size"] = fmt.Sprintf("%d", *flSize)
 
 	vol, err := cli.client.VolumeCreate(volReq)
 	if err != nil {

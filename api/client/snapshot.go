@@ -68,7 +68,7 @@ func (cli *DockerCli) CmdSnapshotLs(args ...string) error {
 		for _, warn := range snapshots.Warnings {
 			fmt.Fprintln(cli.err, warn)
 		}
-		fmt.Fprintf(w, "Snapshot Name \tSize")
+		fmt.Fprintf(w, "Snapshot Name \tVolume\tSize")
 		fmt.Fprintf(w, "\n")
 	}
 
@@ -77,7 +77,7 @@ func (cli *DockerCli) CmdSnapshotLs(args ...string) error {
 			fmt.Fprintln(w, vol.Name)
 			continue
 		}
-		fmt.Fprintf(w, "%s\t%d\n", vol.Name, vol.Size)
+		fmt.Fprintf(w, "%s\t%s\t%d\n", vol.Name, vol.Volume, vol.Size)
 	}
 	w.Flush()
 	return nil
