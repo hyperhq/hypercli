@@ -78,7 +78,7 @@ type APIClient interface {
 	FipRelease(ip string) error
 	FipAssociate(ip, container string) error
 	FipDeassociate(container string) (string, error)
-	FipList(opts types.NetworkListOptions) ([]string, error)
+	FipList(opts types.NetworkListOptions) ([]map[string]string, error)
 }
 
 // Ensure that Client always implements APIClient.
