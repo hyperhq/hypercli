@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"text/tabwriter"
 
 	Cli "github.com/docker/docker/cli"
 	"github.com/docker/docker/opts"
@@ -130,10 +131,14 @@ func (cli *DockerCli) CmdFipLs(args ...string) error {
 	if err != nil {
 		return err
 	}
-	for _, ip := range fips {
-		fmt.Fprintf(cli.out, "%s\n", ip)
+	w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
+	fmt.Fprintf(w, "Floating IP\tContainer")
+	fmt.Fprintf(w, "\n")
+	for _, fip := range fips {
+		fmt.Fprintf(w, "%s\t%s\n", fip["fip"], fip["container"])
 	}
 
+	w.Flush()
 	return nil
 }
 

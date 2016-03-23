@@ -56,7 +56,7 @@ func (cli *Client) FipDeassociate(container string) (string, error) {
 	return result, nil
 }
 
-func (cli *Client) FipList(options types.NetworkListOptions) ([]string, error) {
+func (cli *Client) FipList(options types.NetworkListOptions) ([]map[string]string, error) {
 	query := url.Values{}
 	if options.Filters.Len() > 0 {
 		filterJSON, err := filters.ToParam(options.Filters)
@@ -66,7 +66,7 @@ func (cli *Client) FipList(options types.NetworkListOptions) ([]string, error) {
 
 		query.Set("filters", filterJSON)
 	}
-	var fips []string
+	var fips []map[string]string
 	resp, err := cli.get("/fips", query, nil)
 	if err != nil {
 		return fips, err
