@@ -12,8 +12,6 @@ import (
 
 	Cli "github.com/docker/docker/cli"
 	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/events"
-	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/go-units"
 )
 
@@ -182,74 +180,6 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 		cStats.cs = append(cStats.cs, s)
 		go s.Collect(cli, !*noStream)
 	}
-	closeChan := make(chan error)
-	if showAll {
-		type watch struct {
-			cid   string
-			event string
-			err   error
-		}
-		getNewContainers := func(c chan<- watch) {
-			f := filters.NewArgs()
-			f.Add("type", "container")
-			options := types.EventsOptions{
-				Filters: f,
-			}
-			resBody, err := cli.client.Events(options)
-			if err != nil {
-				c <- watch{err: err}
-				return
-			}
-			defer resBody.Close()
-
-			decodeEvents(resBody, func(event events.Message, err error) error {
-				if err != nil {
-					c <- watch{err: err}
-					return nil
-				}
-
-				c <- watch{event.ID[:12], event.Action, nil}
-				return nil
-			})
-		}
-		go func(stopChan chan<- error) {
-			cChan := make(chan watch)
-			go getNewContainers(cChan)
-			for {
-				c := <-cChan
-				if c.err != nil {
-					stopChan <- c.err
-					return
-				}
-				switch c.event {
-				case "create":
-					s := &containerStats{Name: c.cid}
-					cStats.mu.Lock()
-					cStats.cs = append(cStats.cs, s)
-					cStats.mu.Unlock()
-					go s.Collect(cli, !*noStream)
-				case "stop":
-				case "die":
-					if !*all {
-						var remove int
-						// cStats cannot be O(1) with a map cause ranging over it would cause
-						// containers in stats to move up and down in the list...:(
-						cStats.mu.Lock()
-						for i, s := range cStats.cs {
-							if s.Name == c.cid {
-								remove = i
-								break
-							}
-						}
-						cStats.cs = append(cStats.cs[:remove], cStats.cs[remove+1:]...)
-						cStats.mu.Unlock()
-					}
-				}
-			}
-		}(closeChan)
-	} else {
-		close(closeChan)
-	}
 	// do a quick pause so that any failed connections for containers that do not exist are able to be
 	// evicted before we display the initial or default values.
 	time.Sleep(1500 * time.Millisecond)
@@ -286,21 +216,6 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 		w.Flush()
 		if *noStream {
 			break
-		}
-		select {
-		case err, ok := <-closeChan:
-			if ok {
-				if err != nil {
-					// this is suppressing "unexpected EOF" in the cli when the
-					// daemon restarts so it shutdowns cleanly
-					if err == io.ErrUnexpectedEOF {
-						return nil
-					}
-					return err
-				}
-			}
-		default:
-			// just skip
 		}
 	}
 	return nil
