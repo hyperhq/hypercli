@@ -147,12 +147,10 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 			return err
 		}
 		var cloudConfig cliconfig.CloudConfig
-		for _, cc := range configFile.CloudConfig {
-			if cc.AccessKey != "" && cc.SecretKey != "" {
-				cloudConfig.AccessKey = cc.AccessKey
-				cloudConfig.SecretKey = cc.SecretKey
-				break
-			}
+		cc, ok := configFile.CloudConfig[host]
+		if ok {
+			cloudConfig.AccessKey = cc.AccessKey
+			cloudConfig.SecretKey = cc.SecretKey
 		}
 		if cloudConfig.AccessKey == "" || cloudConfig.SecretKey == "" {
 			fmt.Fprintf(cli.err, "WARNING: null cloud config\n")
@@ -180,7 +178,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (host string, err error) {
 	switch len(hosts) {
 	case 0:
-		host = os.Getenv("DOCKER_HOST")
+		host = cliconfig.DefaultHyperServer
 	case 1:
 		host = hosts[0]
 	default:
