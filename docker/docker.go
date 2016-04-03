@@ -27,7 +27,7 @@ func main() {
 	flag.Merge(flag.CommandLine, clientFlags.FlagSet, commonFlags.FlagSet)
 
 	flag.Usage = func() {
-		fmt.Fprint(stdout, "Usage: docker [OPTIONS] COMMAND [arg...]\n"+daemonUsage+"       docker [ --help | -v | --version ]\n\n")
+		fmt.Fprint(stdout, "Usage: hyper [OPTIONS] COMMAND [arg...]\n"+daemonUsage+"       hyper [ --help | -v | --version ]\n\n")
 		fmt.Fprint(stdout, "A self-sufficient runtime for containers.\n\nOptions:\n")
 
 		flag.CommandLine.SetOutput(stdout)
@@ -39,7 +39,7 @@ func main() {
 			help += fmt.Sprintf("    %-10.10s%s\n", cmd.Name, cmd.Description)
 		}
 
-		help += "\nRun 'docker COMMAND --help' for more information on a command."
+		help += "\nRun 'hyper COMMAND --help' for more information on a command."
 		fmt.Fprintf(stdout, "%s\n", help)
 	}
 
@@ -75,8 +75,8 @@ func main() {
 
 func showVersion() {
 	if utils.ExperimentalBuild() {
-		fmt.Printf("Docker version %s, build %s, experimental\n", dockerversion.Version, dockerversion.GitCommit)
+		fmt.Printf("Hyper version %s, build %s, experimental\n", dockerversion.Version, dockerversion.GitCommit)
 	} else {
-		fmt.Printf("Docker version %s, build %s\n", dockerversion.Version, dockerversion.GitCommit)
+		fmt.Printf("Hyper version %s, build %s\n", dockerversion.Version, dockerversion.GitCommit)
 	}
 }

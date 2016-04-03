@@ -99,7 +99,7 @@ func (cli *Cli) noSuchCommand(command string) {
 	if cli.Stderr == nil {
 		cli.Stderr = os.Stderr
 	}
-	fmt.Fprintf(cli.Stderr, "docker: '%s' is not a docker command.\nSee 'docker --help'.\n", command)
+	fmt.Fprintf(cli.Stderr, "hyper: '%s' is not a hyper command.\nSee 'hyper --help'.\n", command)
 	os.Exit(1)
 }
 
@@ -180,7 +180,7 @@ func Subcmd(name string, synopses []string, description string, exitOnError bool
 				synopsis = " " + synopsis
 			}
 
-			fmt.Fprintf(flags.Out(), "\n%sdocker %s%s%s", lead, name, options, synopsis)
+			fmt.Fprintf(flags.Out(), "\n%shyper %s%s%s", lead, name, options, synopsis)
 		}
 
 		fmt.Fprintf(flags.Out(), "\n\n%s\n", description)

@@ -29,6 +29,7 @@ var dockerCommands = []Command{
 	{"attach", "Attach to a running container"},
 	{"build", "Build an image from a Dockerfile"},
 	{"commit", "Create a new image from a container's changes"},
+	{"config", "Config access key and secret key to Hyper server"},
 	{"cp", "Copy files/folders between a container and the local filesystem"},
 	{"create", "Create a new container"},
 	{"diff", "Inspect changes on a container's filesystem"},
@@ -45,7 +46,7 @@ var dockerCommands = []Command{
 	{"login", "Register or log in to a Docker registry"},
 	{"logout", "Log out from a Docker registry"},
 	{"logs", "Fetch the logs of a container"},
-	{"network", "Manage Docker networks"},
+	{"network", "Manage Hyper_ networks"},
 	{"pause", "Pause all processes within a container"},
 	{"port", "List port mappings or a specific mapping for the CONTAINER"},
 	{"ps", "List containers"},
@@ -65,8 +66,8 @@ var dockerCommands = []Command{
 	{"top", "Display the running processes of a container"},
 	{"unpause", "Unpause all processes within a container"},
 	{"update", "Update resources of one or more containers"},
-	{"version", "Show the Docker version information"},
-	{"volume", "Manage Docker volumes"},
+	{"version", "Show the Hyper_ version information"},
+	{"volume", "Manage Hyper_ volumes"},
 	{"wait", "Block until a container stops, then print its exit code"},
 }
 
