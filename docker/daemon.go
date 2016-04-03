@@ -268,7 +268,7 @@ func (cli *DaemonCli) CmdDaemon(args ...string) error {
 		"commit":      dockerversion.GitCommit,
 		"execdriver":  d.ExecutionDriver().Name(),
 		"graphdriver": d.GraphDriverName(),
-	}).Info("Docker daemon")
+	}).Info("Hyper_ Cloud")
 
 	api.InitRouters(d)
 

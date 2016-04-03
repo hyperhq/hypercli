@@ -30,7 +30,7 @@ var (
 	ErrorNetworkControllerNotEnabled = errcode.Register(errGroup, errcode.ErrorDescriptor{
 		Value:          "NETWORK_CONTROLLER_NOT_ENABLED",
 		Message:        "the network controller is not enabled for this platform",
-		Description:    "Docker's networking stack is disabled for this platform",
+		Description:    "Hyper's networking stack is disabled for this platform",
 		HTTPStatusCode: http.StatusNotFound,
 	})
 
