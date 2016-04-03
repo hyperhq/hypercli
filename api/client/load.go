@@ -14,7 +14,7 @@ import (
 // The tar archive is read from STDIN by default, or from a tar archive file.
 //
 // Usage: docker load [OPTIONS]
-func (cli *DockerCli) CmdLoad(args ...string) error {
+func (cli *DockerCli) Load(args ...string) error {
 	cmd := Cli.Subcmd("load", nil, Cli.DockerCommands["load"].Description, true)
 	infile := cmd.String([]string{"i", "-input"}, "", "Read from a tar archive file, instead of STDIN")
 	cmd.Require(flag.Exact, 0)

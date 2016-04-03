@@ -17,8 +17,8 @@ import (
 func (cli *DockerCli) CmdAttach(args ...string) error {
 	cmd := Cli.Subcmd("attach", []string{"CONTAINER"}, Cli.DockerCommands["attach"].Description, true)
 	noStdin := cmd.Bool([]string{"-no-stdin"}, false, "Do not attach STDIN")
-	proxy := cmd.Bool([]string{"-sig-proxy"}, true, "Proxy all received signals to the process")
-	detachKeys := cmd.String([]string{"-detach-keys"}, "", "Override the key sequence for detaching a container")
+	proxy := cmd.Bool([]string{}, true, "Proxy all received signals to the process")
+	detachKeys := cmd.String([]string{}, "", "Override the key sequence for detaching a container")
 
 	cmd.Require(flag.Exact, 1)
 

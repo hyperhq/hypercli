@@ -42,7 +42,7 @@ type translatorFunc func(reference.NamedTagged) (reference.Canonical, error)
 // If '-' is provided instead of a path or URL, Docker will build an image from either a Dockerfile or tar archive read from STDIN.
 //
 // Usage: docker build [OPTIONS] PATH | URL | -
-func (cli *DockerCli) CmdBuild(args ...string) error {
+func (cli *DockerCli) Build(args ...string) error {
 	cmd := Cli.Subcmd("build", []string{"PATH | URL | -"}, Cli.DockerCommands["build"].Description, true)
 	flTags := opts.NewListOpts(validateTag)
 	cmd.Var(&flTags, []string{"t", "-tag"}, "Name and optionally a tag in the 'name:tag' format")

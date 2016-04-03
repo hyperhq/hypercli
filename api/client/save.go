@@ -13,7 +13,7 @@ import (
 // The tar archive is written to STDOUT by default, or written to a file.
 //
 // Usage: docker save [OPTIONS] IMAGE [IMAGE...]
-func (cli *DockerCli) CmdSave(args ...string) error {
+func (cli *DockerCli) Save(args ...string) error {
 	cmd := Cli.Subcmd("save", []string{"IMAGE [IMAGE...]"}, Cli.DockerCommands["save"].Description+" (streamed to STDOUT by default)", true)
 	outfile := cmd.String([]string{"o", "-output"}, "", "Write to a file, instead of STDOUT")
 	cmd.Require(flag.Min, 1)

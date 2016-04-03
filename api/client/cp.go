@@ -38,7 +38,7 @@ type cpConfig struct {
 // Usage:
 // 	docker cp CONTAINER:SRC_PATH DEST_PATH|-
 // 	docker cp SRC_PATH|- CONTAINER:DEST_PATH
-func (cli *DockerCli) CmdCp(args ...string) error {
+func (cli *DockerCli) Cp(args ...string) error {
 	cmd := Cli.Subcmd(
 		"cp",
 		[]string{"CONTAINER:SRC_PATH DEST_PATH|-", "SRC_PATH|- CONTAINER:DEST_PATH"},

@@ -19,7 +19,7 @@ import (
 // The URL argument is the address of a tarball (.tar, .tar.gz, .tgz, .bzip, .tar.xz, .txz) file or a path to local file relative to docker client. If the URL is '-', then the tar file is read from STDIN.
 //
 // Usage: docker import [OPTIONS] file|URL|- [REPOSITORY[:TAG]]
-func (cli *DockerCli) CmdImport(args ...string) error {
+func (cli *DockerCli) Import(args ...string) error {
 	cmd := Cli.Subcmd("import", []string{"file|URL|- [REPOSITORY[:TAG]]"}, Cli.DockerCommands["import"].Description, true)
 	flChanges := opts.NewListOpts(nil)
 	cmd.Var(&flChanges, []string{"c", "-change"}, "Apply Dockerfile instruction to the created image")

@@ -16,7 +16,7 @@ import (
 // Usage: docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
 func (cli *DockerCli) CmdExec(args ...string) error {
 	cmd := Cli.Subcmd("exec", []string{"CONTAINER COMMAND [ARG...]"}, Cli.DockerCommands["exec"].Description, true)
-	detachKeys := cmd.String([]string{"-detach-keys"}, "", "Override the key sequence for detaching a container")
+	detachKeys := cmd.String([]string{}, "", "Override the key sequence for detaching a container")
 
 	execConfig, err := ParseExec(cmd, args)
 	// just in case the ParseExec does not exit
@@ -129,8 +129,8 @@ func ParseExec(cmd *flag.FlagSet, args []string) (*types.ExecConfig, error) {
 		flStdin      = cmd.Bool([]string{"i", "-interactive"}, false, "Keep STDIN open even if not attached")
 		flTty        = cmd.Bool([]string{"t", "-tty"}, false, "Allocate a pseudo-TTY")
 		flDetach     = cmd.Bool([]string{"d", "-detach"}, false, "Detached mode: run command in the background")
-		flUser       = cmd.String([]string{"u", "-user"}, "", "Username or UID (format: <name|uid>[:<group|gid>])")
-		flPrivileged = cmd.Bool([]string{"-privileged"}, false, "Give extended privileges to the command")
+		flUser       = cmd.String([]string{}, "", "Username or UID (format: <name|uid>[:<group|gid>])")
+		flPrivileged = cmd.Bool([]string{}, false, "Give extended privileges to the command")
 		execCmd      []string
 		container    string
 	)
