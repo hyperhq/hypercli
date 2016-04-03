@@ -23,6 +23,8 @@ const (
 	// URL wasn't saved as part of the config file and it was just
 	// assumed to be this value.
 	defaultIndexserver = "https://index.docker.io/v1/"
+
+	DefaultHyperServer = "tcp://us-west-1.hyper.sh:443"
 )
 
 var (

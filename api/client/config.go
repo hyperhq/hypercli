@@ -13,9 +13,9 @@ import (
 
 // CmdConfig
 //
-// Usage: docker config
+// Usage: hyper config
 func (cli *DockerCli) CmdConfig(args ...string) error {
-	cmd := Cli.Subcmd("config", []string{}, Cli.DockerCommands["config"].Description+".\nCloud user's access key and secret key.", true)
+	cmd := Cli.Subcmd("config", []string{"[SERVER]"}, Cli.DockerCommands["config"].Description+".\nIf no server is specified, the default is defined as "+cliconfig.DefaultHyperServer, true)
 	cmd.Require(flag.Max, 0)
 
 	flAccesskey := cmd.String([]string{"-accesskey"}, "", "Access Key")
@@ -28,7 +28,14 @@ func (cli *DockerCli) CmdConfig(args ...string) error {
 		cli.in = os.Stdin
 	}
 
-	_, err := cli.configureCloud(*flAccesskey, *flSecretkey)
+	var serverAddress string
+	if len(cmd.Args()) > 0 {
+		serverAddress = cmd.Arg(0)
+	} else {
+		serverAddress = cliconfig.DefaultHyperServer
+	}
+
+	_, err := cli.configureCloud(serverAddress, *flAccesskey, *flSecretkey)
 	if err != nil {
 		return err
 	}
@@ -41,8 +48,8 @@ func (cli *DockerCli) CmdConfig(args ...string) error {
 	return nil
 }
 
-func (cli *DockerCli) configureCloud(flAccesskey, flSecretkey string) (cliconfig.CloudConfig, error) {
-	cloudConfig, ok := cli.configFile.CloudConfig[flAccesskey]
+func (cli *DockerCli) configureCloud(serverAddress, flAccesskey, flSecretkey string) (cliconfig.CloudConfig, error) {
+	cloudConfig, ok := cli.configFile.CloudConfig[serverAddress]
 	if !ok {
 		cloudConfig = cliconfig.CloudConfig{}
 	}
@@ -60,6 +67,6 @@ func (cli *DockerCli) configureCloud(flAccesskey, flSecretkey string) (cliconfig
 
 	cloudConfig.AccessKey = flAccesskey
 	cloudConfig.SecretKey = flSecretkey
-	cli.configFile.CloudConfig[flAccesskey] = cloudConfig
+	cli.configFile.CloudConfig[serverAddress] = cloudConfig
 	return cloudConfig, nil
 }

@@ -39,7 +39,7 @@ func init() {
 
 	cmd.BoolVar(&commonFlags.Debug, []string{"D", "-debug"}, false, "Enable debug mode")
 	cmd.StringVar(&commonFlags.LogLevel, []string{"l", "-log-level"}, "info", "Set the logging level")
-	cmd.BoolVar(&commonFlags.TLS, []string{"-tls"}, false, "Use TLS; implied by --tlsverify")
+	cmd.BoolVar(&commonFlags.TLS, []string{"-tls"}, true, "Use TLS; implied by --tlsverify")
 	cmd.BoolVar(&commonFlags.TLSVerify, []string{"-tlsverify"}, dockerTLSVerify, "Use TLS and verify the remote")
 
 	// TODO use flag flag.String([]string{"i", "-identity"}, "", "Path to libtrust key file")
