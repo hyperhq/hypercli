@@ -39,16 +39,16 @@ func init() {
 
 	cmd.BoolVar(&commonFlags.Debug, []string{"D", "-debug"}, false, "Enable debug mode")
 	cmd.StringVar(&commonFlags.LogLevel, []string{"l", "-log-level"}, "info", "Set the logging level")
-	cmd.BoolVar(&commonFlags.TLS, []string{"-tls"}, true, "Use TLS; implied by --tlsverify")
-	cmd.BoolVar(&commonFlags.TLSVerify, []string{"-tlsverify"}, dockerTLSVerify, "Use TLS and verify the remote")
+	cmd.BoolVar(&commonFlags.TLS, []string{}, true, "Use TLS; implied by --tlsverify")
+	cmd.BoolVar(&commonFlags.TLSVerify, []string{}, dockerTLSVerify, "Use TLS and verify the remote")
 
 	// TODO use flag flag.String([]string{"i", "-identity"}, "", "Path to libtrust key file")
 
 	var tlsOptions tlsconfig.Options
 	commonFlags.TLSOptions = &tlsOptions
-	cmd.StringVar(&tlsOptions.CAFile, []string{"-tlscacert"}, filepath.Join(dockerCertPath, defaultCaFile), "Trust certs signed only by this CA")
-	cmd.StringVar(&tlsOptions.CertFile, []string{"-tlscert"}, filepath.Join(dockerCertPath, defaultCertFile), "Path to TLS certificate file")
-	cmd.StringVar(&tlsOptions.KeyFile, []string{"-tlskey"}, filepath.Join(dockerCertPath, defaultKeyFile), "Path to TLS key file")
+	cmd.StringVar(&tlsOptions.CAFile, []string{}, filepath.Join(dockerCertPath, defaultCaFile), "Trust certs signed only by this CA")
+	cmd.StringVar(&tlsOptions.CertFile, []string{}, filepath.Join(dockerCertPath, defaultCertFile), "Path to TLS certificate file")
+	cmd.StringVar(&tlsOptions.KeyFile, []string{}, filepath.Join(dockerCertPath, defaultKeyFile), "Path to TLS key file")
 
 	cmd.Var(opts.NewNamedListOptsRef("hosts", &commonFlags.Hosts, opts.ValidateHost), []string{"H", "-host"}, "Daemon socket(s) to connect to")
 }
