@@ -87,7 +87,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		flIpcMode           = cmd.String([]string{}, "", "IPC namespace to use")
 		flRestartPolicy     = cmd.String([]string{"-restart"}, "no", "Restart policy to apply when a container exits")
 		flReadonlyRootfs    = cmd.Bool([]string{}, false, "Mount the container's root filesystem as read only")
-		flLoggingDriver     = cmd.String([]string{"-log-driver"}, "", "Logging driver for container")
+		flLoggingDriver     = cmd.String([]string{}, "", "Logging driver for container")
 		flCgroupParent      = cmd.String([]string{}, "", "Optional parent cgroup for the container")
 		flVolumeDriver      = cmd.String([]string{}, "", "Optional volume driver for the container")
 		flStopSignal        = cmd.String([]string{}, signal.DefaultStopSignal, fmt.Sprintf("Signal to stop a container, %v by default", signal.DefaultStopSignal))
@@ -123,7 +123,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 	cmd.Var(&flGroupAdd, []string{}, "Add additional groups to join")
 	cmd.Var(&flSecurityOpt, []string{}, "Security Options")
 	cmd.Var(flUlimits, []string{}, "Ulimit options")
-	cmd.Var(&flLoggingOpts, []string{"-log-opt"}, "Log driver options")
+	cmd.Var(&flLoggingOpts, []string{}, "Log driver options")
 
 	cmd.Require(flag.Min, 1)
 
