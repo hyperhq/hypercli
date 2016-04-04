@@ -13,7 +13,7 @@ import (
 // CmdUpdate updates resources of one or more containers.
 //
 // Usage: docker update [OPTIONS] CONTAINER [CONTAINER...]
-func (cli *DockerCli) CmdUpdate(args ...string) error {
+func (cli *DockerCli) Update(args ...string) error {
 	cmd := Cli.Subcmd("update", []string{"CONTAINER [CONTAINER...]"}, Cli.DockerCommands["update"].Description, true)
 	flBlkioWeight := cmd.Uint16([]string{"-blkio-weight"}, 0, "Block IO (relative weight), between 10 and 1000")
 	flCPUPeriod := cmd.Int64([]string{"-cpu-period"}, 0, "Limit CPU CFS (Completely Fair Scheduler) period")

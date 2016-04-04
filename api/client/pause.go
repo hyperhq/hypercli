@@ -11,7 +11,7 @@ import (
 // CmdPause pauses all processes within one or more containers.
 //
 // Usage: docker pause CONTAINER [CONTAINER...]
-func (cli *DockerCli) CmdPause(args ...string) error {
+func (cli *DockerCli) Pause(args ...string) error {
 	cmd := Cli.Subcmd("pause", []string{"CONTAINER [CONTAINER...]"}, Cli.DockerCommands["pause"].Description, true)
 	cmd.Require(flag.Min, 1)
 

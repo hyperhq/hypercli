@@ -13,7 +13,7 @@ import (
 // The tar archive is streamed to STDOUT by default or written to a file.
 //
 // Usage: docker export [OPTIONS] CONTAINER
-func (cli *DockerCli) CmdExport(args ...string) error {
+func (cli *DockerCli) Export(args ...string) error {
 	cmd := Cli.Subcmd("export", []string{"CONTAINER"}, Cli.DockerCommands["export"].Description, true)
 	outfile := cmd.String([]string{"o", "-output"}, "", "Write to a file, instead of STDOUT")
 	cmd.Require(flag.Exact, 1)

@@ -30,7 +30,7 @@ func (cli *DockerCli) CmdNetwork(args ...string) error {
 // CmdNetworkCreate creates a new network with a given name
 //
 // Usage: docker network create [OPTIONS] <NETWORK-NAME>
-func (cli *DockerCli) CmdNetworkCreate(args ...string) error {
+func (cli *DockerCli) NetworkCreate(args ...string) error {
 	cmd := Cli.Subcmd("network create", []string{"NETWORK-NAME"}, "Creates a new network with a name specified by the user", false)
 	flDriver := cmd.String([]string{"d", "-driver"}, "bridge", "Driver to manage the Network")
 	flOpts := opts.NewMapOpts(nil, nil)
@@ -90,7 +90,7 @@ func (cli *DockerCli) CmdNetworkCreate(args ...string) error {
 // CmdNetworkRm deletes one or more networks
 //
 // Usage: docker network rm NETWORK-NAME|NETWORK-ID [NETWORK-NAME|NETWORK-ID...]
-func (cli *DockerCli) CmdNetworkRm(args ...string) error {
+func (cli *DockerCli) NetworkRm(args ...string) error {
 	cmd := Cli.Subcmd("network rm", []string{"NETWORK [NETWORK...]"}, "Deletes one or more networks", false)
 	cmd.Require(flag.Min, 1)
 	if err := cmd.ParseFlags(args, true); err != nil {
@@ -114,7 +114,7 @@ func (cli *DockerCli) CmdNetworkRm(args ...string) error {
 // CmdNetworkConnect connects a container to a network
 //
 // Usage: docker network connect [OPTIONS] <NETWORK> <CONTAINER>
-func (cli *DockerCli) CmdNetworkConnect(args ...string) error {
+func (cli *DockerCli) NetworkConnect(args ...string) error {
 	cmd := Cli.Subcmd("network connect", []string{"NETWORK CONTAINER"}, "Connects a container to a network", false)
 	flIPAddress := cmd.String([]string{"-ip"}, "", "IP Address")
 	flIPv6Address := cmd.String([]string{"-ip6"}, "", "IPv6 Address")
@@ -140,7 +140,7 @@ func (cli *DockerCli) CmdNetworkConnect(args ...string) error {
 // CmdNetworkDisconnect disconnects a container from a network
 //
 // Usage: docker network disconnect <NETWORK> <CONTAINER>
-func (cli *DockerCli) CmdNetworkDisconnect(args ...string) error {
+func (cli *DockerCli) NetworkDisconnect(args ...string) error {
 	cmd := Cli.Subcmd("network disconnect", []string{"NETWORK CONTAINER"}, "Disconnects container from a network", false)
 	force := cmd.Bool([]string{"f", "-force"}, false, "Force the container to disconnect from a network")
 	cmd.Require(flag.Exact, 2)
@@ -154,7 +154,7 @@ func (cli *DockerCli) CmdNetworkDisconnect(args ...string) error {
 // CmdNetworkLs lists all the networks managed by docker daemon
 //
 // Usage: docker network ls [OPTIONS]
-func (cli *DockerCli) CmdNetworkLs(args ...string) error {
+func (cli *DockerCli) NetworkLs(args ...string) error {
 	cmd := Cli.Subcmd("network ls", nil, "Lists networks", true)
 	quiet := cmd.Bool([]string{"q", "-quiet"}, false, "Only display numeric IDs")
 	noTrunc := cmd.Bool([]string{"-no-trunc"}, false, "Do not truncate the output")
@@ -217,7 +217,7 @@ func (cli *DockerCli) CmdNetworkLs(args ...string) error {
 // CmdNetworkInspect inspects the network object for more details
 //
 // Usage: docker network inspect [OPTIONS] <NETWORK> [NETWORK...]
-func (cli *DockerCli) CmdNetworkInspect(args ...string) error {
+func (cli *DockerCli) NetworkInspect(args ...string) error {
 	cmd := Cli.Subcmd("network inspect", []string{"NETWORK [NETWORK...]"}, "Displays detailed information on one or more networks", false)
 	tmplStr := cmd.String([]string{"f", "-format"}, "", "Format the output using the given go template")
 	cmd.Require(flag.Min, 1)
