@@ -93,7 +93,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		flStopSignal        = cmd.String([]string{}, signal.DefaultStopSignal, fmt.Sprintf("Signal to stop a container, %v by default", signal.DefaultStopSignal))
 		flIsolation         = cmd.String([]string{}, "", "Container isolation level")
 		flShmSize           = cmd.String([]string{}, "", "Size of /dev/shm, default value is 64MB")
-		flInstanceType      = cmd.String([]string{"-size"}, "xxs", "The type for each instance (e.g. xxs, xs, s, m, l, xl, xxl)")
+		flInstanceType      = cmd.String([]string{"-size"}, "xs", "The type for each instance (e.g. xxs, xs, s, m, l, xl, xxl)")
 	)
 
 	cmd.Var(&flAttach, []string{"a", "-attach"}, "Attach to STDIN, STDOUT or STDERR")
