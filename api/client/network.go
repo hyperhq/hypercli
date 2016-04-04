@@ -19,7 +19,7 @@ import (
 // CmdNetwork is the parent subcommand for all network commands
 //
 // Usage: docker network <COMMAND> [OPTIONS]
-func (cli *DockerCli) CmdNetwork(args ...string) error {
+func (cli *DockerCli) Network(args ...string) error {
 	cmd := Cli.Subcmd("network", []string{"COMMAND [OPTIONS]"}, networkUsage(), false)
 	cmd.Require(flag.Min, 1)
 	err := cmd.ParseFlags(args, true)
