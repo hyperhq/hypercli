@@ -62,12 +62,14 @@ var dockerCommands = []Command{
 	{"start", "Start one or more stopped containers"},
 	{"stats", "Display a live stream of container(s) resource usage statistics"},
 	{"stop", "Stop a running container"},
-	{"tag", "Tag an image into a repository"},
+	//{"tag", "Tag an image into a repository"},
 	//{"top", "Display the running processes of a container"},
 	//{"unpause", "Unpause all processes within a container"},
 	//{"update", "Update resources of one or more containers"},
 	{"version", "Show the Hyper_ version information"},
 	{"volume", "Manage Hyper_ volumes"},
+	{"snapshot", "Manage Hyper_ snapshots"},
+	{"fip", "Manage Hyper_ floating IPs"},
 	//{"wait", "Block until a container stops, then print its exit code"},
 }
 
