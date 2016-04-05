@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/pkg/parsers"
+	"github.com/hyperhq/hypercli/daemon/graphdriver"
+	"github.com/hyperhq/hypercli/pkg/idtools"
+	"github.com/hyperhq/hypercli/pkg/mount"
+	"github.com/hyperhq/hypercli/pkg/parsers"
 	zfs "github.com/mistifyio/go-zfs"
 	"github.com/opencontainers/runc/libcontainer/label"
 )

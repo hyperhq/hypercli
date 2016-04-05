@@ -8,10 +8,10 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/discovery"
+	"github.com/hyperhq/hypercli/pkg/discovery"
 
 	// Register the libkv backends for discovery.
-	_ "github.com/docker/docker/pkg/discovery/kv"
+	_ "github.com/hyperhq/hypercli/pkg/discovery/kv"
 )
 
 const (

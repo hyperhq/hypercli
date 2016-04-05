@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/daemon/logger"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/daemon/logger"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/pkg/stdcopy"
 )
 
 // ContainerAttachWithLogsConfig holds the streams to use when connecting to a container to view logs.

@@ -5,9 +5,9 @@ import (
 	"io"
 
 	"github.com/Sirupsen/logrus"
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/promise"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/promise"
 	"github.com/docker/engine-api/types"
 )
 

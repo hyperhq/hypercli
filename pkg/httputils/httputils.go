@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/hyperhq/hypercli/pkg/jsonmessage"
 )
 
 var (

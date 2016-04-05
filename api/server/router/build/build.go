@@ -1,8 +1,8 @@
 package build
 
 import (
-	"github.com/docker/docker/api/server/router"
-	"github.com/docker/docker/api/server/router/local"
+	"github.com/hyperhq/hypercli/api/server/router"
+	"github.com/hyperhq/hypercli/api/server/router/local"
 )
 
 // buildRouter is a router to talk with the build controller

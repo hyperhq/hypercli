@@ -6,8 +6,8 @@ import (
 	"net"
 	"strings"
 
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/runconfig"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/runconfig"
 	"github.com/docker/engine-api/types/network"
 	"github.com/docker/libnetwork"
 )

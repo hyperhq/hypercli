@@ -3,9 +3,9 @@ package client
 import (
 	"fmt"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/pkg/archive"
-	flag "github.com/docker/docker/pkg/mflag"
+	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // CmdDiff shows changes on a container's filesystem.

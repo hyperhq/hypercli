@@ -1,7 +1,7 @@
 package build
 
 import (
-	"github.com/docker/docker/builder"
+	"github.com/hyperhq/hypercli/builder"
 	"github.com/docker/engine-api/types"
 	"io"
 )

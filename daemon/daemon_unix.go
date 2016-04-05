@@ -15,17 +15,17 @@ import (
 	"syscall"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/container"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/layer"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/pkg/parsers/kernel"
-	"github.com/docker/docker/pkg/sysinfo"
-	"github.com/docker/docker/reference"
-	"github.com/docker/docker/runconfig"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
+	"github.com/hyperhq/hypercli/container"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/image"
+	"github.com/hyperhq/hypercli/layer"
+	"github.com/hyperhq/hypercli/pkg/idtools"
+	"github.com/hyperhq/hypercli/pkg/parsers"
+	"github.com/hyperhq/hypercli/pkg/parsers/kernel"
+	"github.com/hyperhq/hypercli/pkg/sysinfo"
+	"github.com/hyperhq/hypercli/reference"
+	"github.com/hyperhq/hypercli/runconfig"
+	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
 	pblkiodev "github.com/docker/engine-api/types/blkiodev"
 	containertypes "github.com/docker/engine-api/types/container"
 	"github.com/docker/libnetwork"
@@ -172,7 +172,7 @@ func checkKernel() error {
 	// Unfortunately we can't test for the feature "does not cause a kernel panic"
 	// without actually causing a kernel panic, so we need this workaround until
 	// the circumstances of pre-3.10 crashes are clearer.
-	// For details see https://github.com/docker/docker/issues/407
+	// For details see https://github.com/hyperhq/hypercli/issues/407
 	if !checkKernelVersion(3, 10, 0) {
 		v, _ := kernel.GetKernelVersion()
 		if os.Getenv("DOCKER_NOWARN_KERNEL_VERSION") == "" {

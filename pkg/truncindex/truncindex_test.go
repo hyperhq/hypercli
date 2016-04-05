@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 )
 
 // Test the behavior of TruncIndex, an index for querying IDs from a non-conflicting prefix.

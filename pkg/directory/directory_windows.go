@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/docker/docker/pkg/longpath"
+	"github.com/hyperhq/hypercli/pkg/longpath"
 )
 
 // Size walks a directory tree and returns its total size in bytes.

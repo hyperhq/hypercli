@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/pkg/chrootarchive"
-	"github.com/docker/docker/pkg/idtools"
+	"github.com/hyperhq/hypercli/daemon/graphdriver"
+	"github.com/hyperhq/hypercli/pkg/chrootarchive"
+	"github.com/hyperhq/hypercli/pkg/idtools"
 
 	"github.com/opencontainers/runc/libcontainer/label"
 )

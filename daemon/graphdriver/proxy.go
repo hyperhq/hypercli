@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/docker/docker/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/archive"
 )
 
 type graphDriverProxy struct {

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 	"github.com/docker/engine-api/types"
 )
 

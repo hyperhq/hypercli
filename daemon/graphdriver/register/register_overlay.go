@@ -4,5 +4,5 @@ package register
 
 import (
 	// register the overlay graphdriver
-	_ "github.com/docker/docker/daemon/graphdriver/overlay"
+	_ "github.com/hyperhq/hypercli/daemon/graphdriver/overlay"
 )

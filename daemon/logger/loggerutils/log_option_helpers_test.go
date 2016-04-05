@@ -3,7 +3,7 @@ package loggerutils
 import (
 	"testing"
 
-	"github.com/docker/docker/daemon/logger"
+	"github.com/hyperhq/hypercli/daemon/logger"
 )
 
 func TestParseDefaultIgnoreFlag(t *testing.T) {

@@ -5,11 +5,11 @@ package daemon
 import (
 	"strings"
 
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/daemon/execdriver/windows"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/layer"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
+	"github.com/hyperhq/hypercli/daemon/execdriver/windows"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/layer"
 	networktypes "github.com/docker/engine-api/types/network"
 	"github.com/docker/libnetwork"
 )

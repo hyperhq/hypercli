@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	flag "github.com/docker/docker/pkg/mflag"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // Cli represents a command line interface.

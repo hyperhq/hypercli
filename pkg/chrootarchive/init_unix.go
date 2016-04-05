@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/docker/docker/pkg/reexec"
+	"github.com/hyperhq/hypercli/pkg/reexec"
 )
 
 func init() {

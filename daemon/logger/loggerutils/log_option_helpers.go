@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/docker/docker/daemon/logger"
+	"github.com/hyperhq/hypercli/daemon/logger"
 )
 
 const (

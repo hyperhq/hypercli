@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/hyperhq/hypercli/pkg/stdcopy"
 	"github.com/docker/engine-api/types"
 )
 

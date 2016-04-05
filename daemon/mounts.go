@@ -3,9 +3,9 @@ package daemon
 import (
 	"strings"
 
-	"github.com/docker/docker/container"
-	derr "github.com/docker/docker/errors"
-	volumestore "github.com/docker/docker/volume/store"
+	"github.com/hyperhq/hypercli/container"
+	derr "github.com/hyperhq/hypercli/errors"
+	volumestore "github.com/hyperhq/hypercli/volume/store"
 )
 
 func (daemon *Daemon) prepareMountPoints(container *container.Container) error {

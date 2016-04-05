@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/server/httputils"
-	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/docker/docker/utils"
+	"github.com/hyperhq/hypercli/api/server/httputils"
+	"github.com/hyperhq/hypercli/pkg/stdcopy"
+	"github.com/hyperhq/hypercli/utils"
 	"github.com/docker/engine-api/types"
 	"golang.org/x/net/context"
 )

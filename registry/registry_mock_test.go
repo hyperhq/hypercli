@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/opts"
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/opts"
+	"github.com/hyperhq/hypercli/reference"
 	registrytypes "github.com/docker/engine-api/types/registry"
 	"github.com/gorilla/mux"
 

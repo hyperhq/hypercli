@@ -9,13 +9,13 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/api/server/httputils"
-	"github.com/docker/docker/dockerversion"
-	"github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/authorization"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/version"
+	"github.com/hyperhq/hypercli/api"
+	"github.com/hyperhq/hypercli/api/server/httputils"
+	"github.com/hyperhq/hypercli/dockerversion"
+	"github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/pkg/authorization"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
+	"github.com/hyperhq/hypercli/pkg/version"
 	"golang.org/x/net/context"
 )
 
@@ -71,7 +71,7 @@ func (s *Server) authorizationMiddleware(handler httputils.APIFunc) httputils.AP
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 		// FIXME: fill when authN gets in
 		// User and UserAuthNMethod are taken from AuthN plugins
-		// Currently tracked in https://github.com/docker/docker/pull/13994
+		// Currently tracked in https://github.com/hyperhq/hypercli/pull/13994
 		user := ""
 		userAuthNMethod := ""
 		authCtx := authorization.NewCtx(s.authZPlugins, user, userAuthNMethod, r.Method, r.RequestURI)

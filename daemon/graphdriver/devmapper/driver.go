@@ -11,10 +11,10 @@ import (
 
 	"github.com/Sirupsen/logrus"
 
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/pkg/devicemapper"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/mount"
+	"github.com/hyperhq/hypercli/daemon/graphdriver"
+	"github.com/hyperhq/hypercli/pkg/devicemapper"
+	"github.com/hyperhq/hypercli/pkg/idtools"
+	"github.com/hyperhq/hypercli/pkg/mount"
 	"github.com/docker/go-units"
 )
 

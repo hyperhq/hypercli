@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/docker/distribution/registry/api/errcode"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 )
 
 var globalTestID string

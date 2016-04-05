@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/pkg/graphdb"
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/pkg/graphdb"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 	containertypes "github.com/docker/engine-api/types/container"
 )
 

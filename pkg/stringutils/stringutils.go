@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/docker/docker/pkg/random"
+	"github.com/hyperhq/hypercli/pkg/random"
 )
 
 // GenerateRandomAlphaOnlyString generates an alphabetical random string with length n.

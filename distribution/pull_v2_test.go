@@ -9,7 +9,7 @@ import (
 
 	"github.com/docker/distribution/digest"
 	"github.com/docker/distribution/manifest/schema1"
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/reference"
 )
 
 // TestFixManifestLayers checks that fixManifestLayers removes a duplicate

@@ -11,9 +11,9 @@ import (
 	"path"
 	"testing"
 
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/reexec"
+	"github.com/hyperhq/hypercli/daemon/graphdriver"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/reexec"
 )
 
 var (

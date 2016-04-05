@@ -6,7 +6,7 @@ import (
 
 	"github.com/docker/distribution/digest"
 	distreference "github.com/docker/distribution/reference"
-	"github.com/docker/docker/image/v1"
+	"github.com/hyperhq/hypercli/image/v1"
 )
 
 const (

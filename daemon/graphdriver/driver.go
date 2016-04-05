@@ -9,8 +9,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/idtools"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/idtools"
 )
 
 // FsMagic unsigned id of the filesystem in use.

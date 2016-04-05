@@ -5,7 +5,7 @@ package windows
 import (
 	"fmt"
 
-	"github.com/docker/docker/daemon/execdriver"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
 )
 
 // Update updates resource configs for a container.

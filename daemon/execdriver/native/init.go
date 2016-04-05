@@ -7,7 +7,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/docker/docker/pkg/reexec"
+	"github.com/hyperhq/hypercli/pkg/reexec"
 	"github.com/opencontainers/runc/libcontainer"
 )
 

@@ -23,7 +23,7 @@ func TestValidateReferenceName(t *testing.T) {
 		"thisisthesongthatneverendsitgoesonandonandonthisisthesongthatnev",
 	}
 	invalidRepoNames := []string{
-		"https://github.com/docker/docker",
+		"https://github.com/hyperhq/hypercli",
 		"docker/Docker",
 		"-docker",
 		"-docker/docker",

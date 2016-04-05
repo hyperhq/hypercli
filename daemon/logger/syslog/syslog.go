@@ -17,9 +17,9 @@ import (
 	syslog "github.com/RackSec/srslog"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/logger"
-	"github.com/docker/docker/daemon/logger/loggerutils"
-	"github.com/docker/docker/pkg/urlutil"
+	"github.com/hyperhq/hypercli/daemon/logger"
+	"github.com/hyperhq/hypercli/daemon/logger/loggerutils"
+	"github.com/hyperhq/hypercli/pkg/urlutil"
 	"github.com/docker/go-connections/tlsconfig"
 )
 

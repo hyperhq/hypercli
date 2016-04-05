@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/docker/pkg/symlink"
-	"github.com/docker/docker/pkg/urlutil"
+	"github.com/hyperhq/hypercli/pkg/symlink"
+	"github.com/hyperhq/hypercli/pkg/urlutil"
 )
 
 // Clone clones a repository into a newly created directory which

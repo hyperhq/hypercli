@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/pkg/discovery"
+	"github.com/hyperhq/hypercli/pkg/discovery"
 )
 
 // Discovery is exported

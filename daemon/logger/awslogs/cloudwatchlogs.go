@@ -18,8 +18,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/docker/docker/daemon/logger"
-	"github.com/docker/docker/dockerversion"
+	"github.com/hyperhq/hypercli/daemon/logger"
+	"github.com/hyperhq/hypercli/dockerversion"
 )
 
 const (

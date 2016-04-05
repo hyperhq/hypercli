@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/pkg/jsonmessage"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/reference"
-	"github.com/docker/docker/registry"
+	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/pkg/jsonmessage"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/reference"
+	"github.com/hyperhq/hypercli/registry"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 )

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export DOCKER_CLIENTONLY=yes
-dockerpath=$GOPATH/src/github.com/docker/docker/
+dockerpath=$GOPATH/src/github.com/hyperhq/hypercli/
 export GOPATH=$dockerpath/vendor:$GOPATH
-cd $dockerpath/docker
+cd $dockerpath/hyper
 go build .

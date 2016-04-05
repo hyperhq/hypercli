@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/docker/pkg/stringutils"
+	"github.com/hyperhq/hypercli/pkg/stringutils"
 	"github.com/syndtr/gocapability/capability"
 )
 

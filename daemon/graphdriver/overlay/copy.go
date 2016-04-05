@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/docker/docker/pkg/pools"
-	"github.com/docker/docker/pkg/system"
+	"github.com/hyperhq/hypercli/pkg/pools"
+	"github.com/hyperhq/hypercli/pkg/system"
 )
 
 type copyFlags int

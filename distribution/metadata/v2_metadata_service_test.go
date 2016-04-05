@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/layer"
+	"github.com/hyperhq/hypercli/layer"
 )
 
 func TestV2MetadataService(t *testing.T) {

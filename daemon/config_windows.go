@@ -3,7 +3,7 @@ package daemon
 import (
 	"os"
 
-	flag "github.com/docker/docker/pkg/mflag"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 var (

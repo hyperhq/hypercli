@@ -14,7 +14,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
 )
 
 var (

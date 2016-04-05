@@ -7,10 +7,10 @@ import (
 	"text/tabwriter"
 	"time"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/pkg/stringutils"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/stringid"
+	"github.com/hyperhq/hypercli/pkg/stringutils"
 	"github.com/docker/go-units"
 )
 

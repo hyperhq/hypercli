@@ -1,8 +1,8 @@
 package system
 
 import (
-	"github.com/docker/docker/api/server/router"
-	"github.com/docker/docker/api/server/router/local"
+	"github.com/hyperhq/hypercli/api/server/router"
+	"github.com/hyperhq/hypercli/api/server/router/local"
 )
 
 // systemRouter is a Router that provides information about

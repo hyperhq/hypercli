@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/pkg/pubsub"
+	"github.com/hyperhq/hypercli/pkg/pubsub"
 	eventtypes "github.com/docker/engine-api/types/events"
 )
 

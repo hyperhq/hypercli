@@ -11,7 +11,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/docker/docker/pkg/jsonlog"
+	"github.com/hyperhq/hypercli/pkg/jsonlog"
 )
 
 // ErrReadLogsNotSupported is returned when the logger does not support reading logs.

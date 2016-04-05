@@ -3,8 +3,8 @@ package daemon
 import (
 	"strings"
 
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/reference"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/reference"
 )
 
 func (d *Daemon) imageNotExistToErrcode(err error) error {

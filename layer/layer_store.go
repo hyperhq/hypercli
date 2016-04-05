@@ -9,10 +9,10 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/hyperhq/hypercli/daemon/graphdriver"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/idtools"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 	"github.com/vbatts/tar-split/tar/asm"
 	"github.com/vbatts/tar-split/tar/storage"
 )

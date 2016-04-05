@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/image"
+	"github.com/hyperhq/hypercli/image"
 )
 
 var (

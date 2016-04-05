@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/layer"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/progress"
+	"github.com/hyperhq/hypercli/image"
+	"github.com/hyperhq/hypercli/layer"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
+	"github.com/hyperhq/hypercli/pkg/progress"
 	"golang.org/x/net/context"
 )
 

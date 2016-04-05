@@ -35,13 +35,13 @@ func TestCleanupMounts(t *testing.T) {
 145 230 0:3 / /run/docker/netns/default rw - nsfs nsfs rw
 130 140 0:45 / /tmp/docker_recursive_mount_test312125472/tmpfs rw,relatime - tmpfs tmpfs rw
 131 230 0:3 / /run/docker/netns/47903e2e6701 rw - nsfs nsfs rw
-133 230 0:55 / /go/src/github.com/docker/docker/bundles/1.9.0-dev/test-integration-cli/d45526097/graph/containers/47903e2e67014246eba27607809d5f5c2437c3bf84c2986393448f84093cc40b/mqueue rw,nosuid,nodev,noexec,relatime - mqueue mqueue rw`
+133 230 0:55 / /go/src/github.com/hyperhq/hypercli/bundles/1.9.0-dev/test-integration-cli/d45526097/graph/containers/47903e2e67014246eba27607809d5f5c2437c3bf84c2986393448f84093cc40b/mqueue rw,nosuid,nodev,noexec,relatime - mqueue mqueue rw`
 
 	d := &Daemon{
-		repository: "/go/src/github.com/docker/docker/bundles/1.9.0-dev/test-integration-cli/d45526097/graph/containers/",
+		repository: "/go/src/github.com/hyperhq/hypercli/bundles/1.9.0-dev/test-integration-cli/d45526097/graph/containers/",
 	}
 
-	expected := "/go/src/github.com/docker/docker/bundles/1.9.0-dev/test-integration-cli/d45526097/graph/containers/47903e2e67014246eba27607809d5f5c2437c3bf84c2986393448f84093cc40b/mqueue"
+	expected := "/go/src/github.com/hyperhq/hypercli/bundles/1.9.0-dev/test-integration-cli/d45526097/graph/containers/47903e2e67014246eba27607809d5f5c2437c3bf84c2986393448f84093cc40b/mqueue"
 	var unmounted bool
 	unmount := func(target string) error {
 		if target == expected {

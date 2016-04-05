@@ -1,9 +1,9 @@
 package local
 
 import (
-	"github.com/docker/docker/api/server/httputils"
-	dkrouter "github.com/docker/docker/api/server/router"
-	"github.com/docker/docker/daemon"
+	"github.com/hyperhq/hypercli/api/server/httputils"
+	dkrouter "github.com/hyperhq/hypercli/api/server/router"
+	"github.com/hyperhq/hypercli/daemon"
 )
 
 // router is a docker router that talks with the local docker daemon.

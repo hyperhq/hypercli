@@ -5,10 +5,10 @@ package daemon
 import (
 	"sort"
 
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/daemon/execdriver"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/volume"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/volume"
 )
 
 // setupMounts configures the mount points for a container by appending each

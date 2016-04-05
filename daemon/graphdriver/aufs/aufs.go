@@ -35,13 +35,13 @@ import (
 
 	"github.com/Sirupsen/logrus"
 
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/chrootarchive"
-	"github.com/docker/docker/pkg/directory"
-	"github.com/docker/docker/pkg/idtools"
-	mountpk "github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/hyperhq/hypercli/daemon/graphdriver"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/chrootarchive"
+	"github.com/hyperhq/hypercli/pkg/directory"
+	"github.com/hyperhq/hypercli/pkg/idtools"
+	mountpk "github.com/hyperhq/hypercli/pkg/mount"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 
 	"github.com/opencontainers/runc/libcontainer/label"
 )

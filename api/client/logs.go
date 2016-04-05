@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/stdcopy"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/stdcopy"
 	"github.com/docker/engine-api/types"
 )
 

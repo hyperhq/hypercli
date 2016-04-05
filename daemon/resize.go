@@ -3,7 +3,7 @@ package daemon
 import (
 	"fmt"
 
-	derr "github.com/docker/docker/errors"
+	derr "github.com/hyperhq/hypercli/errors"
 )
 
 // ContainerResize changes the size of the TTY of the process running

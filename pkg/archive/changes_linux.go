@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/docker/docker/pkg/system"
+	"github.com/hyperhq/hypercli/pkg/system"
 )
 
 // walker is used to implement collectFileInfoForChanges on linux. Where this

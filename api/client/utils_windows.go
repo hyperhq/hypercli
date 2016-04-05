@@ -5,7 +5,7 @@ package client
 import (
 	"path/filepath"
 
-	"github.com/docker/docker/pkg/longpath"
+	"github.com/hyperhq/hypercli/pkg/longpath"
 )
 
 func getContextRoot(srcPath string) (string, error) {

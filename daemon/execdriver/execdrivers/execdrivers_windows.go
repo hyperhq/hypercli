@@ -3,9 +3,9 @@
 package execdrivers
 
 import (
-	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/daemon/execdriver/windows"
-	"github.com/docker/docker/pkg/sysinfo"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
+	"github.com/hyperhq/hypercli/daemon/execdriver/windows"
+	"github.com/hyperhq/hypercli/pkg/sysinfo"
 )
 
 // NewDriver returns a new execdriver.Driver from the given name configured with the provided options.

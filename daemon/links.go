@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/pkg/graphdb"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/pkg/graphdb"
 )
 
 // linkIndex stores link relationships between containers, including their specified alias

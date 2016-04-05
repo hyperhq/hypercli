@@ -4,10 +4,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/daemon/execdriver"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/runconfig"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/pkg/stringid"
+	"github.com/hyperhq/hypercli/runconfig"
 )
 
 // Config holds the configurations for execs. The Daemon keeps

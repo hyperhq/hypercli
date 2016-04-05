@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/docker/docker/pkg/plugins"
+	"github.com/hyperhq/hypercli/pkg/plugins"
 )
 
 type pluginClient interface {

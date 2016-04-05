@@ -5,9 +5,9 @@ package vfs
 import (
 	"testing"
 
-	"github.com/docker/docker/daemon/graphdriver/graphtest"
+	"github.com/hyperhq/hypercli/daemon/graphdriver/graphtest"
 
-	"github.com/docker/docker/pkg/reexec"
+	"github.com/hyperhq/hypercli/pkg/reexec"
 )
 
 func init() {

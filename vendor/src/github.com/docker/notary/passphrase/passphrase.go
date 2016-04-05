@@ -12,7 +12,7 @@ import (
 
 	"path/filepath"
 
-	"github.com/docker/docker/pkg/term"
+	"github.com/hyperhq/hypercli/pkg/term"
 )
 
 // Retriever is a callback function that should retrieve a passphrase

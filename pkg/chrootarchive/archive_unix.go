@@ -13,8 +13,8 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/reexec"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/reexec"
 )
 
 func chroot(path string) error {

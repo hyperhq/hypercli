@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/docker/container"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/container"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/image"
+	"github.com/hyperhq/hypercli/pkg/stringid"
+	"github.com/hyperhq/hypercli/reference"
 	"github.com/docker/engine-api/types"
 )
 

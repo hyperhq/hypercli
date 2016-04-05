@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	psignal "github.com/docker/docker/pkg/signal"
+	psignal "github.com/hyperhq/hypercli/pkg/signal"
 )
 
 func setupDumpStackTrap() {

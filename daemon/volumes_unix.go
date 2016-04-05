@@ -7,11 +7,11 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/volume"
-	volumedrivers "github.com/docker/docker/volume/drivers"
-	"github.com/docker/docker/volume/local"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
+	"github.com/hyperhq/hypercli/volume"
+	volumedrivers "github.com/hyperhq/hypercli/volume/drivers"
+	"github.com/hyperhq/hypercli/volume/local"
 )
 
 // setupMounts iterates through each of the mount points for a container and

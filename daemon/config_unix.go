@@ -5,9 +5,9 @@ package daemon
 import (
 	"net"
 
-	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
+	"github.com/hyperhq/hypercli/opts"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
 	"github.com/docker/go-units"
 )
 

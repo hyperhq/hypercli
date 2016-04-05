@@ -5,10 +5,10 @@ import (
 	"text/template"
 	"time"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/dockerversion"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/utils"
+	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/dockerversion"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/utils"
 	"github.com/docker/engine-api/types"
 )
 

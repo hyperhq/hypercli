@@ -18,9 +18,9 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/mount"
+	"github.com/hyperhq/hypercli/daemon/graphdriver"
+	"github.com/hyperhq/hypercli/pkg/idtools"
+	"github.com/hyperhq/hypercli/pkg/mount"
 	"github.com/opencontainers/runc/libcontainer/label"
 )
 

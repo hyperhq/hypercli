@@ -3,8 +3,8 @@ package client
 import (
 	"fmt"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // CmdLogout logs a user out from a Docker registry.

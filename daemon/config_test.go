@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/opts"
-	"github.com/docker/docker/pkg/mflag"
+	"github.com/hyperhq/hypercli/opts"
+	"github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 func TestDaemonConfigurationMerge(t *testing.T) {

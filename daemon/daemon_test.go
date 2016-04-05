@@ -8,21 +8,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/pkg/discovery"
-	_ "github.com/docker/docker/pkg/discovery/memory"
-	"github.com/docker/docker/pkg/registrar"
-	"github.com/docker/docker/pkg/truncindex"
-	"github.com/docker/docker/volume"
-	volumedrivers "github.com/docker/docker/volume/drivers"
-	"github.com/docker/docker/volume/local"
-	"github.com/docker/docker/volume/store"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/pkg/discovery"
+	_ "github.com/hyperhq/hypercli/pkg/discovery/memory"
+	"github.com/hyperhq/hypercli/pkg/registrar"
+	"github.com/hyperhq/hypercli/pkg/truncindex"
+	"github.com/hyperhq/hypercli/volume"
+	volumedrivers "github.com/hyperhq/hypercli/volume/drivers"
+	"github.com/hyperhq/hypercli/volume/local"
+	"github.com/hyperhq/hypercli/volume/store"
 	containertypes "github.com/docker/engine-api/types/container"
 	"github.com/docker/go-connections/nat"
 )
 
 //
-// https://github.com/docker/docker/issues/8069
+// https://github.com/hyperhq/hypercli/issues/8069
 //
 
 func TestGetContainer(t *testing.T) {

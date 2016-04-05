@@ -13,7 +13,7 @@ import (
 
 	"github.com/Microsoft/hcsshim"
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/execdriver"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
 )
 
 // defaultContainerNAT is the default name of the container NAT device that is

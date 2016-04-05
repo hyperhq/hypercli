@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/docker/docker/pkg/broadcaster"
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/hyperhq/hypercli/pkg/broadcaster"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
 )
 
 // StreamConfig holds information about I/O streams managed together.

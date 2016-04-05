@@ -5,8 +5,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // CmdTop displays the running processes of a container.

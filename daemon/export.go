@@ -3,10 +3,10 @@ package daemon
 import (
 	"io"
 
-	"github.com/docker/docker/container"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/hyperhq/hypercli/container"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
 )
 
 // ContainerExport writes the contents of the container to the given

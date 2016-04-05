@@ -13,9 +13,9 @@ import (
 
 	"github.com/Graylog2/go-gelf/gelf"
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/logger"
-	"github.com/docker/docker/daemon/logger/loggerutils"
-	"github.com/docker/docker/pkg/urlutil"
+	"github.com/hyperhq/hypercli/daemon/logger"
+	"github.com/hyperhq/hypercli/daemon/logger/loggerutils"
+	"github.com/hyperhq/hypercli/pkg/urlutil"
 )
 
 const name = "gelf"

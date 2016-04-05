@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/docker/pkg/discovery"
+	"github.com/hyperhq/hypercli/pkg/discovery"
 
 	"github.com/go-check/check"
 )

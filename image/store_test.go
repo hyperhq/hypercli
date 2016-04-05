@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/layer"
+	"github.com/hyperhq/hypercli/layer"
 )
 
 func TestRestore(t *testing.T) {

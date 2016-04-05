@@ -6,7 +6,7 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/docker/docker/pkg/system"
+	"github.com/hyperhq/hypercli/pkg/system"
 )
 
 func statDifferent(oldStat *system.StatT, newStat *system.StatT) bool {

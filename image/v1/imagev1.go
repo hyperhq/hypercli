@@ -8,9 +8,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/layer"
-	"github.com/docker/docker/pkg/version"
+	"github.com/hyperhq/hypercli/image"
+	"github.com/hyperhq/hypercli/layer"
+	"github.com/hyperhq/hypercli/pkg/version"
 )
 
 var validHex = regexp.MustCompile(`^([a-f0-9]{64})$`)

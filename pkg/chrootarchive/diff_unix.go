@@ -12,9 +12,9 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/reexec"
-	"github.com/docker/docker/pkg/system"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/reexec"
+	"github.com/hyperhq/hypercli/pkg/system"
 )
 
 type applyLayerResponse struct {

@@ -8,12 +8,12 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/cli"
-	"github.com/docker/docker/cliconfig"
-	"github.com/docker/docker/dockerversion"
-	"github.com/docker/docker/opts"
-	"github.com/docker/docker/pkg/term"
+	"github.com/hyperhq/hypercli/api"
+	"github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/cliconfig"
+	"github.com/hyperhq/hypercli/dockerversion"
+	"github.com/hyperhq/hypercli/opts"
+	"github.com/hyperhq/hypercli/pkg/term"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/go-connections/tlsconfig"
 )
@@ -109,7 +109,7 @@ func (cli *DockerCli) restoreTerminal(in io.Closer) error {
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.
 // The key file, protocol (i.e. unix) and address are passed in as strings, along with the tls.Config. If the tls.Config
 // is set the client scheme will be set to https.
-// The client will be given a 32-second timeout (see https://github.com/docker/docker/pull/8035).
+// The client will be given a 32-second timeout (see https://github.com/hyperhq/hypercli/pull/8035).
 func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientFlags) *DockerCli {
 	cli := &DockerCli{
 		in:      in,

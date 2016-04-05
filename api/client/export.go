@@ -4,8 +4,8 @@ import (
 	"errors"
 	"io"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // CmdExport exports a filesystem as a tar archive.

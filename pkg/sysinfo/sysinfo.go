@@ -1,6 +1,6 @@
 package sysinfo
 
-import "github.com/docker/docker/pkg/parsers"
+import "github.com/hyperhq/hypercli/pkg/parsers"
 
 // SysInfo stores information about which features a kernel supports.
 // TODO Windows: Factor out platform specific capabilities.

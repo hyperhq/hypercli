@@ -7,10 +7,10 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/stringutils"
-	"github.com/docker/docker/registry"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/stringutils"
+	"github.com/hyperhq/hypercli/registry"
 	"github.com/docker/engine-api/types"
 	registrytypes "github.com/docker/engine-api/types/registry"
 )

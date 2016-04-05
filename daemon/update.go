@@ -3,7 +3,7 @@ package daemon
 import (
 	"fmt"
 
-	derr "github.com/docker/docker/errors"
+	derr "github.com/hyperhq/hypercli/errors"
 	"github.com/docker/engine-api/types/container"
 )
 

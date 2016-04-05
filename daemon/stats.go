@@ -6,8 +6,8 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/pkg/version"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
+	"github.com/hyperhq/hypercli/pkg/version"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/versions/v1p20"
 )

@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
 )
 
 func TestApplyLayerInvalidFilenames(t *testing.T) {

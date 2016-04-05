@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"strings"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/term"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/term"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 )

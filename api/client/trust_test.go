@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/docker/registry"
+	"github.com/hyperhq/hypercli/registry"
 	registrytypes "github.com/docker/engine-api/types/registry"
 )
 

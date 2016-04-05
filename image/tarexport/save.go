@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/image/v1"
-	"github.com/docker/docker/layer"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/image"
+	"github.com/hyperhq/hypercli/image/v1"
+	"github.com/hyperhq/hypercli/layer"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/reference"
 )
 
 type imageDescriptor struct {

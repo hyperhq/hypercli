@@ -1,8 +1,8 @@
 package metadata
 
 import (
-	"github.com/docker/docker/image/v1"
-	"github.com/docker/docker/layer"
+	"github.com/hyperhq/hypercli/image/v1"
+	"github.com/hyperhq/hypercli/layer"
 )
 
 // V1IDService maps v1 IDs to layers on disk.

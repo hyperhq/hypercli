@@ -6,7 +6,7 @@ import (
 	"text/template"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/logger"
+	"github.com/hyperhq/hypercli/daemon/logger"
 )
 
 // ParseLogTag generates a context aware tag for consistency across different

@@ -4,10 +4,10 @@ import (
 	"io"
 	"time"
 
-	"github.com/docker/docker/daemon"
-	"github.com/docker/docker/daemon/exec"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/version"
+	"github.com/hyperhq/hypercli/daemon"
+	"github.com/hyperhq/hypercli/daemon/exec"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/version"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 )

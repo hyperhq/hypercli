@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/docker/layer"
+	"github.com/hyperhq/hypercli/layer"
 )
 
 func TestV1IDService(t *testing.T) {

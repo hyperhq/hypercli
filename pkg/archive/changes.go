@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/pools"
-	"github.com/docker/docker/pkg/system"
+	"github.com/hyperhq/hypercli/pkg/idtools"
+	"github.com/hyperhq/hypercli/pkg/pools"
+	"github.com/hyperhq/hypercli/pkg/system"
 )
 
 // ChangeType represents the change type.
@@ -151,7 +151,7 @@ func Changes(layers []string, rw string) ([]Change, error) {
 		// If /foo/bar/file.txt is modified, then /foo/bar must be part of the changed files.
 		// This block is here to ensure the change is recorded even if the
 		// modify time, mode and size of the parent directory in the rw and ro layers are all equal.
-		// Check https://github.com/docker/docker/pull/13590 for details.
+		// Check https://github.com/hyperhq/hypercli/pull/13590 for details.
 		if f.IsDir() {
 			changedDirs[path] = struct{}{}
 		}

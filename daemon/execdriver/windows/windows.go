@@ -9,9 +9,9 @@ import (
 	"sync"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/dockerversion"
-	"github.com/docker/docker/pkg/parsers"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
+	"github.com/hyperhq/hypercli/dockerversion"
+	"github.com/hyperhq/hypercli/pkg/parsers"
 	"github.com/docker/engine-api/types/container"
 	"golang.org/x/sys/windows/registry"
 )

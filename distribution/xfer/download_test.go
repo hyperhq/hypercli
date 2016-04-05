@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/layer"
-	"github.com/docker/docker/pkg/progress"
+	"github.com/hyperhq/hypercli/image"
+	"github.com/hyperhq/hypercli/layer"
+	"github.com/hyperhq/hypercli/pkg/progress"
 	"golang.org/x/net/context"
 )
 

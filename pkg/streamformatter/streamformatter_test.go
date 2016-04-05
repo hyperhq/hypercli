@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/hyperhq/hypercli/pkg/jsonmessage"
 )
 
 func TestFormatStream(t *testing.T) {

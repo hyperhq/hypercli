@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/signal"
-	"github.com/docker/docker/pkg/term"
-	"github.com/docker/docker/registry"
+	"github.com/hyperhq/hypercli/pkg/signal"
+	"github.com/hyperhq/hypercli/pkg/term"
+	"github.com/hyperhq/hypercli/registry"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 	registrytypes "github.com/docker/engine-api/types/registry"

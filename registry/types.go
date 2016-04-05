@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/reference"
 	registrytypes "github.com/docker/engine-api/types/registry"
 )
 

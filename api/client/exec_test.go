@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	flag "github.com/docker/docker/pkg/mflag"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/docker/engine-api/types"
 )
 

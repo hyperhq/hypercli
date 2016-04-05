@@ -3,9 +3,9 @@ package daemon
 import (
 	"fmt"
 
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/volume"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/pkg/stringid"
+	"github.com/hyperhq/hypercli/volume"
 	containertypes "github.com/docker/engine-api/types/container"
 )
 

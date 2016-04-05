@@ -8,13 +8,13 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/docker/docker/dockerversion"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/layer"
-	"github.com/docker/docker/pkg/httputils"
-	"github.com/docker/docker/pkg/progress"
-	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/dockerversion"
+	"github.com/hyperhq/hypercli/image"
+	"github.com/hyperhq/hypercli/layer"
+	"github.com/hyperhq/hypercli/pkg/httputils"
+	"github.com/hyperhq/hypercli/pkg/progress"
+	"github.com/hyperhq/hypercli/pkg/streamformatter"
+	"github.com/hyperhq/hypercli/reference"
 	"github.com/docker/engine-api/types/container"
 )
 

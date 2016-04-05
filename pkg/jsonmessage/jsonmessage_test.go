@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/pkg/jsonlog"
-	"github.com/docker/docker/pkg/term"
+	"github.com/hyperhq/hypercli/pkg/jsonlog"
+	"github.com/hyperhq/hypercli/pkg/term"
 )
 
 func TestError(t *testing.T) {

@@ -18,12 +18,12 @@ import (
 	"syscall"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/fileutils"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/pools"
-	"github.com/docker/docker/pkg/promise"
-	"github.com/docker/docker/pkg/system"
+	"github.com/hyperhq/hypercli/pkg/fileutils"
+	"github.com/hyperhq/hypercli/pkg/idtools"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
+	"github.com/hyperhq/hypercli/pkg/pools"
+	"github.com/hyperhq/hypercli/pkg/promise"
+	"github.com/hyperhq/hypercli/pkg/system"
 )
 
 type (

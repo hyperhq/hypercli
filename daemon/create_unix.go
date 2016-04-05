@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/container"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/hyperhq/hypercli/container"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 	containertypes "github.com/docker/engine-api/types/container"
 	"github.com/opencontainers/runc/libcontainer/label"
 )

@@ -1,8 +1,8 @@
 package daemon
 
 import (
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/daemon/execdriver"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
 	"github.com/docker/engine-api/types"
 )
 

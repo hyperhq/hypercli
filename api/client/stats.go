@@ -10,7 +10,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	Cli "github.com/docker/docker/cli"
+	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/go-units"
 )

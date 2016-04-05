@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // CmdUnpause unpauses all processes within a container, for one or more containers.

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/runconfig"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/runconfig"
 	"github.com/docker/engine-api/types/container"
 	networktypes "github.com/docker/engine-api/types/network"
 	"github.com/docker/go-connections/nat"

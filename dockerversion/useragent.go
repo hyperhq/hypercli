@@ -3,8 +3,8 @@ package dockerversion
 import (
 	"runtime"
 
-	"github.com/docker/docker/pkg/parsers/kernel"
-	"github.com/docker/docker/pkg/useragent"
+	"github.com/hyperhq/hypercli/pkg/parsers/kernel"
+	"github.com/hyperhq/hypercli/pkg/useragent"
 )
 
 // DockerUserAgent is the User-Agent the Docker client uses to identify itself.

@@ -2,7 +2,7 @@ package opts
 
 import (
 	"fmt"
-	fopts "github.com/docker/docker/opts"
+	fopts "github.com/hyperhq/hypercli/opts"
 	"net"
 	"os"
 	"strings"

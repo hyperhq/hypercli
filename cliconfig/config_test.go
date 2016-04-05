@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/pkg/homedir"
+	"github.com/hyperhq/hypercli/pkg/homedir"
 	"github.com/docker/engine-api/types"
 )
 

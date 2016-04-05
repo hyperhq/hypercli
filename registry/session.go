@@ -20,11 +20,11 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/registry/api/errcode"
-	"github.com/docker/docker/pkg/httputils"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/pkg/tarsum"
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/pkg/httputils"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
+	"github.com/hyperhq/hypercli/pkg/stringid"
+	"github.com/hyperhq/hypercli/pkg/tarsum"
+	"github.com/hyperhq/hypercli/reference"
 	"github.com/docker/engine-api/types"
 	registrytypes "github.com/docker/engine-api/types/registry"
 )

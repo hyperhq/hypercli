@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/opts"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/reference"
 	registrytypes "github.com/docker/engine-api/types/registry"
 )
 

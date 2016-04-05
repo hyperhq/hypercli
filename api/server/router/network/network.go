@@ -3,10 +3,10 @@ package network
 import (
 	"net/http"
 
-	"github.com/docker/docker/api/server/httputils"
-	"github.com/docker/docker/api/server/router"
-	"github.com/docker/docker/api/server/router/local"
-	"github.com/docker/docker/errors"
+	"github.com/hyperhq/hypercli/api/server/httputils"
+	"github.com/hyperhq/hypercli/api/server/router"
+	"github.com/hyperhq/hypercli/api/server/router/local"
+	"github.com/hyperhq/hypercli/errors"
 	"golang.org/x/net/context"
 )
 

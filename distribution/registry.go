@@ -14,9 +14,9 @@ import (
 	"github.com/docker/distribution/registry/client"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
-	"github.com/docker/docker/distribution/xfer"
-	"github.com/docker/docker/dockerversion"
-	"github.com/docker/docker/registry"
+	"github.com/hyperhq/hypercli/distribution/xfer"
+	"github.com/hyperhq/hypercli/dockerversion"
+	"github.com/hyperhq/hypercli/registry"
 	"github.com/docker/engine-api/types"
 	"golang.org/x/net/context"
 )

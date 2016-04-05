@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/docker/docker/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/archive"
 )
 
 func TestMountInit(t *testing.T) {

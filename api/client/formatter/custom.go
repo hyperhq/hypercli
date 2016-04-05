@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/pkg/stringutils"
+	"github.com/hyperhq/hypercli/api"
+	"github.com/hyperhq/hypercli/pkg/stringid"
+	"github.com/hyperhq/hypercli/pkg/stringutils"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/go-units"
 )

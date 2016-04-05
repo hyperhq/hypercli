@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/pkg/progress"
+	"github.com/hyperhq/hypercli/pkg/jsonmessage"
+	"github.com/hyperhq/hypercli/pkg/progress"
 )
 
 // StreamFormatter formats a stream, optionally using JSON.

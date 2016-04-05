@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/execdriver"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
 )
 
 // General comment. Handling I/O for a container is very different to Linux.

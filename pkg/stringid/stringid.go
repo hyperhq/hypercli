@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/docker/pkg/random"
+	"github.com/hyperhq/hypercli/pkg/random"
 )
 
 const shortLen = 12

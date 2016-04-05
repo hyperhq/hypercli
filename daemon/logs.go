@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/daemon/logger"
-	"github.com/docker/docker/daemon/logger/jsonfilelog"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/daemon/logger"
+	"github.com/hyperhq/hypercli/daemon/logger/jsonfilelog"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/pkg/stdcopy"
 )
 
 // ContainerLogsConfig holds configs for logging operations. Exists

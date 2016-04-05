@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/pkg/signal"
+	"github.com/hyperhq/hypercli/opts"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/mount"
+	"github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/docker/engine-api/types/container"
 	networktypes "github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/strslice"
@@ -391,7 +391,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		// Make sure the dns fields are never nil.
 		// New containers don't ever have those fields nil,
 		// but pre created containers can still have those nil values.
-		// See https://github.com/docker/docker/pull/17779
+		// See https://github.com/hyperhq/hypercli/pull/17779
 		// for a more detailed explanation on why we don't want that.
 		DNS:            flDNS.GetAllOrEmpty(),
 		DNSSearch:      flDNSSearch.GetAllOrEmpty(),

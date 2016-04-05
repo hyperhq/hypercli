@@ -4,7 +4,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/docker/docker/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/archive"
 )
 
 type mountedLayer struct {

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/daemon/events"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/daemon/events"
 	containertypes "github.com/docker/engine-api/types/container"
 	eventtypes "github.com/docker/engine-api/types/events"
 )

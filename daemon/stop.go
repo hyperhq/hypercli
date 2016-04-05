@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/container"
-	derr "github.com/docker/docker/errors"
+	"github.com/hyperhq/hypercli/container"
+	derr "github.com/hyperhq/hypercli/errors"
 )
 
 // ContainerStop looks for the given container and terminates it,

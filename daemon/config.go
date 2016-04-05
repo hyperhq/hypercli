@@ -10,9 +10,9 @@ import (
 	"sync"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/opts"
-	"github.com/docker/docker/pkg/discovery"
-	flag "github.com/docker/docker/pkg/mflag"
+	"github.com/hyperhq/hypercli/opts"
+	"github.com/hyperhq/hypercli/pkg/discovery"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/imdario/mergo"
 )
 

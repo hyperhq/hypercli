@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/image/v1"
-	"github.com/docker/docker/layer"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/chrootarchive"
-	"github.com/docker/docker/pkg/symlink"
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/image"
+	"github.com/hyperhq/hypercli/image/v1"
+	"github.com/hyperhq/hypercli/layer"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	"github.com/hyperhq/hypercli/pkg/chrootarchive"
+	"github.com/hyperhq/hypercli/pkg/symlink"
+	"github.com/hyperhq/hypercli/reference"
 )
 
 func (l *tarexporter) Load(inTar io.ReadCloser, outStream io.Writer) error {

@@ -1,6 +1,6 @@
 package cli
 
-import flag "github.com/docker/docker/pkg/mflag"
+import flag "github.com/hyperhq/hypercli/pkg/mflag"
 
 // ClientFlags represents flags for the docker client.
 type ClientFlags struct {

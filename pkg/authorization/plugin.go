@@ -1,6 +1,6 @@
 package authorization
 
-import "github.com/docker/docker/pkg/plugins"
+import "github.com/hyperhq/hypercli/pkg/plugins"
 
 // Plugin allows third party plugins to authorize requests and responses
 // in the context of docker API

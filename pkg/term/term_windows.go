@@ -9,8 +9,8 @@ import (
 	"syscall"
 
 	"github.com/Azure/go-ansiterm/winterm"
-	"github.com/docker/docker/pkg/system"
-	"github.com/docker/docker/pkg/term/windows"
+	"github.com/hyperhq/hypercli/pkg/system"
+	"github.com/hyperhq/hypercli/pkg/term/windows"
 )
 
 // State holds the console mode for the terminal.

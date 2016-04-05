@@ -1,6 +1,6 @@
 package image
 
-import "github.com/docker/docker/layer"
+import "github.com/hyperhq/hypercli/layer"
 
 // Append appends a new diffID to rootfs
 func (r *RootFS) Append(id layer.DiffID) {

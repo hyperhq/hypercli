@@ -6,9 +6,9 @@ import (
 	"runtime"
 	"strings"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/cliconfig"
-	flag "github.com/docker/docker/pkg/mflag"
+	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/cliconfig"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // CmdConfig

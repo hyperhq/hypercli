@@ -3,7 +3,7 @@ package daemon
 import (
 	"time"
 
-	"github.com/docker/docker/container"
+	"github.com/hyperhq/hypercli/container"
 )
 
 // newStatsCollector returns a new statsCollector for collection stats

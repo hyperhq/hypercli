@@ -4,19 +4,19 @@ import "testing"
 
 var (
 	gitUrls = []string{
-		"git://github.com/docker/docker",
+		"git://github.com/hyperhq/hypercli",
 		"git@github.com:docker/docker.git",
 		"git@bitbucket.org:atlassianlabs/atlassian-docker.git",
-		"https://github.com/docker/docker.git",
-		"http://github.com/docker/docker.git",
-		"http://github.com/docker/docker.git#branch",
-		"http://github.com/docker/docker.git#:dir",
+		"https://github.com/hyperhq/hypercli.git",
+		"http://github.com/hyperhq/hypercli.git",
+		"http://github.com/hyperhq/hypercli.git#branch",
+		"http://github.com/hyperhq/hypercli.git#:dir",
 	}
 	incompleteGitUrls = []string{
-		"github.com/docker/docker",
+		"github.com/hyperhq/hypercli",
 	}
 	invalidGitUrls = []string{
-		"http://github.com/docker/docker.git:#branch",
+		"http://github.com/hyperhq/hypercli.git:#branch",
 	}
 )
 

@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/logger"
-	"github.com/docker/docker/pkg/filenotify"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/jsonlog"
-	"github.com/docker/docker/pkg/tailfile"
+	"github.com/hyperhq/hypercli/daemon/logger"
+	"github.com/hyperhq/hypercli/pkg/filenotify"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
+	"github.com/hyperhq/hypercli/pkg/jsonlog"
+	"github.com/hyperhq/hypercli/pkg/tailfile"
 )
 
 const maxJSONDecodeRetry = 20000

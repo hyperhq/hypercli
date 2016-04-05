@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/container"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/layer"
-	volumestore "github.com/docker/docker/volume/store"
+	"github.com/hyperhq/hypercli/container"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/layer"
+	volumestore "github.com/hyperhq/hypercli/volume/store"
 	"github.com/docker/engine-api/types"
 )
 

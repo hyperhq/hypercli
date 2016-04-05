@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/pkg/archive"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/system"
+	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/pkg/archive"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/system"
 	"github.com/docker/engine-api/types"
 )
 

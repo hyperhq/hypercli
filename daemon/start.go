@@ -5,9 +5,9 @@ import (
 	"runtime"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/container"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/runconfig"
+	"github.com/hyperhq/hypercli/container"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/runconfig"
 	containertypes "github.com/docker/engine-api/types/container"
 )
 

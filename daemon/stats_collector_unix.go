@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/container"
-	"github.com/docker/docker/daemon/execdriver"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/pubsub"
+	"github.com/hyperhq/hypercli/container"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/pkg/pubsub"
 	"github.com/opencontainers/runc/libcontainer/system"
 )
 

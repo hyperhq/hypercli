@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/pkg/ioutils"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/utils"
+	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/utils"
 	"github.com/docker/go-units"
 )
 

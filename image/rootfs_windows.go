@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/layer"
+	"github.com/hyperhq/hypercli/layer"
 )
 
 // RootFS describes images root filesystem

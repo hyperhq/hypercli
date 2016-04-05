@@ -8,7 +8,7 @@ import (
 	"text/tabwriter"
 	"text/template"
 
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/reference"
 	"github.com/docker/engine-api/types"
 )
 

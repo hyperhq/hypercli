@@ -8,12 +8,12 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/docker/docker/daemon/execdriver"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/profiles/seccomp"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
+	derr "github.com/hyperhq/hypercli/errors"
+	"github.com/hyperhq/hypercli/pkg/mount"
+	"github.com/hyperhq/hypercli/profiles/seccomp"
 
-	"github.com/docker/docker/volume"
+	"github.com/hyperhq/hypercli/volume"
 	"github.com/opencontainers/runc/libcontainer/apparmor"
 	"github.com/opencontainers/runc/libcontainer/configs"
 	"github.com/opencontainers/runc/libcontainer/devices"

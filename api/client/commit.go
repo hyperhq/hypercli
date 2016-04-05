@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/reference"
+	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/opts"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/reference"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 )

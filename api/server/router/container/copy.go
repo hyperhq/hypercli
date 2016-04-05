@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/docker/api/server/httputils"
+	"github.com/hyperhq/hypercli/api/server/httputils"
 	"github.com/docker/engine-api/types"
 	"golang.org/x/net/context"
 )

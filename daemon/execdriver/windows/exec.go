@@ -7,7 +7,7 @@ import (
 
 	"github.com/Microsoft/hcsshim"
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/execdriver"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
 )
 
 // Exec implements the exec driver Driver interface.

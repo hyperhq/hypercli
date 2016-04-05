@@ -3,7 +3,7 @@ package memory
 import (
 	"time"
 
-	"github.com/docker/docker/pkg/discovery"
+	"github.com/hyperhq/hypercli/pkg/discovery"
 )
 
 // Discovery implements a descovery backend that keeps

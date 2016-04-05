@@ -1,8 +1,8 @@
 package daemon
 
 import (
-	"github.com/docker/docker/container"
-	derr "github.com/docker/docker/errors"
+	"github.com/hyperhq/hypercli/container"
+	derr "github.com/hyperhq/hypercli/errors"
 )
 
 // ContainerUnpause unpauses a container

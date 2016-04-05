@@ -3,7 +3,7 @@ package daemon
 import (
 	"strings"
 
-	"github.com/docker/docker/container"
+	"github.com/hyperhq/hypercli/container"
 	"github.com/docker/engine-api/types/events"
 	"github.com/docker/libnetwork"
 )

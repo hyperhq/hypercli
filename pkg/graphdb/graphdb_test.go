@@ -488,7 +488,7 @@ func TestPurgeId(t *testing.T) {
 	}
 }
 
-// Regression test https://github.com/docker/docker/issues/12334
+// Regression test https://github.com/hyperhq/hypercli/issues/12334
 func TestPurgeIdRefPaths(t *testing.T) {
 	db, dbpath := newTestDb(t)
 	defer destroyTestDb(dbpath)

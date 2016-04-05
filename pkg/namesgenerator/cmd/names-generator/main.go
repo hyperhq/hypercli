@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/docker/docker/pkg/namesgenerator"
+	"github.com/hyperhq/hypercli/pkg/namesgenerator"
 )
 
 func main() {

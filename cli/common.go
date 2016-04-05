@@ -1,7 +1,7 @@
 package cli
 
 import (
-	flag "github.com/docker/docker/pkg/mflag"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/docker/go-connections/tlsconfig"
 )
 

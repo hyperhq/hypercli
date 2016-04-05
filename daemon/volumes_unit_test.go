@@ -3,7 +3,7 @@ package daemon
 import (
 	"testing"
 
-	"github.com/docker/docker/volume"
+	"github.com/hyperhq/hypercli/volume"
 )
 
 func TestParseVolumesFrom(t *testing.T) {

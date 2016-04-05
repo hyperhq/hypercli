@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/execdriver"
+	"github.com/hyperhq/hypercli/daemon/execdriver"
 )
 
 // createCommandLine creates a command line from the Entrypoint and args

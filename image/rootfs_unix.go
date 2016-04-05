@@ -2,7 +2,7 @@
 
 package image
 
-import "github.com/docker/docker/layer"
+import "github.com/hyperhq/hypercli/layer"
 
 // RootFS describes images root filesystem
 // This is currently a placeholder that only supports layers. In the future

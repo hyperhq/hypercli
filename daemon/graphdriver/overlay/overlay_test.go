@@ -5,7 +5,7 @@ package overlay
 import (
 	"testing"
 
-	"github.com/docker/docker/daemon/graphdriver/graphtest"
+	"github.com/hyperhq/hypercli/daemon/graphdriver/graphtest"
 )
 
 // This avoids creating a new driver for each test if all tests are run

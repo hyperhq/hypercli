@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/docker/reference"
+	"github.com/hyperhq/hypercli/reference"
 	"github.com/docker/go-connections/tlsconfig"
 )
 

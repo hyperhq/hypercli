@@ -4,9 +4,9 @@ import (
 	"io"
 	"os"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/pkg/jsonmessage"
-	flag "github.com/docker/docker/pkg/mflag"
+	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/pkg/jsonmessage"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // CmdLoad loads an image from a tar archive.

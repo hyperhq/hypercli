@@ -5,12 +5,12 @@ import (
 	"io"
 	"os"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/opts"
-	"github.com/docker/docker/pkg/jsonmessage"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/urlutil"
-	"github.com/docker/docker/reference"
+	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/opts"
+	"github.com/hyperhq/hypercli/pkg/jsonmessage"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/urlutil"
+	"github.com/hyperhq/hypercli/reference"
 	"github.com/docker/engine-api/types"
 )
 

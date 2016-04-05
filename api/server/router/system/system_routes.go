@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/api/server/httputils"
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/hyperhq/hypercli/api"
+	"github.com/hyperhq/hypercli/api/server/httputils"
+	"github.com/hyperhq/hypercli/pkg/ioutils"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/events"
 	"github.com/docker/engine-api/types/filters"

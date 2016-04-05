@@ -1,7 +1,7 @@
 package daemon
 
 import (
-	"github.com/docker/docker/container"
+	"github.com/hyperhq/hypercli/container"
 	"github.com/docker/engine-api/types"
 )
 
