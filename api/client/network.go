@@ -6,14 +6,14 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/filters"
+	"github.com/docker/engine-api/types/network"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
-	"github.com/docker/engine-api/types/network"
 )
 
 // CmdNetwork is the parent subcommand for all network commands
@@ -373,6 +373,6 @@ func networkUsage() string {
 		help += fmt.Sprintf("  %-25.25s%s\n", cmd, description)
 	}
 
-	help += fmt.Sprintf("\nRun 'docker network COMMAND --help' for more information on a command.")
+	help += fmt.Sprintf("\nRun 'hyper network COMMAND --help' for more information on a command.")
 	return help
 }

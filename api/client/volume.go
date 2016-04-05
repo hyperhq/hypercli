@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"text/tabwriter"
 
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/filters"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
 )
 
 // CmdVolume is the parent subcommand for all volume commands
@@ -27,7 +27,7 @@ func (cli *DockerCli) CmdVolume(args ...string) error {
 		description += fmt.Sprintf("  %-25.25s%s\n", cmd[0], cmd[1])
 	}
 
-	description += "\nRun 'docker volume COMMAND --help' for more information on a command"
+	description += "\nRun 'hyper volume COMMAND --help' for more information on a command"
 	cmd := Cli.Subcmd("volume", []string{"[COMMAND]"}, description, false)
 
 	cmd.Require(flag.Exact, 0)

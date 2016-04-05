@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"text/tabwriter"
 
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/filters"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
 )
 
 // CmdFip is the parent subcommand for all fip commands
@@ -157,6 +157,6 @@ func fipUsage() string {
 		help += fmt.Sprintf("  %-25.25s%s\n", cmd, description)
 	}
 
-	help += fmt.Sprintf("\nRun 'docker fip COMMAND --help' for more information on a command.")
+	help += fmt.Sprintf("\nRun 'hyper fip COMMAND --help' for more information on a command.")
 	return help
 }
