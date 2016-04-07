@@ -53,7 +53,7 @@ func (cli *Client) postHijacked(path string, query url.Values, body interface{},
 	conn, err := dial(cli.proto, cli.addr, cli.tlsConfig)
 	if err != nil {
 		if strings.Contains(err.Error(), "connection refused") {
-			return types.HijackedResponse{}, fmt.Errorf("Cannot connect to the Docker daemon. Is 'docker daemon' running on this host?")
+			return types.HijackedResponse{}, ErrConnectionFailed
 		}
 		return types.HijackedResponse{}, err
 	}
