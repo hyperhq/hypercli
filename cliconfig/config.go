@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hyperhq/hypercli/pkg/homedir"
 	"github.com/docker/engine-api/types"
+	"github.com/hyperhq/hypercli/pkg/homedir"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	configDir = os.Getenv("DOCKER_CONFIG")
+	configDir = os.Getenv("HYPER_CONFIG")
 )
 
 func init() {

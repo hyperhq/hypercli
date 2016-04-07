@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/go-connections/tlsconfig"
 	"github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/cliconfig"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/go-connections/tlsconfig"
 )
 
 const (
@@ -24,8 +24,8 @@ const (
 var (
 	commonFlags = &cli.CommonFlags{FlagSet: new(flag.FlagSet)}
 
-	dockerCertPath  = os.Getenv("DOCKER_CERT_PATH")
-	dockerTLSVerify = os.Getenv("DOCKER_TLS_VERIFY") != ""
+	dockerCertPath  = os.Getenv("HYPER_CERT_PATH")
+	dockerTLSVerify = os.Getenv("HYPER_TLS_VERIFY") != ""
 )
 
 func init() {
