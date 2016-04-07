@@ -19,13 +19,6 @@ import (
 	"github.com/docker/distribution/digest"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
-	"github.com/hyperhq/hypercli/cliconfig"
-	"github.com/hyperhq/hypercli/distribution"
-	"github.com/hyperhq/hypercli/dockerversion"
-	"github.com/hyperhq/hypercli/pkg/jsonmessage"
-	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/hyperhq/hypercli/reference"
-	"github.com/hyperhq/hypercli/registry"
 	apiclient "github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 	registrytypes "github.com/docker/engine-api/types/registry"
@@ -36,6 +29,13 @@ import (
 	"github.com/docker/notary/tuf/data"
 	"github.com/docker/notary/tuf/signed"
 	"github.com/docker/notary/tuf/store"
+	"github.com/hyperhq/hypercli/cliconfig"
+	"github.com/hyperhq/hypercli/distribution"
+	"github.com/hyperhq/hypercli/dockerversion"
+	"github.com/hyperhq/hypercli/pkg/jsonmessage"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/reference"
+	"github.com/hyperhq/hypercli/registry"
 )
 
 var (
@@ -45,7 +45,7 @@ var (
 
 func addTrustedFlags(fs *flag.FlagSet, verify bool) {
 	var trusted bool
-	if e := os.Getenv("DOCKER_CONTENT_TRUST"); e != "" {
+	if e := os.Getenv("HYPER_CONTENT_TRUST"); e != "" {
 		if t, err := strconv.ParseBool(e); t || err != nil {
 			// treat any other value as true
 			trusted = true
@@ -85,7 +85,7 @@ func (cli *DockerCli) certificateDirectory(server string) (string, error) {
 }
 
 func trustServer(index *registrytypes.IndexInfo) (string, error) {
-	if s := os.Getenv("DOCKER_CONTENT_TRUST_SERVER"); s != "" {
+	if s := os.Getenv("HYPER_CONTENT_TRUST_SERVER"); s != "" {
 		urlObj, err := url.Parse(s)
 		if err != nil || urlObj.Scheme != "https" {
 			return "", fmt.Errorf("valid https URL required for trust server, got %s", s)
@@ -198,25 +198,25 @@ func (cli *DockerCli) getPassphraseRetriever() passphrase.Retriever {
 	}
 	baseRetriever := passphrase.PromptRetrieverWithInOut(cli.in, cli.out, aliasMap)
 	env := map[string]string{
-		"root":             os.Getenv("DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE"),
-		"snapshot":         os.Getenv("DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE"),
-		"targets":          os.Getenv("DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE"),
-		"targets/releases": os.Getenv("DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE"),
+		"root":             os.Getenv("HYPER_CONTENT_TRUST_ROOT_PASSPHRASE"),
+		"snapshot":         os.Getenv("HYPER_CONTENT_TRUST_REPOSITORY_PASSPHRASE"),
+		"targets":          os.Getenv("HYPER_CONTENT_TRUST_REPOSITORY_PASSPHRASE"),
+		"targets/releases": os.Getenv("HYPER_CONTENT_TRUST_REPOSITORY_PASSPHRASE"),
 	}
 
 	// Backwards compatibility with old env names. We should remove this in 1.10
 	if env["root"] == "" {
-		if passphrase := os.Getenv("DOCKER_CONTENT_TRUST_OFFLINE_PASSPHRASE"); passphrase != "" {
+		if passphrase := os.Getenv("HYPER_CONTENT_TRUST_OFFLINE_PASSPHRASE"); passphrase != "" {
 			env["root"] = passphrase
-			fmt.Fprintf(cli.err, "[DEPRECATED] The environment variable DOCKER_CONTENT_TRUST_OFFLINE_PASSPHRASE has been deprecated and will be removed in v1.10. Please use DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE\n")
+			fmt.Fprintf(cli.err, "[DEPRECATED] The environment variable HYPER_CONTENT_TRUST_OFFLINE_PASSPHRASE has been deprecated and will be removed in v1.10. Please use HYPER_CONTENT_TRUST_ROOT_PASSPHRASE\n")
 		}
 	}
 	if env["snapshot"] == "" || env["targets"] == "" || env["targets/releases"] == "" {
-		if passphrase := os.Getenv("DOCKER_CONTENT_TRUST_TAGGING_PASSPHRASE"); passphrase != "" {
+		if passphrase := os.Getenv("HYPER_CONTENT_TRUST_TAGGING_PASSPHRASE"); passphrase != "" {
 			env["snapshot"] = passphrase
 			env["targets"] = passphrase
 			env["targets/releases"] = passphrase
-			fmt.Fprintf(cli.err, "[DEPRECATED] The environment variable DOCKER_CONTENT_TRUST_TAGGING_PASSPHRASE has been deprecated and will be removed in v1.10. Please use DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE\n")
+			fmt.Fprintf(cli.err, "[DEPRECATED] The environment variable HYPER_CONTENT_TRUST_TAGGING_PASSPHRASE has been deprecated and will be removed in v1.10. Please use HYPER_CONTENT_TRUST_REPOSITORY_PASSPHRASE\n")
 		}
 	}
 
@@ -273,7 +273,7 @@ func notaryError(repoName string, err error) error {
 	switch err.(type) {
 	case *json.SyntaxError:
 		logrus.Debugf("Notary syntax error: %s", err)
-		return fmt.Errorf("Error: no trust data available for remote repository %s. Try running notary server and setting DOCKER_CONTENT_TRUST_SERVER to its HTTPS address?", repoName)
+		return fmt.Errorf("Error: no trust data available for remote repository %s. Try running notary server and setting HYPER_CONTENT_TRUST_SERVER to its HTTPS address?", repoName)
 	case signed.ErrExpired:
 		return fmt.Errorf("Error: remote repository %s out-of-date: %v", repoName, err)
 	case trustmanager.ErrKeyNotFound:

@@ -8,14 +8,14 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/docker/engine-api/client"
+	"github.com/docker/go-connections/tlsconfig"
 	"github.com/hyperhq/hypercli/api"
 	"github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/cliconfig"
 	"github.com/hyperhq/hypercli/dockerversion"
 	"github.com/hyperhq/hypercli/opts"
 	"github.com/hyperhq/hypercli/pkg/term"
-	"github.com/docker/engine-api/client"
-	"github.com/docker/go-connections/tlsconfig"
 )
 
 // DockerCli represents the docker command line client.
@@ -138,7 +138,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		customHeaders["User-Agent"] = "Docker-Client/" + dockerversion.Version + " (" + runtime.GOOS + ")"
 
 		verStr := api.DefaultVersion.String()
-		if tmpStr := os.Getenv("DOCKER_API_VERSION"); tmpStr != "" {
+		if tmpStr := os.Getenv("HYPER_API_VERSION"); tmpStr != "" {
 			verStr = tmpStr
 		}
 
