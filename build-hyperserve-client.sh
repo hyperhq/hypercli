@@ -1,7 +1,8 @@
 #!/bin/bash
 
+CLI_ROOT=$(dirname "{BASH_SOURCE}")
 export DOCKER_CLIENTONLY=yes
-dockerpath=$GOPATH/src/github.com/hyperhq/hypercli/
-export GOPATH=$dockerpath/vendor:$GOPATH
-cd $dockerpath/hyper
+cd ${CLI_ROOT}
+export GOPATH=$(pwd)/vendor:$GOPATH
+cd $(pwd)/hyper
 go build .
