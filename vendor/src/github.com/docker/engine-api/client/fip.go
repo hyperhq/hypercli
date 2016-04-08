@@ -43,7 +43,7 @@ func (cli *Client) FipAssociate(ip, container string) error {
 	return nil
 }
 
-func (cli *Client) FipDeassociate(container string) (string, error) {
+func (cli *Client) FipDisassociate(container string) (string, error) {
 	var result string
 	var v = url.Values{}
 	v.Set("container", container)
