@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/docker/go-units"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/pkg/ioutils"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/utils"
-	"github.com/docker/go-units"
 )
 
 // CmdInfo displays system-wide information.
@@ -98,7 +98,8 @@ func (cli *DockerCli) CmdInfo(args ...string) error {
 	}
 
 	// Only output these warnings if the server does not support these features
-	if info.OSType != "windows" {
+	// and the client is in debug mode
+	if utils.IsDebugEnabled() && info.OSType != "windows" {
 		if !info.MemoryLimit {
 			fmt.Fprintln(cli.err, "WARNING: No memory limit support")
 		}
