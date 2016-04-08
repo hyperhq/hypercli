@@ -77,7 +77,7 @@ type APIClient interface {
 	FipAllocate(count string) ([]string, error)
 	FipRelease(ip string) error
 	FipAssociate(ip, container string) error
-	FipDeassociate(container string) (string, error)
+	FipDisassociate(container string) (string, error)
 	FipList(opts types.NetworkListOptions) ([]map[string]string, error)
 }
 
