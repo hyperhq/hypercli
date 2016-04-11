@@ -9,6 +9,7 @@ import (
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 )
 
 // CmdVolume is the parent subcommand for all volume commands
@@ -68,7 +69,7 @@ func (cli *DockerCli) CmdVolumeLs(args ...string) error {
 		for _, warn := range volumes.Warnings {
 			fmt.Fprintln(cli.err, warn)
 		}
-		fmt.Fprintf(w, "DRIVER \tVOLUME NAME")
+		fmt.Fprintf(w, "DRIVER \tVOLUME NAME\tSIZE\tCONTAINER")
 		fmt.Fprintf(w, "\n")
 	}
 
@@ -77,7 +78,15 @@ func (cli *DockerCli) CmdVolumeLs(args ...string) error {
 			fmt.Fprintln(w, vol.Name)
 			continue
 		}
-		fmt.Fprintf(w, "%s\t%s\n", vol.Driver, vol.Name)
+		var size, container string
+		if vol.Labels != nil {
+			size = vol.Labels["size"]
+			container = vol.Labels["container"]
+			if container != "" {
+				container = stringid.TruncateID(container)
+			}
+		}
+		fmt.Fprintf(w, "%s\t%s\t%s GB\t%s\n", vol.Driver, vol.Name, size, container)
 	}
 	w.Flush()
 	return nil
