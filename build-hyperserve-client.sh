@@ -39,4 +39,4 @@ export DOCKER_CLIENTONLY=yes
 cd ${CLI_ROOT}
 export GOPATH=$(pwd)/vendor:$GOPATH
 cd $(pwd)/hyper
-go build -tags autogen .
+go build -ldflags "-s -w" -tags autogen .
