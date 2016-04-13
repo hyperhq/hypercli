@@ -10,9 +10,9 @@ import (
 	"text/tabwriter"
 	"time"
 
-	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/go-units"
+	Cli "github.com/hyperhq/hypercli/cli"
 )
 
 type containerStats struct {
@@ -196,7 +196,7 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 	if len(errs) > 0 {
 		return fmt.Errorf("%s", strings.Join(errs, ", "))
 	}
-	for range time.Tick(500 * time.Millisecond) {
+	for range time.Tick(1000 * time.Millisecond) {
 		printHeader()
 		toRemove := []int{}
 		cStats.mu.Lock()
@@ -225,13 +225,11 @@ func calculateCPUPercent(previousCPU, previousSystem uint64, v *types.StatsJSON)
 	var (
 		cpuPercent = 0.0
 		// calculate the change for the cpu usage of the container in between readings
-		cpuDelta = float64(v.CPUStats.CPUUsage.TotalUsage) - float64(previousCPU)
-		// calculate the change for the entire system between readings
-		systemDelta = float64(v.CPUStats.SystemUsage) - float64(previousSystem)
+		cpuDelta = float64(v.CPUStats.CPUUsage.TotalUsage)
 	)
 
-	if systemDelta > 0.0 && cpuDelta > 0.0 {
-		cpuPercent = (cpuDelta / systemDelta) * float64(len(v.CPUStats.CPUUsage.PercpuUsage)) * 100.0
+	if cpuDelta > 0.0 {
+		cpuPercent = 100.0 * cpuDelta / float64(len(v.CPUStats.CPUUsage.PercpuUsage)*1000000000.0)
 	}
 	return cpuPercent
 }
