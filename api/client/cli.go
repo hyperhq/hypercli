@@ -46,6 +46,7 @@ type DockerCli struct {
 	client client.APIClient
 	// state holds the terminal state
 	state *term.State
+	host  string
 }
 
 // Initialize calls the init function that will setup the configuration for the client
@@ -161,6 +162,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 			return err
 		}
 		cli.client = client
+		cli.host = host
 
 		if cli.in != nil {
 			cli.inFd, cli.isTerminalIn = term.GetFdInfo(cli.in)

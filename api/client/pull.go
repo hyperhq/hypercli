@@ -4,13 +4,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/docker/engine-api/client"
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/pkg/jsonmessage"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/reference"
 	"github.com/hyperhq/hypercli/registry"
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
 )
 
 // CmdPull pulls an image or a repository from the registry.
@@ -31,6 +31,10 @@ func (cli *DockerCli) CmdPull(args ...string) error {
 	}
 	if *allTags && !reference.IsNameOnly(distributionRef) {
 		return errors.New("tag can't be used with --all-tags/-a")
+	}
+
+	if err = cli.checkCloudConfig(); err != nil {
+		return err
 	}
 
 	if !*allTags && reference.IsNameOnly(distributionRef) {

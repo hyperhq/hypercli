@@ -7,12 +7,12 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/docker/engine-api/types"
+	registrytypes "github.com/docker/engine-api/types/registry"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/stringutils"
 	"github.com/hyperhq/hypercli/registry"
-	"github.com/docker/engine-api/types"
-	registrytypes "github.com/docker/engine-api/types/registry"
 )
 
 // CmdSearch searches the Docker Hub for images.
@@ -33,6 +33,10 @@ func (cli *DockerCli) CmdSearch(args ...string) error {
 
 	indexInfo, err := registry.ParseSearchIndexInfo(name)
 	if err != nil {
+		return err
+	}
+
+	if err = cli.checkCloudConfig(); err != nil {
 		return err
 	}
 
