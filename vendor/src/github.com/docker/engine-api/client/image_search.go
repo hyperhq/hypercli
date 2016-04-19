@@ -17,7 +17,7 @@ func (cli *Client) ImageSearch(options types.ImageSearchOptions, privilegeFunc R
 	query.Set("term", options.Term)
 
 	resp, err := cli.tryImageSearch(query, options.RegistryAuth)
-	if resp.statusCode == http.StatusUnauthorized {
+	if resp.statusCode == http.StatusProxyAuthRequired {
 		newAuthHeader, privilegeErr := privilegeFunc()
 		if privilegeErr != nil {
 			return results, privilegeErr

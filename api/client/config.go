@@ -16,7 +16,7 @@ import (
 // Usage: hyper config
 func (cli *DockerCli) CmdConfig(args ...string) error {
 	cmd := Cli.Subcmd("config", []string{"[SERVER]"}, Cli.DockerCommands["config"].Description+".\nIf no server is specified, the default is defined as "+cliconfig.DefaultHyperServer, true)
-	cmd.Require(flag.Max, 0)
+	cmd.Require(flag.Max, 1)
 
 	flAccesskey := cmd.String([]string{"-accesskey"}, "", "Access Key")
 	flSecretkey := cmd.String([]string{"-secretkey"}, "", "Secret Key")
@@ -69,4 +69,12 @@ func (cli *DockerCli) configureCloud(serverAddress, flAccesskey, flSecretkey str
 	cloudConfig.SecretKey = flSecretkey
 	cli.configFile.CloudConfig[serverAddress] = cloudConfig
 	return cloudConfig, nil
+}
+
+func (cli *DockerCli) checkCloudConfig() error {
+	_, ok := cli.configFile.CloudConfig[cli.host]
+	if !ok {
+		return fmt.Errorf("Config info for the host is not found, please run 'hyper config %s' first.", cli.host)
+	}
+	return nil
 }

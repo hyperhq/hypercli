@@ -20,7 +20,7 @@ func (cli *Client) ImagePull(options types.ImagePullOptions, privilegeFunc Reque
 	}
 
 	resp, err := cli.tryImageCreate(query, options.RegistryAuth)
-	if resp.statusCode == http.StatusUnauthorized {
+	if resp.statusCode == http.StatusProxyAuthRequired {
 		newAuthHeader, privilegeErr := privilegeFunc()
 		if privilegeErr != nil {
 			return nil, privilegeErr
