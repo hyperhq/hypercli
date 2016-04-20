@@ -1,13 +1,15 @@
 package client
 
 import (
+	"encoding/json"
 	"net/url"
 
 	"github.com/docker/engine-api/types"
 )
 
 // ContainerRemove kills and removes a container from the docker host.
-func (cli *Client) ContainerRemove(options types.ContainerRemoveOptions) error {
+func (cli *Client) ContainerRemove(options types.ContainerRemoveOptions) ([]string, error) {
+	var warnings []string
 	query := url.Values{}
 	if options.RemoveVolumes {
 		query.Set("v", "1")
@@ -21,6 +23,7 @@ func (cli *Client) ContainerRemove(options types.ContainerRemoveOptions) error {
 	}
 
 	resp, err := cli.delete("/containers/"+options.ContainerID, query, nil)
+	json.NewDecoder(resp.body).Decode(&warnings)
 	ensureReaderClosed(resp)
-	return err
+	return warnings, err
 }

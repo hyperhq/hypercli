@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/engine-api/types"
 )
 
 // CmdRm removes one or more containers.
@@ -28,27 +28,33 @@ func (cli *DockerCli) CmdRm(args ...string) error {
 		}
 		name = strings.Trim(name, "/")
 
-		if err := cli.removeContainer(name, *v, *link, *force); err != nil {
+		warnings, err := cli.removeContainer(name, *v, *link, *force)
+		if err != nil {
 			errs = append(errs, err.Error())
 		} else {
 			fmt.Fprintf(cli.out, "%s\n", name)
+			for _, w := range warnings {
+				fmt.Fprintf(cli.out, "NOTICE : %s\n", w)
+			}
 		}
 	}
+
 	if len(errs) > 0 {
 		return fmt.Errorf("%s", strings.Join(errs, "\n"))
 	}
 	return nil
 }
 
-func (cli *DockerCli) removeContainer(containerID string, removeVolumes, removeLinks, force bool) error {
+func (cli *DockerCli) removeContainer(containerID string, removeVolumes, removeLinks, force bool) ([]string, error) {
 	options := types.ContainerRemoveOptions{
 		ContainerID:   containerID,
 		RemoveVolumes: removeVolumes,
 		RemoveLinks:   removeLinks,
 		Force:         force,
 	}
-	if err := cli.client.ContainerRemove(options); err != nil {
-		return err
+	warnings, err := cli.client.ContainerRemove(options)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	return warnings, nil
 }
