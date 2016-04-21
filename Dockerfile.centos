@@ -1,0 +1,82 @@
+FROM centos:7.2.1511
+
+##########################################
+### build image from Dockerfile.centos ###
+##########################################
+# docker build -t hyperhq/hypercli -f Dockerfile.centos .
+
+#######################
+### build hyper cli ###
+#######################
+# docker run -it --rm \
+#    -v $(pwd):/go/src/github.com/hyperhq/hypercli \
+#    hyperhq/hypercli ./build-hyperserve-client.sh
+
+#######################
+### enter container ###
+#######################
+## use zenlayer (just set the ACCESS_KEY and SECRET_KEY)
+# docker run -it --rm \
+#    -e DOCKER_TLS_VERIFY=1 \
+#    -e DOCKER_HOST=tcp://us-west-1.hyper.sh:443 \
+#    -e ACCESS_KEY=6DPxxxxxxxxxxxxxxxxxxxxYY \
+#    -e SECRET_KEY=2VrxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxZ3 \
+#    -v $(pwd):/go/src/github.com/hyperhq/hypercli \
+#    hyperhq/hypercli bash
+
+## user packet
+# docker run -it --rm \
+#    -e DOCKER_HOST=tcp://147.75.195.39:6443 \
+#    -e ACCESS_KEY=RE5xxxxxxxxxxxxxxxxxxxxxxxxxBP \
+#    -e SECRET_KEY=J7Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxvy \
+#    -v $(pwd):/go/src/github.com/hyperhq/hypercli \
+#    hyperhq/hypercli bash
+
+########################
+### run in container ###
+########################
+#Example:
+#  ./build-hyperserve-client.sh               # build hyper cli
+#  hyper -H \${DOCKER_HOST} pull busybox      # pull image
+#  hyper -H \${DOCKER_HOST} images            # list images
+#  cd integration-cli && go test              # start autotest
+
+
+##########################################################################
+RUN yum install -y\
+ automake\
+ gcc\
+ wget\
+ time\
+ git
+
+
+# Install Go
+ENV GO_VERSION 1.5.3
+RUN wget http://golangtc.com/static/go/1.5.3/go1.5.3.linux-amd64.tar.gz
+#RUN wget http://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
+RUN tar -xzf go${GO_VERSION}.linux-amd64.tar.gz -C /usr/local
+
+# Env
+ENV PATH /go/bin:/usr/local/go/bin:$PATH
+ENV GOPATH /go:/go/src/github.com/hyperhq/hypercli/vendor
+
+ENV DOCKER_TLS_VERIFY=
+ENV DOCKER_CERT_PATH=fixtures/hyper_ssl
+ENV DOCKER_HOST=
+ENV ACCESS_KEY=
+ENV SECRET_KEY=
+
+
+# Ensure /usr/bin/hyper
+RUN ln -s /go/src/github.com/hyperhq/hypercli/hyper/hyper /usr/bin/hyper
+
+
+# Ensure /go/src/github.com/docker/docker
+RUN mkdir -p /go/src/github.com/docker
+RUN ln -s /go/src/github.com/hyperhq/hypercli /go/src/github.com/docker/docker
+
+
+WORKDIR /go/src/github.com/hyperhq/hypercli
+VOLUME ["/go/src/github.com/hyperhq/hypercli"]
+ENTRYPOINT ["hack/generate-hyper-conf.sh"]

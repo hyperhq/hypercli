@@ -11,7 +11,7 @@ import (
 
 var (
 	// the docker binary to use
-	dockerBinary = "docker"
+	dockerBinary = "hyper"
 
 	// the private registry image to use for tests involving the registry
 	registryImageName = "registry"

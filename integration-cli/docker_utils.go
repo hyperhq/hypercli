@@ -31,6 +31,7 @@ import (
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/go-check/check"
+	HyperCli "github.com/docker/engine-api/client"
 )
 
 func init() {
@@ -601,6 +602,23 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 		return nil, nil, fmt.Errorf("could not create new request: %v", err)
 	}
 
+	//Add HEADER for apirouter(for debug)
+	fmt.Printf("\nACCESS_KEY: %v\nSECRET_KEY: %v\n", os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"))
+	//init
+	req.Header.Set("Content-Type", "text/plain")
+	req.URL.Host = strings.Split(os.Getenv("DOCKER_HOST"),"/")[2]
+	req.URL.Scheme = "https"
+	//calculate sign4
+	req = HyperCli.Sign4(os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"), req)
+	//output
+	fmt.Printf("-----------------------------------------------------------------------------------------\n")
+	fmt.Printf("curl -v -k \\\n")
+	for k, v := range req.Header {
+		fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
+	}
+	fmt.Printf("  https://%v/v1.23/version\n", strings.Split(os.Getenv("DOCKER_HOST"),"/")[2] )
+	fmt.Printf("-----------------------------------------------------------------------------------------\n")
+
 	if ct != "" {
 		req.Header.Set("Content-Type", ct)
 	}
@@ -847,6 +865,9 @@ func dockerCmdWithStdoutStderr(c *check.C, args ...string) (string, string, int)
 }
 
 func dockerCmd(c *check.C, args ...string) (string, int) {
+	//append -H (--host)
+	arg := []string{"-H", os.Getenv("DOCKER_HOST")}
+	args = append(arg, args...)
 	return integration.DockerCmd(dockerBinary, c, args...)
 }
 
