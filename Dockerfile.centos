@@ -51,28 +51,30 @@ RUN yum install -y\
  git
 
 
-# Install Go
+## Install Go
 ENV GO_VERSION 1.5.3
 RUN wget http://golangtc.com/static/go/1.5.3/go1.5.3.linux-amd64.tar.gz
 #RUN wget http://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
 RUN tar -xzf go${GO_VERSION}.linux-amd64.tar.gz -C /usr/local
 
-# Env
+## Env
 ENV PATH /go/bin:/usr/local/go/bin:$PATH
 ENV GOPATH /go:/go/src/github.com/hyperhq/hypercli/vendor
 
-ENV DOCKER_TLS_VERIFY=
+ENV HYPER_CONFIG=/root/.hyper
+ENV DOCKER_REMOTE_DAEMON=1
 ENV DOCKER_CERT_PATH=fixtures/hyper_ssl
+ENV DOCKER_TLS_VERIFY=
 ENV DOCKER_HOST=
 ENV ACCESS_KEY=
 ENV SECRET_KEY=
 
 
-# Ensure /usr/bin/hyper
+## Ensure /usr/bin/hyper
 RUN ln -s /go/src/github.com/hyperhq/hypercli/hyper/hyper /usr/bin/hyper
 
 
-# Ensure /go/src/github.com/docker/docker
+## Ensure /go/src/github.com/docker/docker
 RUN mkdir -p /go/src/github.com/docker
 RUN ln -s /go/src/github.com/hyperhq/hypercli /go/src/github.com/docker/docker
 
