@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/engine-api/types"
+	"github.com/docker/libnetwork/resolvconf/dns"
 	Cli "github.com/hyperhq/hypercli/cli"
 	derr "github.com/hyperhq/hypercli/errors"
 	"github.com/hyperhq/hypercli/opts"
@@ -15,8 +17,6 @@ import (
 	"github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/libnetwork/resolvconf/dns"
 )
 
 func (cid *cidFile) Close() error {
@@ -221,7 +221,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 	if *flAutoRemove {
 		defer func() {
-			if err := cli.removeContainer(createResponse.ID, true, false, false); err != nil {
+			if _, err := cli.removeContainer(createResponse.ID, true, false, false); err != nil {
 				fmt.Fprintf(cli.err, "%v\n", err)
 			}
 		}()
