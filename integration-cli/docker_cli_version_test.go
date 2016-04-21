@@ -1,15 +1,18 @@
 package main
 
 import (
+	"os"
 	"strings"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
+	"fmt"
 )
 
 // ensure docker version works
 func (s *DockerSuite) TestVersionEnsureSucceeds(c *check.C) {
-	out, _ := dockerCmd(c, "version")
+	fmt.Printf("[TestVersionEnsureSucceeds] : --host=%v\n",os.Getenv("DOCKER_HOST"))
+	out, _ := dockerCmd(c, "--host=" + os.Getenv("DOCKER_HOST"), "version")
 	stringsToCheck := map[string]int{
 		"Client:":       1,
 		"Server:":       1,
@@ -39,7 +42,8 @@ func (s *DockerSuite) TestVersionPlatform_l(c *check.C) {
 }
 
 func testVersionPlatform(c *check.C, platform string) {
-	out, _ := dockerCmd(c, "version")
+	fmt.Printf("[TestVersionEnsureSucceeds] : --host=%v\n",os.Getenv("DOCKER_HOST"))
+	out, _ := dockerCmd(c, "--host=" + os.Getenv("DOCKER_HOST"), "version")
 	expected := "OS/Arch:      " + platform
 
 	split := strings.Split(out, "\n")

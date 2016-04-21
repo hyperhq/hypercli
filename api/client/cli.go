@@ -127,6 +127,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		}
 		cli.configFile = configFile
 
+		fmt.Printf("[NewDockerCli] clientFlags.Common.Hosts: %v\n", clientFlags.Common.Hosts)
 		host, err := getServerHost(clientFlags.Common.Hosts, clientFlags.Common.TLSOptions)
 		if err != nil {
 			return err

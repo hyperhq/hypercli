@@ -878,8 +878,8 @@ func dockerCmdWithStdoutStderr(c *check.C, args ...string) (string, string, int)
 
 func dockerCmd(c *check.C, args ...string) (string, int) {
 	//append -H (--host)
-	arg := []string{"-H", os.Getenv("DOCKER_HOST")}
-	args = append(arg, args...)
+	//arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	//args = append(arg, args...)
 	return integration.DockerCmd(dockerBinary, c, args...)
 }
 
