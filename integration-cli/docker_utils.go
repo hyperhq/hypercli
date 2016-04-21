@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/docker/docker/opts"
-	"github.com/docker/docker/pkg/httputils"
 	"github.com/docker/docker/pkg/integration"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/stringutils"
@@ -35,6 +34,7 @@ import (
 )
 
 func init() {
+	/*
 	out, err := exec.Command(dockerBinary, "images").CombinedOutput()
 	if err != nil {
 		panic(err)
@@ -51,16 +51,21 @@ func init() {
 			protectedImages[imgTag] = struct{}{}
 		}
 	}
+	*/
 
 	// Obtain the daemon platform so that it can be used by tests to make
 	// intelligent decisions about how to configure themselves, and validate
 	// that the target platform is valid.
 	res, _, err := sockRequestRaw("GET", "/version", nil, "application/json")
 	if err != nil || res == nil || (res != nil && res.StatusCode != http.StatusOK) {
-		panic(fmt.Errorf("Init failed to get version: %v. Res=%v", err.Error(), res))
+		panic(fmt.Errorf("Init failed to get version: %s. Res=%v", err.Error(), res))
 	}
-	svrHeader, _ := httputils.ParseServerHeader(res.Header.Get("Server"))
-	daemonPlatform = svrHeader.OS
+	var version types.Version
+	err = json.NewDecoder(res.Body).Decode(&version)
+	if err != nil {
+		panic("Cannot Unmarshal: " + err.Error())
+	}
+	daemonPlatform := version.Os
 	if daemonPlatform != "linux" && daemonPlatform != "windows" {
 		panic("Cannot run tests against platform: " + daemonPlatform)
 	}
@@ -97,6 +102,7 @@ func init() {
 		volumesConfigPath = strings.Replace(volumesConfigPath, `\`, `/`, -1)
 		containerStoragePath = strings.Replace(containerStoragePath, `\`, `/`, -1)
 	}
+	fmt.Println("finish init")
 }
 
 // Daemon represents a Docker daemon for the testing framework.
@@ -505,9 +511,10 @@ func getTLSConfig() (*tls.Config, error) {
 	}
 
 	option := &tlsconfig.Options{
-		CAFile:   filepath.Join(dockerCertPath, "ca.pem"),
-		CertFile: filepath.Join(dockerCertPath, "cert.pem"),
-		KeyFile:  filepath.Join(dockerCertPath, "key.pem"),
+		CAFile:             filepath.Join(dockerCertPath, "ca.pem"),
+		CertFile:           filepath.Join(dockerCertPath, "cert.pem"),
+		KeyFile:            filepath.Join(dockerCertPath, "key.pem"),
+		InsecureSkipVerify: os.Getenv("DOCKER_TLS_VERIFY") == "",
 	}
 	tlsConfig, err := tlsconfig.Client(*option)
 	if err != nil {
@@ -529,16 +536,21 @@ func sockConn(timeout time.Duration) (net.Conn, error) {
 	case "unix":
 		return net.DialTimeout(daemonURL.Scheme, daemonURL.Path, timeout)
 	case "tcp":
+		tlsConfig, err := tlsconfig.Client(tlsconfig.Options{
+			InsecureSkipVerify: true,
+		})
+		if err != nil {
+			return nil, err
+		}
 		if os.Getenv("DOCKER_TLS_VERIFY") != "" {
 			// Setup the socket TLS configuration.
-			tlsConfig, err := getTLSConfig()
+			tlsConfig, err = getTLSConfig()
 			if err != nil {
 				return nil, err
 			}
-			dialer := &net.Dialer{Timeout: timeout}
-			return tls.DialWithDialer(dialer, daemonURL.Scheme, daemonURL.Host, tlsConfig)
 		}
-		return net.DialTimeout(daemonURL.Scheme, daemonURL.Host, timeout)
+		dialer := &net.Dialer{Timeout: timeout}
+		return tls.DialWithDialer(dialer, daemonURL.Scheme, daemonURL.Host, tlsConfig)
 	default:
 		return c, fmt.Errorf("unknown scheme %v (%s)", daemonURL.Scheme, daemon)
 	}
@@ -596,31 +608,31 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 
 	client := httputil.NewClientConn(c, nil)
 
-	req, err := http.NewRequest(method, endpoint, data)
+	req, err := http.NewRequest(method, fmt.Sprintf("/v1.23%s", endpoint), data)
 	if err != nil {
 		client.Close()
 		return nil, nil, fmt.Errorf("could not create new request: %v", err)
 	}
 
-	//Add HEADER for apirouter(for debug)
-	fmt.Printf("\nACCESS_KEY: %v\nSECRET_KEY: %v\n", os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"))
 	//init
-	req.Header.Set("Content-Type", "text/plain")
-	req.URL.Host = strings.Split(os.Getenv("DOCKER_HOST"),"/")[2]
-	req.URL.Scheme = "https"
-	//calculate sign4
-	req = HyperCli.Sign4(os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"), req)
-	//output
-	fmt.Printf("-----------------------------------------------------------------------------------------\n")
-	fmt.Printf("curl -v -k \\\n")
-	for k, v := range req.Header {
-		fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
-	}
-	fmt.Printf("  https://%v/v1.23/version\n", strings.Split(os.Getenv("DOCKER_HOST"),"/")[2] )
-	fmt.Printf("-----------------------------------------------------------------------------------------\n")
-
+	req.URL.Host = strings.Split(os.Getenv("DOCKER_HOST"), "://")[1]
 	if ct != "" {
 		req.Header.Set("Content-Type", ct)
+	}
+
+	//calculate sign4 for apirouter
+	req = HyperCli.Sign4(os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"), req)
+
+	if endpoint == "/version" {
+	//output
+		fmt.Printf("-----------------------------------------------------------------------------------------\n")
+		fmt.Printf("curl -v -k \\\n")
+		for k, v := range req.Header {
+			fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
+		}
+		fmt.Printf("  https://%v/v1.23/version\n", strings.Split(os.Getenv("DOCKER_HOST"), "://")[1])
+
+		fmt.Printf("-----------------------------------------------------------------------------------------\n")
 	}
 	return req, client, nil
 }
