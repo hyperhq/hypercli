@@ -33,6 +33,9 @@ import (
 	HyperCli "github.com/docker/engine-api/client"
 )
 
+
+var flag_host=""
+
 func init() {
 	/*
 	out, err := exec.Command(dockerBinary, "images").CombinedOutput()
@@ -101,6 +104,11 @@ func init() {
 	} else {
 		volumesConfigPath = strings.Replace(volumesConfigPath, `\`, `/`, -1)
 		containerStoragePath = strings.Replace(containerStoragePath, `\`, `/`, -1)
+	}
+
+	//set flag_host
+	if os.Getenv("DOCKER_HOST") != "" {
+		flag_host="--host=" + os.Getenv("DOCKER_HOST")
 	}
 	fmt.Println("finish init")
 }
@@ -231,7 +239,7 @@ func (d *Daemon) StartWithLogFile(out *os.File, providedArgs ...string) error {
 		fmt.Sprintf("--userland-proxy=%t", d.userlandProxy),
 	)
 	if !(d.useDefaultHost || d.useDefaultTLSHost) {
-		args = append(args, []string{"--host", d.sock()}...)
+		args = append(args, []string{"--host", os.Getenv("DOCKER_HOST")}...)
 	}
 	if root := os.Getenv("DOCKER_REMAP_ROOT"); root != "" {
 		args = append(args, []string{"--userns-remap", root}...)
@@ -332,7 +340,7 @@ func (d *Daemon) StartWithBusybox(arg ...string) error {
 			return fmt.Errorf("unexpected error on busybox.tar stat: %v", err)
 		}
 		// saving busybox image from main daemon
-		if err := exec.Command(dockerBinary, "save", "--output", bb, "busybox:latest").Run(); err != nil {
+		if err := exec.Command(dockerBinary, flag_host, "save", "--output", bb, "busybox:latest").Run(); err != nil {
 			return fmt.Errorf("could not save busybox image: %v", err)
 		}
 	}
@@ -461,19 +469,19 @@ func (d *Daemon) queryRootDir() (string, error) {
 	return "", err
 }
 
-func (d *Daemon) sock() string {
-	return fmt.Sprintf("unix://%s/docker.sock", d.folder)
-}
+//func (d *Daemon) sock() string {
+//	return fmt.Sprintf("unix://%s/docker.sock", d.folder)
+//}
 
 func (d *Daemon) waitRun(contID string) error {
-	args := []string{"--host", d.sock()}
+	args := []string{"--host", os.Getenv("DOCKER_HOST")}
 	return waitInspectWithArgs(contID, "{{.State.Running}}", "true", 10*time.Second, args...)
 }
 
 // Cmd will execute a docker CLI command against this Daemon.
 // Example: d.Cmd("version") will run docker -H unix://path/to/unix.sock version
 func (d *Daemon) Cmd(name string, arg ...string) (string, error) {
-	args := []string{"--host", d.sock(), name}
+	args := []string{"--host", os.Getenv("DOCKER_HOST"), name}
 	args = append(args, arg...)
 	c := exec.Command(dockerBinary, args...)
 	b, err := c.CombinedOutput()
@@ -483,6 +491,7 @@ func (d *Daemon) Cmd(name string, arg ...string) (string, error) {
 // CmdWithArgs will execute a docker CLI command against a daemon with the
 // given additional arguments
 func (d *Daemon) CmdWithArgs(daemonArgs []string, name string, arg ...string) (string, error) {
+	daemonArgs=append(daemonArgs, flag_host)
 	args := append(daemonArgs, name)
 	args = append(args, arg...)
 	c := exec.Command(dockerBinary, args...)
@@ -644,7 +653,7 @@ func readBody(b io.ReadCloser) ([]byte, error) {
 
 func deleteContainer(container string) error {
 	container = strings.TrimSpace(strings.Replace(container, "\n", " ", -1))
-	rmArgs := strings.Split(fmt.Sprintf("rm -fv %v", container), " ")
+	rmArgs := strings.Split(fmt.Sprintf("--host=%v rm -fv %v", os.Getenv("DOCKER_HOST"), container), " ")
 	exitCode, err := runCommand(exec.Command(dockerBinary, rmArgs...))
 	// set error manually if not set
 	if exitCode != 0 && err == nil {
@@ -655,7 +664,7 @@ func deleteContainer(container string) error {
 }
 
 func getAllContainers() (string, error) {
-	getContainersCmd := exec.Command(dockerBinary, "ps", "-q", "-a")
+	getContainersCmd := exec.Command(dockerBinary, flag_host, "ps", "-q", "-a")
 	out, exitCode, err := runCommandWithOutput(getContainersCmd)
 	if exitCode != 0 && err == nil {
 		err = fmt.Errorf("failed to get a list of containers: %v\n", out)
@@ -753,7 +762,7 @@ func getAllVolumes() ([]*types.Volume, error) {
 var protectedImages = map[string]struct{}{}
 
 func deleteAllImages() error {
-	out, err := exec.Command(dockerBinary, "images").CombinedOutput()
+	out, err := exec.Command(dockerBinary, flag_host, "images").CombinedOutput()
 	if err != nil {
 		return err
 	}
@@ -784,7 +793,7 @@ func deleteAllImages() error {
 }
 
 func getPausedContainers() (string, error) {
-	getPausedContainersCmd := exec.Command(dockerBinary, "ps", "-f", "status=paused", "-q", "-a")
+	getPausedContainersCmd := exec.Command(dockerBinary, flag_host, "ps", "-f", "status=paused", "-q", "-a")
 	out, exitCode, err := runCommandWithOutput(getPausedContainersCmd)
 	if exitCode != 0 && err == nil {
 		err = fmt.Errorf("failed to get a list of paused containers: %v\n", out)
@@ -806,7 +815,7 @@ func getSliceOfPausedContainers() ([]string, error) {
 }
 
 func unpauseContainer(container string) error {
-	unpauseCmd := exec.Command(dockerBinary, "unpause", container)
+	unpauseCmd := exec.Command(dockerBinary, flag_host, "unpause", container)
 	exitCode, err := runCommand(unpauseCmd)
 	if exitCode != 0 && err == nil {
 		err = fmt.Errorf("failed to unpause container")
@@ -836,7 +845,7 @@ func unpauseAllContainers() error {
 }
 
 func deleteImages(images ...string) error {
-	args := []string{"rmi", "-f"}
+	args := []string{flag_host, "rmi", "-f"}
 	args = append(args, images...)
 	rmiCmd := exec.Command(dockerBinary, args...)
 	exitCode, err := runCommand(rmiCmd)
@@ -848,7 +857,7 @@ func deleteImages(images ...string) error {
 }
 
 func imageExists(image string) error {
-	inspectCmd := exec.Command(dockerBinary, "inspect", image)
+	inspectCmd := exec.Command(dockerBinary, flag_host, "inspect", image)
 	exitCode, err := runCommand(inspectCmd)
 	if exitCode != 0 && err == nil {
 		err = fmt.Errorf("couldn't find image %q", image)
@@ -858,7 +867,7 @@ func imageExists(image string) error {
 
 func pullImageIfNotExist(image string) error {
 	if err := imageExists(image); err != nil {
-		pullCmd := exec.Command(dockerBinary, "pull", image)
+		pullCmd := exec.Command(dockerBinary, flag_host, "pull", image)
 		_, exitCode, err := runCommandWithOutput(pullCmd)
 
 		if err != nil || exitCode != 0 {
@@ -878,8 +887,8 @@ func dockerCmdWithStdoutStderr(c *check.C, args ...string) (string, string, int)
 
 func dockerCmd(c *check.C, args ...string) (string, int) {
 	//append -H (--host)
-	//arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
-	//args = append(arg, args...)
+	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	args = append(arg, args...)
 	return integration.DockerCmd(dockerBinary, c, args...)
 }
 
@@ -900,7 +909,7 @@ func dockerCmdInDirWithTimeout(timeout time.Duration, path string, args ...strin
 
 // find the State.ExitCode in container metadata
 func findContainerExitCode(c *check.C, name string, vargs ...string) string {
-	args := append(vargs, "inspect", "--format='{{ .State.ExitCode }} {{ .State.Error }}'", name)
+	args := append(vargs, flag_host, "inspect", "--format='{{ .State.ExitCode }} {{ .State.Error }}'", name)
 	cmd := exec.Command(dockerBinary, args...)
 	out, _, err := runCommandWithOutput(cmd)
 	if err != nil {
@@ -925,7 +934,7 @@ func (d *Daemon) findContainerIP(id string) string {
 func getContainerCount() (int, error) {
 	const containers = "Containers:"
 
-	cmd := exec.Command(dockerBinary, "info")
+	cmd := exec.Command(dockerBinary, flag_host, "info")
 	out, _, err := runCommandWithOutput(cmd)
 	if err != nil {
 		return 0, err
@@ -1145,13 +1154,13 @@ COPY . /static`); err != nil {
 	}
 
 	// Start the container
-	runCmd := exec.Command(dockerBinary, "run", "-d", "-P", "--name", container, image)
+	runCmd := exec.Command(dockerBinary, flag_host, "run", "-d", "-P", "--name", container, image)
 	if out, ec, err := runCommandWithOutput(runCmd); err != nil {
 		return nil, fmt.Errorf("failed to start file storage container. ec=%v\nout=%s\nerr=%v", ec, out, err)
 	}
 
 	// Find out the system assigned port
-	out, _, err := runCommandWithOutput(exec.Command(dockerBinary, "port", container, "80/tcp"))
+	out, _, err := runCommandWithOutput(exec.Command(dockerBinary, flag_host, "port", container, "80/tcp"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to find container port: err=%v\nout=%s", err, out)
 	}
@@ -1189,7 +1198,7 @@ func inspectFieldAndMarshall(c *check.C, name, field string, output interface{})
 
 func inspectFilter(name, filter string) (string, error) {
 	format := fmt.Sprintf("{{%s}}", filter)
-	inspectCmd := exec.Command(dockerBinary, "inspect", "-f", format, name)
+	inspectCmd := exec.Command(dockerBinary, flag_host, "inspect", "-f", format, name)
 	out, exitCode, err := runCommandWithOutput(inspectCmd)
 	if err != nil || exitCode != 0 {
 		return "", fmt.Errorf("failed to inspect %s: %s", name, out)
@@ -1300,7 +1309,7 @@ func getContainerState(c *check.C, id string) (int, bool, error) {
 }
 
 func buildImageCmd(name, dockerfile string, useCache bool, buildFlags ...string) *exec.Cmd {
-	args := []string{"-D", "build", "-t", name}
+	args := []string{flag_host, "-D", "build", "-t", name}
 	if !useCache {
 		args = append(args, "--no-cache")
 	}
@@ -1351,7 +1360,7 @@ func buildImageFromContext(name string, ctx *FakeContext, useCache bool, buildFl
 }
 
 func buildImageFromContextWithOut(name string, ctx *FakeContext, useCache bool, buildFlags ...string) (string, string, error) {
-	args := []string{"build", "-t", name}
+	args := []string{flag_host, "build", "-t", name}
 	if !useCache {
 		args = append(args, "--no-cache")
 	}
@@ -1371,7 +1380,7 @@ func buildImageFromContextWithOut(name string, ctx *FakeContext, useCache bool, 
 }
 
 func buildImageFromContextWithStdoutStderr(name string, ctx *FakeContext, useCache bool, buildFlags ...string) (string, string, string, error) {
-	args := []string{"build", "-t", name}
+	args := []string{flag_host, "build", "-t", name}
 	if !useCache {
 		args = append(args, "--no-cache")
 	}
@@ -1392,7 +1401,7 @@ func buildImageFromContextWithStdoutStderr(name string, ctx *FakeContext, useCac
 }
 
 func buildImageFromGitWithStdoutStderr(name string, ctx *fakeGit, useCache bool, buildFlags ...string) (string, string, string, error) {
-	args := []string{"build", "-t", name}
+	args := []string{flag_host, "build", "-t", name}
 	if !useCache {
 		args = append(args, "--no-cache")
 	}
@@ -1412,7 +1421,7 @@ func buildImageFromGitWithStdoutStderr(name string, ctx *fakeGit, useCache bool,
 }
 
 func buildImageFromPath(name, path string, useCache bool, buildFlags ...string) (string, error) {
-	args := []string{"build", "-t", name}
+	args := []string{flag_host, "build", "-t", name}
 	if !useCache {
 		args = append(args, "--no-cache")
 	}
@@ -1590,7 +1599,7 @@ func readContainerFile(containerID, filename string) ([]byte, error) {
 }
 
 func readContainerFileWithExec(containerID, filename string) ([]byte, error) {
-	out, _, err := runCommandWithOutput(exec.Command(dockerBinary, "exec", containerID, "cat", filename))
+	out, _, err := runCommandWithOutput(exec.Command(dockerBinary, flag_host, "exec", containerID, "cat", filename))
 	return []byte(out), err
 }
 
@@ -1673,7 +1682,8 @@ func createTmpFile(c *check.C, content string) string {
 }
 
 func buildImageWithOutInDamon(socket string, name, dockerfile string, useCache bool) (string, error) {
-	args := []string{"--host", socket}
+	fmt.Printf("[buildImageWithOutInDamon] socket: %v\n", socket)
+	args := []string{"--host", flag_host}
 	buildCmd := buildImageCmdArgs(args, name, dockerfile, useCache)
 	out, exitCode, err := runCommandWithOutput(buildCmd)
 	if err != nil || exitCode != 0 {
@@ -1683,7 +1693,7 @@ func buildImageWithOutInDamon(socket string, name, dockerfile string, useCache b
 }
 
 func buildImageCmdArgs(args []string, name, dockerfile string, useCache bool) *exec.Cmd {
-	args = append(args, []string{"-D", "build", "-t", name}...)
+	args = append(args, []string{flag_host, "-D", "build", "-t", name}...)
 	if !useCache {
 		args = append(args, "--no-cache")
 	}
@@ -1695,7 +1705,7 @@ func buildImageCmdArgs(args []string, name, dockerfile string, useCache bool) *e
 }
 
 func waitForContainer(contID string, args ...string) error {
-	args = append([]string{"run", "--name", contID}, args...)
+	args = append([]string{flag_host, "run", "--name", contID}, args...)
 	cmd := exec.Command(dockerBinary, args...)
 	if _, err := runCommand(cmd); err != nil {
 		return err
@@ -1729,7 +1739,7 @@ func waitInspect(name, expr, expected string, timeout time.Duration) error {
 func waitInspectWithArgs(name, expr, expected string, timeout time.Duration, arg ...string) error {
 	after := time.After(timeout)
 
-	args := append(arg, "inspect", "-f", expr, name)
+	args := append(arg, flag_host, "inspect", "-f", expr, name)
 	for {
 		cmd := exec.Command(dockerBinary, args...)
 		out, _, err := runCommandWithOutput(cmd)

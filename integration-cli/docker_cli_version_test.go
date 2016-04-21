@@ -12,7 +12,7 @@ import (
 // ensure docker version works
 func (s *DockerSuite) TestVersionEnsureSucceeds(c *check.C) {
 	fmt.Printf("[TestVersionEnsureSucceeds] : --host=%v\n",os.Getenv("DOCKER_HOST"))
-	out, _ := dockerCmd(c, "--host=" + os.Getenv("DOCKER_HOST"), "version")
+	out, _ := dockerCmd(c, "version")
 	stringsToCheck := map[string]int{
 		"Client:":       1,
 		"Server:":       1,
@@ -43,7 +43,7 @@ func (s *DockerSuite) TestVersionPlatform_l(c *check.C) {
 
 func testVersionPlatform(c *check.C, platform string) {
 	fmt.Printf("[TestVersionEnsureSucceeds] : --host=%v\n",os.Getenv("DOCKER_HOST"))
-	out, _ := dockerCmd(c, "--host=" + os.Getenv("DOCKER_HOST"), "version")
+	out, _ := dockerCmd(c, "version")
 	expected := "OS/Arch:      " + platform
 
 	split := strings.Split(out, "\n")
