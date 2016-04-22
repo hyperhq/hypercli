@@ -635,14 +635,16 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 
 	if endpoint == "/version" {
 	//output
-		fmt.Printf("-----------------------------------------------------------------------------------------\n")
-		fmt.Printf("curl -v -k \\\n")
+		fmt.Println("--------------------------------------------------------------------------------------------")
+		fmt.Println("The following command is used for test connection to 'apirouter' service(expired after 5min)")
+		fmt.Println("--------------------------------------------------------------------------------------------")
+		fmt.Println("curl -k \\")
 		for k, v := range req.Header {
 			fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
 		}
 		fmt.Printf("  https://%v/v1.23/version\n", strings.Split(os.Getenv("DOCKER_HOST"), "://")[1])
 
-		fmt.Printf("-----------------------------------------------------------------------------------------\n")
+		fmt.Println("--------------------------------------------------------------------------------------------")
 	}
 	return req, client, nil
 }
