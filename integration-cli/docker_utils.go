@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"runtime"
 
 	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/integration"
@@ -665,6 +666,7 @@ func deleteContainer(container string) error {
 
 func getAllContainers() (string, error) {
 	getContainersCmd := exec.Command(dockerBinary, flag_host, "ps", "-q", "-a")
+	//fmt.Printf("[getAllContainers] - getContainersCmd: %s\n", getContainersCmd)
 	out, exitCode, err := runCommandWithOutput(getContainersCmd)
 	if exitCode != 0 && err == nil {
 		err = fmt.Errorf("failed to get a list of containers: %v\n", out)
@@ -792,8 +794,11 @@ func deleteAllImages() error {
 	return nil
 }
 
+//status only support : created, restarting, running, exited (https://github.com/getdvm/hyper-api-router/blob/master/pkg/apiserver/router/local/container.go#L204)
+/*
 func getPausedContainers() (string, error) {
 	getPausedContainersCmd := exec.Command(dockerBinary, flag_host, "ps", "-f", "status=paused", "-q", "-a")
+	fmt.Printf("[getPausedContainers] - getPausedContainersCmd: %s\n", getPausedContainersCmd)
 	out, exitCode, err := runCommandWithOutput(getPausedContainersCmd)
 	if exitCode != 0 && err == nil {
 		err = fmt.Errorf("failed to get a list of paused containers: %v\n", out)
@@ -843,7 +848,7 @@ func unpauseAllContainers() error {
 
 	return nil
 }
-
+*/
 func deleteImages(images ...string) error {
 	args := []string{flag_host, "rmi", "-f"}
 	args = append(args, images...)
@@ -1794,4 +1799,15 @@ func runSleepingContainerInImage(c *check.C, image string, extraArgs ...string) 
 	args = append(args, image)
 	args = append(args, defaultSleepCommand...)
 	return dockerCmd(c, args...)
+}
+
+//util, get name of current function
+func printTestCaseName() {
+	pc, _, _, _ := runtime.Caller(1)
+	fmt.Printf("[%s] %s",time.Now().Format("2006-01-02 15:04:05"), runtime.FuncForPC(pc).Name())
+}
+
+func printTestDuration(start time.Time) {
+	duration := time.Now().Sub(start).Seconds()
+	fmt.Printf(" - %.6f sec\n",duration)
 }

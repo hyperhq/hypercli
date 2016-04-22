@@ -27,8 +27,9 @@ func init() {
 type DockerSuite struct {
 }
 
+//status only support : created, restarting, running, exited (https://github.com/getdvm/hyper-api-router/blob/master/pkg/apiserver/router/local/container.go#L204)
 func (s *DockerSuite) TearDownTest(c *check.C) {
-	unpauseAllContainers()
+	//unpauseAllContainers()
 	deleteAllContainers()
 	deleteAllImages()
 	deleteAllVolumes()
