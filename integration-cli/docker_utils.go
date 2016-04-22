@@ -69,7 +69,7 @@ func init() {
 	if err != nil {
 		panic("Cannot Unmarshal: " + err.Error())
 	}
-	daemonPlatform := version.Os
+	daemonPlatform = version.Os
 	if daemonPlatform != "linux" && daemonPlatform != "windows" {
 		panic("Cannot run tests against platform: " + daemonPlatform)
 	}
