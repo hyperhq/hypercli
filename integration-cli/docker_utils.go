@@ -885,10 +885,14 @@ func pullImageIfNotExist(image string) error {
 }
 
 func dockerCmdWithError(args ...string) (string, int, error) {
+	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	args = append(arg, args...)
 	return integration.DockerCmdWithError(dockerBinary, args...)
 }
 
 func dockerCmdWithStdoutStderr(c *check.C, args ...string) (string, string, int) {
+	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	args = append(arg, args...)
 	return integration.DockerCmdWithStdoutStderr(dockerBinary, c, args...)
 }
 
@@ -901,16 +905,22 @@ func dockerCmd(c *check.C, args ...string) (string, int) {
 
 // execute a docker command with a timeout
 func dockerCmdWithTimeout(timeout time.Duration, args ...string) (string, int, error) {
+	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	args = append(arg, args...)
 	return integration.DockerCmdWithTimeout(dockerBinary, timeout, args...)
 }
 
 // execute a docker command in a directory
 func dockerCmdInDir(c *check.C, path string, args ...string) (string, int, error) {
+	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	args = append(arg, args...)
 	return integration.DockerCmdInDir(dockerBinary, path, args...)
 }
 
 // execute a docker command in a directory with a timeout
 func dockerCmdInDirWithTimeout(timeout time.Duration, path string, args ...string) (string, int, error) {
+	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	args = append(arg, args...)
 	return integration.DockerCmdInDirWithTimeout(dockerBinary, timeout, path, args...)
 }
 

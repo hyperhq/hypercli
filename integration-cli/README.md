@@ -4,11 +4,14 @@ Integration test for hyper cli
 > functional test for hyper cli  
 > use apirouter service on packet(dev env) as backend
 > skip test-case for daemon
-> skip test-case for build/commit
+> skip test-case for build/commit/push/tag
 
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Project status](#project-status)
+	- [cli test case](#cli-test-case)
+	- [extra](#extra)
+	- [skip](#skip)
 - [Prepare](#prepare)
 	- [clone hypercli repo](#clone-hypercli-repo)
 	- [build docker image](#build-docker-image)
@@ -29,13 +32,11 @@ Integration test for hyper cli
 
 # Project status
 
+## cli test case
+
 - [ ] cli_attach_test
 - [ ] cli_attach_unix_test
 - [ ] cli_authz_unix_test
-- [ ] cli_build_test
-- [ ] cli_build_unix_test
-- [ ] cli_by_digest_test
-- [ ] cli_commit_test
 - [ ] cli_config_test
 - [ ] cli_cp_from_container_test
 - [ ] cli_cp_test
@@ -70,10 +71,7 @@ Integration test for hyper cli
 - [ ] cli_port_test
 - [ ] cli_proxy_test
 - [ ] cli_ps_test
-- [ ] cli_pull_local_test
 - [ ] cli_pull_test
-- [ ] cli_pull_trusted_test
-- [ ] cli_push_test
 - [ ] cli_rename_test
 - [ ] cli_restart_test
 - [ ] cli_rmi_test
@@ -95,7 +93,24 @@ Integration test for hyper cli
 - [ ] cli_volume_driver_compat_unix_test
 - [ ] cli_volume_test
 - [ ] cli_wait_test
-- [ ] [Extra Test Case](EXTRA_TEST.md)
+
+## extra
+
+[Extra Test Case](EXTRA_TEST.md)
+
+
+## skip
+
+> not support build, commit, push, tag
+
+- [ ] cli_build_test
+- [ ] cli_build_unix_test
+- [ ] cli_by_digest_test
+- [ ] cli_commit_test
+- [ ] cli_pull_local_test
+- [ ] cli_pull_trusted_test
+- [ ] cli_push_test
+
 
 # Prepare
 
