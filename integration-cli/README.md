@@ -5,6 +5,7 @@ Integration test for hyper cli
 > use apirouter service on packet(dev env) as backend
 > skip test-case for daemon
 > skip test-case for build/commit/push/tag
+> skip test-case fro save/load, import/export
 
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
@@ -36,29 +37,16 @@ Integration test for hyper cli
 
 - [ ] cli_attach_test
 - [ ] cli_attach_unix_test
-- [ ] cli_authz_unix_test
 - [ ] cli_config_test
-- [ ] cli_cp_from_container_test
-- [ ] cli_cp_test
-- [ ] cli_cp_to_container_test
 - [ ] cli_create_test
-- [ ] cli_daemon_test
-- [ ] cli_diff_test
-- [ ] cli_events_test
-- [ ] cli_events_unix_test
 - [ ] cli_exec_test
 - [ ] cli_exec_unix_test
-- [ ] cli_experimental_test
-- [ ] cli_export_import_test
-- [ ] cli_external_graphdriver_unix_test
 - [ ] cli_help_test
 - [ ] cli_history_test
 - [ ] cli_images_test
-- [ ] cli_import_test
 - [ ] cli_info_test
 - [ ] cli_inspect_experimental_test
 - [ ] cli_inspect_test
-- [ ] cli_kill_test
 - [ ] cli_links_test
 - [ ] cli_links_unix_test
 - [ ] cli_login_test
@@ -67,32 +55,24 @@ Integration test for hyper cli
 - [ ] cli_netmode_test
 - [ ] cli_network_unix_test
 - [ ] cli_oom_killed_test
-- [ ] cli_pause_test
 - [ ] cli_port_test
 - [ ] cli_proxy_test
 - [ ] cli_ps_test
-- [ ] cli_pull_test
 - [ ] cli_rename_test
 - [ ] cli_restart_test
 - [ ] cli_rmi_test
 - [ ] cli_rm_test
 - [ ] cli_run_test
 - [ ] cli_run_unix_test
-- [ ] cli_save_load_test
-- [ ] cli_save_load_unix_test
 - [ ] cli_search_test
 - [ ] cli_sni_test
 - [ ] cli_start_test
 - [ ] cli_start_volume_driver_unix_test
 - [ ] cli_stats_test
-- [ ] cli_tag_test
-- [ ] cli_top_test
-- [ ] cli_update_unix_test
-- [ ] cli_v2_only_test
 - [x] cli_version_test
 - [ ] cli_volume_driver_compat_unix_test
 - [ ] cli_volume_test
-- [ ] cli_wait_test
+
 
 ## extra
 
@@ -103,13 +83,34 @@ Integration test for hyper cli
 
 > not support build, commit, push, tag
 
+- [ ] cli_authz_unix_test
 - [ ] cli_build_test
 - [ ] cli_build_unix_test
 - [ ] cli_by_digest_test
 - [ ] cli_commit_test
+- [ ] cli_cp_from_container_test
+- [ ] cli_cp_test
+- [ ] cli_cp_to_container_test
+- [ ] cli_cp_utils
+- [ ] cli_daemon_test
+- [ ] cli_diff_test
+- [ ] cli_events_test
+- [ ] cli_events_unix_test
+- [ ] cli_experimental_test
+- [ ] cli_export_import_test
+- [ ] cli_external_graphdriver_unix_test
+- [ ] cli_import_test
+- [ ] cli_pause_test
 - [ ] cli_pull_local_test
 - [ ] cli_pull_trusted_test
 - [ ] cli_push_test
+- [ ] cli_save_load_test
+- [ ] cli_save_load_unix_test
+- [ ] cli_tag_test
+- [ ] cli_top_test
+- [ ] cli_update_unix_test
+- [ ] cli_v2_only_test
+- [ ] cli_wait_test
 
 
 # Prepare
