@@ -3,7 +3,6 @@ Integration test for hyper cli
 
 > functional test for hyper cli  
 > use apirouter service on packet(dev env) as backend
-
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Project status](#project-status)
@@ -13,11 +12,11 @@ Integration test for hyper cli
 	- [build hyper cli in container](#build-hyper-cli-in-container)
 	- [common info in container](#common-info-in-container)
 - [Run test case](#run-test-case)
-	- [enter contaner](#enter-contaner)
+	- [enter container](#enter-container)
 	- [run test in container](#run-test-in-container)
 		- [(optional)test connection to apirouter service](#optionaltest-connection-to-apirouter-service)
 		- [prepare test case](#prepare-test-case)
-	- [start test](#start-test)
+		- [start test](#start-test)
 - [Check test result](#check-test-result)
 	- [if test case passed](#if-test-case-passed)
 	- [if find issues](#if-find-issues)
@@ -138,7 +137,7 @@ ll /usr/bin/hyper
 
 # Run test case
 
-## enter contaner
+## enter container
 
 > replace `ACCESS_KEY` and `SECRET_KEY` with the real value
 > run the following command in root of hypercli repo
@@ -166,7 +165,7 @@ hyper images
 - **test new case**: move test case from `integration-cli/todo` to `integration-cli` 
 - **test issue case after fixed**: move test case from `integration-cli/issue` to `integration-cli` 
 
-## start test
+### start test
 
 > run test in `/go/src/github.com/hyperhq/hypercli/integration-cli` dir
 
