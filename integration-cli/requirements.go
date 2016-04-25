@@ -141,7 +141,7 @@ var (
 func testRequires(c *check.C, requirements ...testRequirement) {
 	for _, r := range requirements {
 		if !r.Condition() {
-			fmt.Printf(" [Skip] - %s", r.SkipMessage)
+			fmt.Printf("\n [Skip] - %s", r.SkipMessage)
 			c.Skip(r.SkipMessage)
 		}
 	}

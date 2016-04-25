@@ -3,6 +3,9 @@ Integration test for hyper cli
 
 > functional test for hyper cli  
 > use apirouter service on packet(dev env) as backend
+> skip test-case for daemon
+> skip test-case for build/commit
+
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Project status](#project-status)
@@ -92,7 +95,7 @@ Integration test for hyper cli
 - [ ] cli_volume_driver_compat_unix_test
 - [ ] cli_volume_test
 - [ ] cli_wait_test
-
+- [ ] [Extra Test Case](EXTRA_TEST.md)
 
 # Prepare
 

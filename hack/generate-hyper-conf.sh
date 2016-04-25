@@ -24,9 +24,11 @@ cat <<EOF
 
 Run in container(example):
   ./build-hyperserve-client.sh              # build hyper cli
+  hyper -H \${DOCKER_HOST} info | grep "ID:" # get tennat id
   hyper -H \${DOCKER_HOST} pull busybox      # pull image
   hyper -H \${DOCKER_HOST} images            # list images
   cd integration-cli && go test             # start autotest
+
 
 EOF
 

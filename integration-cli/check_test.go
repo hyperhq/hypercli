@@ -45,22 +45,22 @@ func init() {
 type DockerRegistrySuite struct {
 	ds  *DockerSuite
 	reg *testRegistryV2
-	d   *Daemon
+	//d   *Daemon
 }
 
 func (s *DockerRegistrySuite) SetUpTest(c *check.C) {
 	testRequires(c, DaemonIsLinux, RegistryHosting)
 	s.reg = setupRegistry(c, false, false)
-	s.d = NewDaemon(c)
+	//s.d = NewDaemon(c)
 }
 
 func (s *DockerRegistrySuite) TearDownTest(c *check.C) {
 	if s.reg != nil {
 		s.reg.Close()
 	}
-	if s.d != nil {
-		s.d.Stop()
-	}
+	//if s.d != nil {
+	//	s.d.Stop()
+	//}
 	s.ds.TearDownTest(c)
 }
 
@@ -73,22 +73,22 @@ func init() {
 type DockerSchema1RegistrySuite struct {
 	ds  *DockerSuite
 	reg *testRegistryV2
-	d   *Daemon
+	//d   *Daemon
 }
 
 func (s *DockerSchema1RegistrySuite) SetUpTest(c *check.C) {
 	testRequires(c, DaemonIsLinux, RegistryHosting)
 	s.reg = setupRegistry(c, true, false)
-	s.d = NewDaemon(c)
+	//s.d = NewDaemon(c)
 }
 
 func (s *DockerSchema1RegistrySuite) TearDownTest(c *check.C) {
 	if s.reg != nil {
 		s.reg.Close()
 	}
-	if s.d != nil {
-		s.d.Stop()
-	}
+	//if s.d != nil {
+	//	s.d.Stop()
+	//}
 	s.ds.TearDownTest(c)
 }
 
@@ -101,24 +101,24 @@ func init() {
 type DockerRegistryAuthSuite struct {
 	ds  *DockerSuite
 	reg *testRegistryV2
-	d   *Daemon
+	//d   *Daemon
 }
 
 func (s *DockerRegistryAuthSuite) SetUpTest(c *check.C) {
 	testRequires(c, DaemonIsLinux, RegistryHosting)
 	s.reg = setupRegistry(c, false, true)
-	s.d = NewDaemon(c)
+	//s.d = NewDaemon(c)
 }
 
 func (s *DockerRegistryAuthSuite) TearDownTest(c *check.C) {
 	if s.reg != nil {
-		out, err := s.d.Cmd("logout", privateRegistryURL)
-		c.Assert(err, check.IsNil, check.Commentf(out))
+		//out, err := s.d.Cmd("logout", privateRegistryURL)
+		//c.Assert(err, check.IsNil, check.Commentf(out))
 		s.reg.Close()
 	}
-	if s.d != nil {
-		s.d.Stop()
-	}
+	//if s.d != nil {
+	//	s.d.Stop()
+	//}
 	s.ds.TearDownTest(c)
 }
 
@@ -130,19 +130,19 @@ func init() {
 
 type DockerDaemonSuite struct {
 	ds *DockerSuite
-	d  *Daemon
+	//d  *Daemon
 }
 
 func (s *DockerDaemonSuite) SetUpTest(c *check.C) {
 	testRequires(c, DaemonIsLinux)
-	s.d = NewDaemon(c)
+	//s.d = NewDaemon(c)
 }
 
 func (s *DockerDaemonSuite) TearDownTest(c *check.C) {
 	testRequires(c, DaemonIsLinux)
-	if s.d != nil {
-		s.d.Stop()
-	}
+	//if s.d != nil {
+	//	s.d.Stop()
+	//}
 	s.ds.TearDownTest(c)
 }
 
