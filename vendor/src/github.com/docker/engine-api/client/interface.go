@@ -29,7 +29,7 @@ type APIClient interface {
 	ContainerList(options types.ContainerListOptions) ([]types.Container, error)
 	ContainerLogs(options types.ContainerLogsOptions) (io.ReadCloser, error)
 	ContainerPause(containerID string) error
-	ContainerRemove(options types.ContainerRemoveOptions) error
+	ContainerRemove(options types.ContainerRemoveOptions) ([]string, error)
 	ContainerRename(containerID, newContainerName string) error
 	ContainerResize(options types.ResizeOptions) error
 	ContainerRestart(containerID string, timeout int) error
