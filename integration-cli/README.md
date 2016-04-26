@@ -175,7 +175,7 @@ $ ./util.sh make
 
 ## common info in container
 
-- work dir        : `/go/src/github.com/hyperhq/hypercli/integration-cli`
+- work dir        : `/go/src/github.com/hyperhq/hypercli`
 - hyper config    : `/root/.hyper/config.json`
 - hyper cli binary: `/usr/bin/hyper` -> `/go/src/github.com/hyperhq/hypercli/hyper/hyper`
 - hyper cli alias : `hypercli` => `hyper -H ${DOCKER_HOST}`
@@ -204,9 +204,10 @@ $ ./util.sh enter
 ### (optional)test connection to apirouter service
 ```
 // run in any dir in container
-hypercli version
-hypercli pull busybox
-hypercli images
+$ hypercli version
+$ hypercli info | grep "ID"    #tenant id
+$ hypercli pull busybox
+$ hypercli images
 ```
 
 ### prepare test case

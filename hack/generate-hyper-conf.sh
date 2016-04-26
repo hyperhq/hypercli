@@ -27,9 +27,11 @@ EOF
 
 Run in container(example):
   ./build-hyperserve-client.sh              # build hyper cli
-  hyper -H \${DOCKER_HOST} info | grep "ID:" # get tennat id
-  hypercli pull busybox      # pull image
-  hypercli images            # list images
+  -----------------------------------------------------------
+  hypercli info | grep "ID"                 # get tennat id
+  hypercli pull busybox                     # pull image
+  hypercli images                           # list images
+  -----------------------------------------------------------
   cd integration-cli && go test             # start autotest
 
 # 'hypercli' is the alias of 'hyper -H \${DOCKER_HOST}'

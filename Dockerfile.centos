@@ -40,7 +40,7 @@ RUN mkdir -p /go/src/github.com/docker
 RUN ln -s /go/src/github.com/hyperhq/hypercli /go/src/github.com/docker/docker
 
 
-WORKDIR /go/src/github.com/hyperhq/hypercli/integration-cli
+WORKDIR /go/src/github.com/hyperhq/hypercli
 VOLUME ["/go/src/github.com/hyperhq/hypercli"]
 ENTRYPOINT ["hack/generate-hyper-conf.sh"]
 
@@ -50,6 +50,7 @@ ENTRYPOINT ["hack/generate-hyper-conf.sh"]
 RUN yum install -y zsh
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 RUN sed -i "s/^ZSH_THEME=.*/ZSH_THEME=agnoster/g" /root/.zshrc
+RUN echo alias hypercli=\"hyper -H \${DOCKER_HOST}\" >> /root/.zshrc
 
 # config git
 RUN git config --global color.ui true; \
