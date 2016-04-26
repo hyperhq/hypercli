@@ -12,3 +12,18 @@ Extra Test Case for hyper cli
 1) difftime < 5min  : valid request
 2) difftime >= 5min : invalid request, should return `Unauthorized, illegal timestamp`
 ```
+
+# config test
+```
+//TODO
+```
+
+# fip test
+```
+//TODO
+```
+
+# snapshot test
+```
+//TODO
+```

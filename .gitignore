@@ -38,3 +38,4 @@ man/man8
 pyenv
 vendor/pkg/
 .idea
+integration-cli/util.conf

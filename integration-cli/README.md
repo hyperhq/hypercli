@@ -3,9 +3,6 @@ Integration test for hyper cli
 
 > functional test for hyper cli  
 > use apirouter service on packet(dev env) as backend
-> skip test-case for daemon
-> skip test-case for build/commit/push/tag
-> skip test-case fro save/load, import/export
 
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
@@ -13,16 +10,21 @@ Integration test for hyper cli
 	- [cli test case](#cli-test-case)
 	- [extra](#extra)
 	- [skip](#skip)
+- [Command list](#command-list)
+	- [hyper only](#hyper-only)
+	- [both](#both)
+	- [docker only](#docker-only)
 - [Prepare](#prepare)
 	- [clone hypercli repo](#clone-hypercli-repo)
 	- [build docker image](#build-docker-image)
-	- [build hyper cli in container](#build-hyper-cli-in-container)
+	- [make hyper cli in container](#make-hyper-cli-in-container)
 	- [common info in container](#common-info-in-container)
 - [Run test case](#run-test-case)
 	- [enter container](#enter-container)
 	- [run test in container](#run-test-in-container)
 		- [(optional)test connection to apirouter service](#optionaltest-connection-to-apirouter-service)
 		- [prepare test case](#prepare-test-case)
+		- [adjust test case code](#adjust-test-case-code)
 		- [start test](#start-test)
 - [Check test result](#check-test-result)
 	- [if test case passed](#if-test-case-passed)
@@ -112,71 +114,99 @@ Integration test for hyper cli
 - [ ] cli_v2_only_test
 - [ ] cli_wait_test
 
+# Command list
+
+| hyper only | both | docker only |
+| --- | --- | --- |
+| 3 | 25 | 17 |
+
+## hyper only
+```
+config	fip	snapshot
+```
+
+## both
+```
+attach	create	exec	history	images
+info	inspect	kill	login	logout
+logs	port	ps	pull	rename
+restart	rm	rmi	run	search
+start	stats	stop	version	volume
+```
+
+## docker only
+
+> not support for hyper currently
+
+```
+build	commit	cp	diff	events
+export	import	load	network	pause
+push	save	tag	top	unpause
+update	wait			
+```
+
+
 
 # Prepare
 
 ## clone hypercli repo
 ```
-git clone https://github.com/hyperhq/hypercli.git -b integration-test 
-cd hypercli
+$ git clone https://github.com/hyperhq/hypercli.git -b integration-test
 ```
 
 ## build docker image
 
+> build docker image in host OS  
 > Use `CentOS` as test env
 
 ```
-docker build -t hyperhq/hypercli -f Dockerfile.centos .
+// run in dir hypercli/integration-cli on host os
+$ ./util.sh build
 ```
 
-## build hyper cli in container
+## make hyper cli in container
 
-> run the following command in root of hypercli repo
+> build hyper cli binary from source code
 
 ```
-docker run -it --rm -v $(pwd):/go/src/github.com/hyperhq/hypercli hyperhq/hypercli ./build-hyperserve-client.sh
+// run in dir hypercli/integration-cli on host os
+$ ./util.sh make
 ```
 
 ## common info in container
 
-- hyper config: `/root/.hyper/config.json`
-- work dir: `/go/src/github.com/hyperhq/hypercli`
-- test case dir: `/go/src/github.com/hyperhq/hypercli/integration-cli`
+- work dir        : `/go/src/github.com/hyperhq/hypercli/integration-cli`
+- hyper config    : `/root/.hyper/config.json`
+- hyper cli binary: `/usr/bin/hyper` -> `/go/src/github.com/hyperhq/hypercli/hyper/hyper`
+- hyper cli alias : `hypercli` => `hyper -H ${DOCKER_HOST}`
+- test case dir   : `/go/src/github.com/hyperhq/hypercli/integration-cli`
 ```
 integration-cli
+├── skip      => test cases to be ignored
 ├── todo      => test cases to be tested
 ├── issue     => test cases have issue/bug
 └── passed    => test cases have passed
 ```
-- hyper cli binary:  
-```
-ll /usr/bin/hyper 
-  lrwxrwxrwx 1 root root 47 Apr 21 08:59 /usr/bin/hyper -> /go/src/github.com/hyperhq/hypercli/hyper/hyper
-```
+
 
 # Run test case
 
 ## enter container
 
-> replace `ACCESS_KEY` and `SECRET_KEY` with the real value
-> run the following command in root of hypercli repo
-
+> update `ACCESS_KEY` and `SECRET_KEY` in `integration-cli/util.conf`
 ```
-docker run -it --rm \
-   -e DOCKER_HOST=tcp://147.75.195.39:6443 \
-   -e ACCESS_KEY=RE5xxxxxxxxxxxxxxxxxxxxxxxxxBP \
-   -e SECRET_KEY=J7Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxvy \
-   -v $(pwd):/go/src/github.com/hyperhq/hypercli \
-   hyperhq/hypercli bash
+// run in dir hypercli/integration-cli on host os
+$ ./util.sh enter
 ```
 
 ## run test in container
 
 ### (optional)test connection to apirouter service
 ```
-hyper version
-hyper pull busybox
-hyper images
+// run in any dir in container
+hypercli version
+hypercli pull busybox
+hypercli images
 ```
 
 ### prepare test case
@@ -184,12 +214,26 @@ hyper images
 - **test new case**: move test case from `integration-cli/todo` to `integration-cli` 
 - **test issue case after fixed**: move test case from `integration-cli/issue` to `integration-cli` 
 
-### start test
+### adjust test case code
 
-> run test in `/go/src/github.com/hyperhq/hypercli/integration-cli` dir
+> add `printTestCaseName(); defer printTestDuration(time.Now())` in function start with `Test`
+> hyper cli source will be mapped in to the container, so the test case code can be modified out of container
 
 ```
-go test
+//example:
+func (s *DockerSuite) TestVersionEnsureSucceeds(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())    <<<<<<======
+	out, _ := dockerCmd(c, "version")
+
+//test result will be output like:
+[2016-04-26 03:21:52] github.com/hyperhq/hypercli/integration-cli.(*DockerSuite).TestVersionEnsureSucceeds - 1.952121 sec
+```
+
+### start test
+
+```
+// run in dir hypercli/integration-cli in container
+$ go test
 ```
 
 # Check test result
