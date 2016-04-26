@@ -122,16 +122,16 @@ Integration test for hyper cli
 
 ## hyper only
 ```
-config	fip	snapshot
+config  fip     snapshot
 ```
 
 ## both
 ```
 attach	create	exec	history	images
-info	inspect	kill	login	logout
-logs	port	ps	pull	rename
-restart	rm	rmi	run	search
-start	stats	stop	version	volume
+info    inspect	kill    login   logout
+logs    port    ps      pull    rename
+restart rm      rmi     run     search
+start   stats   stop    version volume
 ```
 
 ## docker only
@@ -139,10 +139,10 @@ start	stats	stop	version	volume
 > not support for hyper currently
 
 ```
-build	commit	cp	diff	events
-export	import	load	network	pause
-push	save	tag	top	unpause
-update	wait			
+build   commit  cp      diff    events
+export  import  load    network pause
+push    save    tag     top     unpause
+update  wait
 ```
 
 
@@ -193,7 +193,8 @@ integration-cli
 
 ## enter container
 
-> update `ACCESS_KEY` and `SECRET_KEY` in `integration-cli/util.conf`
+> update `ACCESS_KEY` and `SECRET_KEY` in `integration-cli/util.conf`  
+
 ```
 // run in dir hypercli/integration-cli on host os
 $ ./util.sh enter
@@ -212,13 +213,13 @@ $ hypercli images
 
 ### prepare test case
 
-- **test new case**: move test case from `integration-cli/todo` to `integration-cli` 
+- **test new case**: move test case from `integration-cli/todo` to `integration-cli`
 - **test issue case after fixed**: move test case from `integration-cli/issue` to `integration-cli` 
 
 ### adjust test case code
 
-> add `printTestCaseName(); defer printTestDuration(time.Now())` in function start with `Test`
-> hyper cli source will be mapped in to the container, so the test case code can be modified out of container
+- add `printTestCaseName(); defer printTestDuration(time.Now())` in function start with `Test`  
+- hyper cli source will be mapped in to the container, so the test case code can be modified out of container
 
 ```
 //example:
