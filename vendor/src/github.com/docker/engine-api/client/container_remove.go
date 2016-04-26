@@ -23,7 +23,9 @@ func (cli *Client) ContainerRemove(options types.ContainerRemoveOptions) ([]stri
 	}
 
 	resp, err := cli.delete("/containers/"+options.ContainerID, query, nil)
-	json.NewDecoder(resp.body).Decode(&warnings)
+	if err == nil {
+		json.NewDecoder(resp.body).Decode(&warnings)
+	}
 	ensureReaderClosed(resp)
 	return warnings, err
 }
