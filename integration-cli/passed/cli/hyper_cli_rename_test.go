@@ -9,14 +9,14 @@ import (
 )
 
 func (s *DockerSuite) TestRenameStoppedContainer(c *check.C) {
-	out, _ := dockerCmd(c, "run", "--name", "first_name", "-d", "busybox", "sh")
+	out, _ := dockerCmd(c, "run", "--name", "first-name", "-d", "busybox", "sh")
 
 	cleanedContainerID := strings.TrimSpace(out)
-	dockerCmd(c, "wait", cleanedContainerID)
+	dockerCmd(c, "stop", cleanedContainerID)
 
 	name := inspectField(c, cleanedContainerID, "Name")
-	newName := "new_name" + stringid.GenerateNonCryptoID()
-	dockerCmd(c, "rename", "first_name", newName)
+	newName := "new-name" + stringid.GenerateNonCryptoID()
+	dockerCmd(c, "rename", "first-name", newName)
 
 	name = inspectField(c, cleanedContainerID, "Name")
 	c.Assert(name, checker.Equals, "/"+newName, check.Commentf("Failed to rename container %s", name))
@@ -24,46 +24,46 @@ func (s *DockerSuite) TestRenameStoppedContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestRenameRunningContainer(c *check.C) {
-	out, _ := dockerCmd(c, "run", "--name", "first_name", "-d", "busybox", "sh")
+	out, _ := dockerCmd(c, "run", "--name", "first-name", "-d", "busybox", "sh")
 
-	newName := "new_name" + stringid.GenerateNonCryptoID()
+	newName := "new-name" + stringid.GenerateNonCryptoID()
 	cleanedContainerID := strings.TrimSpace(out)
-	dockerCmd(c, "rename", "first_name", newName)
+	dockerCmd(c, "rename", "first-name", newName)
 
 	name := inspectField(c, cleanedContainerID, "Name")
 	c.Assert(name, checker.Equals, "/"+newName, check.Commentf("Failed to rename container %s", name))
 }
 
 func (s *DockerSuite) TestRenameRunningContainerAndReuse(c *check.C) {
-	out, _ := runSleepingContainer(c, "--name", "first_name")
-	c.Assert(waitRun("first_name"), check.IsNil)
+	out, _ := runSleepingContainer(c, "--name", "first-name")
+	c.Assert(waitRun("first-name"), check.IsNil)
 
-	newName := "new_name"
+	newName := "new-name"
 	ContainerID := strings.TrimSpace(out)
-	dockerCmd(c, "rename", "first_name", newName)
+	dockerCmd(c, "rename", "first-name", newName)
 
 	name := inspectField(c, ContainerID, "Name")
 	c.Assert(name, checker.Equals, "/"+newName, check.Commentf("Failed to rename container"))
 
-	out, _ = runSleepingContainer(c, "--name", "first_name")
-	c.Assert(waitRun("first_name"), check.IsNil)
+	out, _ = runSleepingContainer(c, "--name", "first-name")
+	c.Assert(waitRun("first-name"), check.IsNil)
 	newContainerID := strings.TrimSpace(out)
 	name = inspectField(c, newContainerID, "Name")
-	c.Assert(name, checker.Equals, "/first_name", check.Commentf("Failed to reuse container name"))
+	c.Assert(name, checker.Equals, "/first-name", check.Commentf("Failed to reuse container name"))
 }
 
 func (s *DockerSuite) TestRenameCheckNames(c *check.C) {
-	dockerCmd(c, "run", "--name", "first_name", "-d", "busybox", "sh")
+	dockerCmd(c, "run", "--name", "first-name", "-d", "busybox", "sh")
 
-	newName := "new_name" + stringid.GenerateNonCryptoID()
-	dockerCmd(c, "rename", "first_name", newName)
+	newName := "new-name" + stringid.GenerateNonCryptoID()
+	dockerCmd(c, "rename", "first-name", newName)
 
 	name := inspectField(c, newName, "Name")
 	c.Assert(name, checker.Equals, "/"+newName, check.Commentf("Failed to rename container %s", name))
 
-	name, err := inspectFieldWithError("first_name", "Name")
+	name, err := inspectFieldWithError("first-name", "Name")
 	c.Assert(err, checker.NotNil, check.Commentf(name))
-	c.Assert(err.Error(), checker.Contains, "No such image or container: first_name")
+	c.Assert(err.Error(), checker.Contains, "No such image or container: first-name")
 }
 
 func (s *DockerSuite) TestRenameInvalidName(c *check.C) {
