@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+	"os"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
@@ -23,7 +24,7 @@ func (s *DockerSuite) TestExecInteractiveStdinClose(c *check.C) {
 	out, _ := dockerCmd(c, "run", "-itd", "busybox", "/bin/cat")
 	contID := strings.TrimSpace(out)
 
-	cmd := exec.Command(dockerBinary, "exec", "-i", contID, "echo", "-n", "hello")
+	cmd := exec.Command(dockerBinary, "--host=" + os.Getenv("DOCKER_HOST"), "exec", "-i", contID, "echo", "-n", "hello")
 	p, err := pty.Start(cmd)
 	c.Assert(err, checker.IsNil)
 
@@ -38,7 +39,7 @@ func (s *DockerSuite) TestExecInteractiveStdinClose(c *check.C) {
 		c.Assert(err, checker.IsNil)
 		output := b.String()
 		c.Assert(strings.TrimSpace(output), checker.Equals, "hello")
-	case <-time.After(5 * time.Second):
+	case <-time.After(15 * time.Second):
 		c.Fatal("timed out running docker exec")
 	}
 }
@@ -50,7 +51,7 @@ func (s *DockerSuite) TestExecTTY(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "--name=test", "busybox", "sh", "-c", "echo hello > /foo && top")
 
-	cmd := exec.Command(dockerBinary, "exec", "-it", "test", "sh")
+	cmd := exec.Command(dockerBinary, "--host=" + os.Getenv("DOCKER_HOST"), "exec", "-it", "test", "sh")
 	p, err := pty.Start(cmd)
 	c.Assert(err, checker.IsNil)
 	defer p.Close()
@@ -65,7 +66,7 @@ func (s *DockerSuite) TestExecTTY(c *check.C) {
 	select {
 	case err := <-chErr:
 		c.Assert(err, checker.IsNil)
-	case <-time.After(3 * time.Second):
+	case <-time.After(15 * time.Second):
 		c.Fatal("timeout waiting for exec to exit")
 	}
 
