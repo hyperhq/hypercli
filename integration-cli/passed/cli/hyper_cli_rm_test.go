@@ -49,31 +49,6 @@ func (s *DockerSuite) TestRmContainerForceRemoveRunning(c *check.C) {
 	dockerCmd(c, "rm", "-f", "foo")
 }
 
-func (s *DockerSuite) TestRmContainerOrphaning(c *check.C) {
-	dockerfile1 := `FROM busybox:latest
-	ENTRYPOINT ["true"]`
-	img := "test-container-orphaning"
-	dockerfile2 := `FROM busybox:latest
-	ENTRYPOINT ["true"]
-	MAINTAINER Integration Tests`
-
-	// build first dockerfile
-	img1, err := buildImage(img, dockerfile1, true)
-	c.Assert(err, check.IsNil, check.Commentf("Could not build image %s", img))
-	// run container on first image
-	dockerCmd(c, "run", img)
-	// rebuild dockerfile with a small addition at the end
-	_, err = buildImage(img, dockerfile2, true)
-	c.Assert(err, check.IsNil, check.Commentf("Could not rebuild image %s", img))
-	// try to remove the image, should not error out.
-	out, _, err := dockerCmdWithError("rmi", img)
-	c.Assert(err, check.IsNil, check.Commentf("Expected to removing the image, but failed: %s", out))
-
-	// check if we deleted the first image
-	out, _ = dockerCmd(c, "images", "-q", "--no-trunc")
-	c.Assert(out, checker.Contains, img1, check.Commentf("Orphaned container (could not find %q in docker images): %s", img1, out))
-
-}
 
 func (s *DockerSuite) TestRmInvalidContainer(c *check.C) {
 	out, _, err := dockerCmdWithError("rm", "unknown")
