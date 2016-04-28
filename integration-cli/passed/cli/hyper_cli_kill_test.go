@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/docker/docker/pkg/integration/checker"
