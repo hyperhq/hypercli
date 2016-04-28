@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"os"
 	"os/exec"
-
+	"time"
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 func (s *DockerSuite) TestLoginWithoutTTY(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "login")
 
 	// Send to stdin so the process does not get the TTY
@@ -23,6 +24,7 @@ func (s *DockerSuite) TestLoginWithoutTTY(c *check.C) {
 /*
 // Hyper can not login to private registry
 func (s *DockerRegistryAuthSuite) TestLoginToPrivateRegistry(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	// wrong credentials
 	out, _, err := dockerCmdWithError("login", "-u", s.reg.username, "-p", "WRONGPASSWORD", "-e", s.reg.email, privateRegistryURL)
 	c.Assert(err, checker.NotNil, check.Commentf(out))

@@ -40,7 +40,7 @@ Integration test for hyper cli
 - [ ] cli_attach_test
 - [ ] cli_attach_unix_test
 - [ ] cli_config_test
-- [ ] cli_create_test
+- [x] cli_create_test
 - [x] cli_exec_test
 - [x] cli_exec_unix_test
 - [ ] cli_help_test
@@ -49,6 +49,7 @@ Integration test for hyper cli
 - [x] cli_info_test
 - [ ] cli_inspect_experimental_test
 - [ ] cli_inspect_test
+- [x] cli_kill_test
 - [ ] cli_links_test
 - [ ] cli_links_unix_test
 - [x] cli_login_test
@@ -58,7 +59,7 @@ Integration test for hyper cli
 - [x] cli_pull_test
 - [x] cli_rename_test
 - [ ] cli_restart_test
-- [ ] cli_rm_test
+- [x] cli_rm_test
 - [x] cli_rmi_test
 - [ ] cli_run_test
 - [ ] cli_run_unix_test

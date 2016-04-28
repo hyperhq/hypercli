@@ -18,6 +18,7 @@ import (
 
 // Make sure we can create a simple container with some args
 func (s *DockerSuite) TestCreateArgs(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	// TODO Windows. This requires further investigation for porting to
 	// Windows CI. Currently fails.
 	if daemonPlatform == "windows" {
@@ -60,6 +61,7 @@ func (s *DockerSuite) TestCreateArgs(c *check.C) {
 
 // Make sure we can set hostconfig options too
 func (s *DockerSuite) TestCreateHostConfig(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "create", "busybox", "echo")
 
 	cleanedContainerID := strings.TrimSpace(out)
@@ -83,6 +85,7 @@ func (s *DockerSuite) TestCreateHostConfig(c *check.C) {
 
 // "test123" should be printed by docker create + start
 func (s *DockerSuite) TestCreateEchoStdout(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "create", "busybox", "echo", "test123")
 
 	cleanedContainerID := strings.TrimSpace(out)
@@ -93,6 +96,7 @@ func (s *DockerSuite) TestCreateEchoStdout(c *check.C) {
 }
 
 func (s *DockerSuite) TestCreateVolumesCreated(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, SameHostDaemon)
 	prefix := "/"
 	if daemonPlatform == "windows" {
@@ -115,6 +119,7 @@ func (s *DockerSuite) TestCreateVolumesCreated(c *check.C) {
 }
 
 func (s *DockerSuite) TestCreateLabels(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	name := "test-create-labels"
 	expected := map[string]string{"k1": "v1", "k2": "v2", "sh_hyper_instancetype": "xs"}
 	dockerCmd(c, "create", "--name", name, "-l", "k1=v1", "--label", "k2=v2", "busybox")
@@ -129,6 +134,7 @@ func (s *DockerSuite) TestCreateLabels(c *check.C) {
 
 
 func (s *DockerSuite) TestCreateRM(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	// Test to make sure we can 'rm' a new container that is in
 	// "Created" state, and has ever been run. Test "rm -f" too.
 
@@ -146,6 +152,7 @@ func (s *DockerSuite) TestCreateRM(c *check.C) {
 }
 
 func (s *DockerSuite) TestCreateModeIpcContainer(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	// Uses Linux specific functionality (--ipc)
 	testRequires(c, DaemonIsLinux)
 	testRequires(c, SameHostDaemon, NotUserNamespace)
@@ -158,6 +165,7 @@ func (s *DockerSuite) TestCreateModeIpcContainer(c *check.C) {
 
 
 func (s *DockerTrustSuite) TestTrustedCreate(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	repoName := s.setupTrustedImage(c, "trusted-create")
 
 	// Try create
@@ -179,6 +187,7 @@ func (s *DockerTrustSuite) TestTrustedCreate(c *check.C) {
 }
 
 func (s *DockerTrustSuite) TestUntrustedCreate(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	repoName := fmt.Sprintf("%v/dockercliuntrusted/createtest", privateRegistryURL)
 	withTagName := fmt.Sprintf("%s:latest", repoName)
 	// tag the image and upload it to the private registry
@@ -196,6 +205,7 @@ func (s *DockerTrustSuite) TestUntrustedCreate(c *check.C) {
 }
 
 func (s *DockerTrustSuite) TestTrustedIsolatedCreate(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	repoName := s.setupTrustedImage(c, "trusted-isolated-create")
 
 	// Try create
@@ -209,6 +219,7 @@ func (s *DockerTrustSuite) TestTrustedIsolatedCreate(c *check.C) {
 }
 
 func (s *DockerTrustSuite) TestCreateWhenCertExpired(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	c.Skip("Currently changes system time, causing instability")
 	repoName := s.setupTrustedImage(c, "trusted-create-expired")
 
@@ -236,6 +247,7 @@ func (s *DockerTrustSuite) TestCreateWhenCertExpired(c *check.C) {
 }
 
 func (s *DockerTrustSuite) TestTrustedCreateFromBadTrustServer(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	repoName := fmt.Sprintf("%v/dockerclievilcreate/trusted:latest", privateRegistryURL)
 	evilLocalConfigDir, err := ioutil.TempDir("", "evil-local-config-dir")
 	c.Assert(err, check.IsNil)
@@ -287,6 +299,7 @@ func (s *DockerTrustSuite) TestTrustedCreateFromBadTrustServer(c *check.C) {
 
 
 func (s *DockerSuite) TestCreateWithWorkdir(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	// TODO Windows. This requires further investigation for porting to
 	// Windows CI. Currently fails.
 	if daemonPlatform == "windows" {

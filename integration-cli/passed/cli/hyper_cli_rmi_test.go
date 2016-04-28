@@ -2,12 +2,13 @@ package main
 
 import (
 	"strings"
-
+	"time"
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 func (s *DockerSuite) TestRmiWithContainerFails(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	errSubstr := "is using it"
 
 	// create a container
@@ -31,6 +32,7 @@ func (s *DockerSuite) TestRmiWithContainerFails(c *check.C) {
 
 
 func (s *DockerSuite) TestRmiBlank(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	// try to delete a blank image name
 	out, _, err := dockerCmdWithError("rmi", "")
 	// Should have failed to delete '' image
@@ -51,6 +53,7 @@ func (s *DockerSuite) TestRmiBlank(c *check.C) {
 
 // #18873
 func (s *DockerSuite) TestRmiByIDHardConflict(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	// TODO Windows CI. This will work on a TP5 compatible docker which
 	// has content addressibility fixes. Do not run this on TP4 as it
 	// will end up deleting the busybox image causing subsequent tests to fail.

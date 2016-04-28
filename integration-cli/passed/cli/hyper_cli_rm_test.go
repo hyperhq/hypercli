@@ -3,12 +3,13 @@ package main
 import (
 	"io/ioutil"
 	"os"
-
+	"time"
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 func (s *DockerSuite) TestRmContainerWithRemovedVolume(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, SameHostDaemon)
 
 	prefix, slash := getPrefixAndSlashFromDaemonPlatform()
@@ -28,6 +29,7 @@ func (s *DockerSuite) TestRmContainerWithRemovedVolume(c *check.C) {
 }
 
 func (s *DockerSuite) TestRmContainerWithVolume(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	prefix, slash := getPrefixAndSlashFromDaemonPlatform()
 
 	dockerCmd(c, "run", "--name", "foo", "-v", prefix+slash+"srv", "busybox", "true")
@@ -36,6 +38,7 @@ func (s *DockerSuite) TestRmContainerWithVolume(c *check.C) {
 }
 
 func (s *DockerSuite) TestRmContainerRunning(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	createRunningContainer(c, "foo")
 
 	_, _, err := dockerCmdWithError("rm", "foo")
@@ -43,6 +46,7 @@ func (s *DockerSuite) TestRmContainerRunning(c *check.C) {
 }
 
 func (s *DockerSuite) TestRmContainerForceRemoveRunning(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	createRunningContainer(c, "foo")
 
 	// Stop then remove with -s
@@ -51,6 +55,7 @@ func (s *DockerSuite) TestRmContainerForceRemoveRunning(c *check.C) {
 
 
 func (s *DockerSuite) TestRmInvalidContainer(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	out, _, err := dockerCmdWithError("rm", "unknown")
 	c.Assert(err, checker.NotNil, check.Commentf("Expected error on rm unknown container, got none"))
 	c.Assert(out, checker.Contains, "No such container")
