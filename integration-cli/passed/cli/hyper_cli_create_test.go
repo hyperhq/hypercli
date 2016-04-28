@@ -13,8 +13,6 @@ import (
 	"io/ioutil"
 
 	"github.com/docker/docker/pkg/integration/checker"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/go-connections/nat"
 	"github.com/go-check/check"
 )
 
@@ -62,7 +60,7 @@ func (s *DockerSuite) TestCreateArgs(c *check.C) {
 
 // Make sure we can set hostconfig options too
 func (s *DockerSuite) TestCreateHostConfig(c *check.C) {
-	out, _ := dockerCmd(c, "create", "-P", "busybox", "echo")
+	out, _ := dockerCmd(c, "create", "busybox", "echo")
 
 	cleanedContainerID := strings.TrimSpace(out)
 
@@ -81,67 +79,6 @@ func (s *DockerSuite) TestCreateHostConfig(c *check.C) {
 	cont := containers[0]
 	c.Assert(cont.HostConfig, check.NotNil, check.Commentf("Expected HostConfig, got none"))
 	c.Assert(cont.HostConfig.PublishAllPorts, check.NotNil, check.Commentf("Expected PublishAllPorts, got false"))
-}
-
-func (s *DockerSuite) TestCreateWithPortRange(c *check.C) {
-	// Windows does not currently support port ranges.
-	testRequires(c, DaemonIsLinux)
-	out, _ := dockerCmd(c, "create", "-p", "3300-3303:3300-3303/tcp", "busybox", "echo")
-
-	cleanedContainerID := strings.TrimSpace(out)
-
-	out, _ = dockerCmd(c, "inspect", cleanedContainerID)
-
-	containers := []struct {
-		HostConfig *struct {
-			PortBindings map[nat.Port][]nat.PortBinding
-		}
-	}{}
-	err := json.Unmarshal([]byte(out), &containers)
-	c.Assert(err, check.IsNil, check.Commentf("Error inspecting the container: %s", err))
-	c.Assert(containers, checker.HasLen, 1)
-
-	cont := containers[0]
-
-	c.Assert(cont.HostConfig, check.NotNil, check.Commentf("Expected HostConfig, got none"))
-	c.Assert(cont.HostConfig.PortBindings, checker.HasLen, 4, check.Commentf("Expected 4 ports bindings, got %d", len(cont.HostConfig.PortBindings)))
-
-	for k, v := range cont.HostConfig.PortBindings {
-		c.Assert(v, checker.HasLen, 1, check.Commentf("Expected 1 ports binding, for the port  %s but found %s", k, v))
-		c.Assert(k.Port(), checker.Equals, v[0].HostPort, check.Commentf("Expected host port %s to match published port %s", k.Port(), v[0].HostPort))
-
-	}
-
-}
-
-func (s *DockerSuite) TestCreateWithLargePortRange(c *check.C) {
-	// Windows does not currently support port ranges.
-	testRequires(c, DaemonIsLinux)
-	out, _ := dockerCmd(c, "create", "-p", "1-65535:1-65535/tcp", "busybox", "echo")
-
-	cleanedContainerID := strings.TrimSpace(out)
-
-	out, _ = dockerCmd(c, "inspect", cleanedContainerID)
-
-	containers := []struct {
-		HostConfig *struct {
-			PortBindings map[nat.Port][]nat.PortBinding
-		}
-	}{}
-
-	err := json.Unmarshal([]byte(out), &containers)
-	c.Assert(err, check.IsNil, check.Commentf("Error inspecting the container: %s", err))
-	c.Assert(containers, checker.HasLen, 1)
-
-	cont := containers[0]
-	c.Assert(cont.HostConfig, check.NotNil, check.Commentf("Expected HostConfig, got none"))
-	c.Assert(cont.HostConfig.PortBindings, checker.HasLen, 65535)
-
-	for k, v := range cont.HostConfig.PortBindings {
-		c.Assert(v, checker.HasLen, 1)
-		c.Assert(k.Port(), checker.Equals, v[0].HostPort, check.Commentf("Expected host port %s to match published port %s", k.Port(), v[0].HostPort))
-	}
-
 }
 
 // "test123" should be printed by docker create + start
@@ -178,8 +115,8 @@ func (s *DockerSuite) TestCreateVolumesCreated(c *check.C) {
 }
 
 func (s *DockerSuite) TestCreateLabels(c *check.C) {
-	name := "test_create_labels"
-	expected := map[string]string{"k1": "v1", "k2": "v2"}
+	name := "test-create-labels"
+	expected := map[string]string{"k1": "v1", "k2": "v2", "sh_hyper_instancetype": "xs"}
 	dockerCmd(c, "create", "--name", name, "-l", "k1=v1", "--label", "k2=v2", "busybox")
 
 	actual := make(map[string]string)
@@ -190,37 +127,6 @@ func (s *DockerSuite) TestCreateLabels(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestCreateLabelFromImage(c *check.C) {
-	imageName := "testcreatebuildlabel"
-	_, err := buildImage(imageName,
-		`FROM busybox
-		LABEL k1=v1 k2=v2`,
-		true)
-
-	c.Assert(err, check.IsNil)
-
-	name := "test_create_labels_from_image"
-	expected := map[string]string{"k2": "x", "k3": "v3", "k1": "v1"}
-	dockerCmd(c, "create", "--name", name, "-l", "k2=x", "--label", "k3=v3", imageName)
-
-	actual := make(map[string]string)
-	inspectFieldAndMarshall(c, name, "Config.Labels", &actual)
-
-	if !reflect.DeepEqual(expected, actual) {
-		c.Fatalf("Expected %s got %s", expected, actual)
-	}
-}
-
-func (s *DockerSuite) TestCreateHostnameWithNumber(c *check.C) {
-	// TODO Windows. Consider enabling this in TP5 timeframe if Windows support
-	// is fully hooked up. The hostname is passed through, but only to the
-	// environment variable "COMPUTERNAME". It is not hooked up to hostname.exe
-	// or returned in ipconfig. Needs platform support in networking.
-	testRequires(c, DaemonIsLinux)
-	out, _ := dockerCmd(c, "run", "-h", "web.0", "busybox", "hostname")
-	c.Assert(strings.TrimSpace(out), checker.Equals, "web.0", check.Commentf("hostname not set, expected `web.0`, got: %s", out))
-
-}
 
 func (s *DockerSuite) TestCreateRM(c *check.C) {
 	// Test to make sure we can 'rm' a new container that is in
@@ -250,40 +156,6 @@ func (s *DockerSuite) TestCreateModeIpcContainer(c *check.C) {
 	dockerCmd(c, "create", fmt.Sprintf("--ipc=container:%s", id), "busybox")
 }
 
-func (s *DockerSuite) TestCreateByImageID(c *check.C) {
-	imageName := "testcreatebyimageid"
-	imageID, err := buildImage(imageName,
-		`FROM busybox
-		MAINTAINER dockerio`,
-		true)
-	if err != nil {
-		c.Fatal(err)
-	}
-	truncatedImageID := stringid.TruncateID(imageID)
-
-	dockerCmd(c, "create", imageID)
-	dockerCmd(c, "create", truncatedImageID)
-	dockerCmd(c, "create", fmt.Sprintf("%s:%s", imageName, truncatedImageID))
-
-	// Ensure this fails
-	out, exit, _ := dockerCmdWithError("create", fmt.Sprintf("%s:%s", imageName, imageID))
-	if exit == 0 {
-		c.Fatalf("expected non-zero exit code; received %d", exit)
-	}
-
-	if expected := "Error parsing reference"; !strings.Contains(out, expected) {
-		c.Fatalf(`Expected %q in output; got: %s`, expected, out)
-	}
-
-	out, exit, _ = dockerCmdWithError("create", fmt.Sprintf("%s:%s", "wrongimage", truncatedImageID))
-	if exit == 0 {
-		c.Fatalf("expected non-zero exit code; received %d", exit)
-	}
-
-	if expected := "Unable to find image"; !strings.Contains(out, expected) {
-		c.Fatalf(`Expected %q in output; got: %s`, expected, out)
-	}
-}
 
 func (s *DockerTrustSuite) TestTrustedCreate(c *check.C) {
 	repoName := s.setupTrustedImage(c, "trusted-create")
@@ -413,14 +285,6 @@ func (s *DockerTrustSuite) TestTrustedCreateFromBadTrustServer(c *check.C) {
 
 }
 
-func (s *DockerSuite) TestCreateStopSignal(c *check.C) {
-	name := "test_create_stop_signal"
-	dockerCmd(c, "create", "--name", name, "--stop-signal", "9", "busybox")
-
-	res := inspectFieldJSON(c, name, "Config.StopSignal")
-	c.Assert(res, checker.Contains, "9")
-
-}
 
 func (s *DockerSuite) TestCreateWithWorkdir(c *check.C) {
 	// TODO Windows. This requires further investigation for porting to
@@ -434,5 +298,4 @@ func (s *DockerSuite) TestCreateWithWorkdir(c *check.C) {
 	dir := prefix + slash + "home" + slash + "foo" + slash + "bar"
 
 	dockerCmd(c, "create", "--name", name, "-w", dir, "busybox")
-	dockerCmd(c, "cp", fmt.Sprintf("%s:%s", name, dir), prefix+slash+"tmp")
 }
