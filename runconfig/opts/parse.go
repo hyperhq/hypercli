@@ -110,7 +110,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 	cmd.Var(&flLabels, []string{"l", "-label"}, "Set meta data on a container")
 	cmd.Var(&flLabelsFile, []string{"-label-file"}, "Read in a line delimited file of labels")
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
-	cmd.Var(&flEnvFile, []string{}, "Read in a file of environment variables")
+	cmd.Var(&flEnvFile, []string{"-env-file"}, "Read in a file of environment variables")
 	cmd.Var(&flPublish, []string{}, "Publish a container's port(s) to the host")
 	cmd.Var(&flExpose, []string{}, "Expose a port or a range of ports")
 	cmd.Var(&flDNS, []string{}, "Set custom DNS servers")
