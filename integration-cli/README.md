@@ -62,7 +62,7 @@ Integration test for hyper cli
 - [ ] cli_rmi_test
 - [ ] cli_run_test
 - [ ] cli_run_unix_test
-- [ ] cli_search_test
+- [x] cli_search_test
 - [ ] cli_start_test
 - [ ] cli_stats_test
 - [x] cli_version_test

@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
@@ -9,6 +10,9 @@ import (
 
 // search for repos named  "registry" on the central registry
 func (s *DockerSuite) TestSearchOnCentralRegistry(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	testRequires(c, Network, DaemonIsLinux)
 
 	out, _ := dockerCmd(c, "search", "busybox")
@@ -16,6 +20,9 @@ func (s *DockerSuite) TestSearchOnCentralRegistry(c *check.C) {
 }
 
 func (s *DockerSuite) TestSearchStarsOptionWithWrongParameter(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	out, _, err := dockerCmdWithError("search", "--stars=a", "busybox")
 	c.Assert(err, check.NotNil, check.Commentf(out))
 	c.Assert(out, checker.Contains, "invalid value", check.Commentf("couldn't find the invalid value warning"))
@@ -26,6 +33,9 @@ func (s *DockerSuite) TestSearchStarsOptionWithWrongParameter(c *check.C) {
 }
 
 func (s *DockerSuite) TestSearchCmdOptions(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	testRequires(c, Network)
 
 	out, _ := dockerCmd(c, "search", "--help")
@@ -49,6 +59,9 @@ func (s *DockerSuite) TestSearchCmdOptions(c *check.C) {
 
 // search for repos which start with "ubuntu-" on the central registry
 func (s *DockerSuite) TestSearchOnCentralRegistryWithDash(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	testRequires(c, Network, DaemonIsLinux)
 
 	dockerCmd(c, "search", "ubuntu-")
