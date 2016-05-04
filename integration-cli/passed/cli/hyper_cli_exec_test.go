@@ -411,3 +411,71 @@ func (s *DockerSuite) TestExecStartFails(c *check.C) {
 	c.Assert(err, checker.NotNil, check.Commentf(out))
 	c.Assert(out, checker.Contains, "exec failed: No such file or directory")
 }
+
+func (s *DockerSuite) TestExecInspectID(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
+	out, _ := runSleepingContainer(c, "-d")
+	id := strings.TrimSuffix(out, "\n")
+
+	out = inspectField(c, id, "ExecIDs")
+	c.Assert(out, checker.Equals, "[]", check.Commentf("ExecIDs should be empty, got: %s", out))
+
+	// Start an exec, have it block waiting so we can do some checking
+	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", id, "sh", "-c",
+		"while ! test -e /execid1; do sleep 1; done")
+
+	err := cmd.Start()
+	c.Assert(err, checker.IsNil, check.Commentf("failed to start the exec cmd"))
+
+	// Give the exec 10 chances/seconds to start then give up and stop the test
+	tries := 10
+	for i := 0; i < tries; i++ {
+		// Since its still running we should see exec as part of the container
+		out = strings.TrimSpace(inspectField(c, id, "ExecIDs"))
+
+		if out != "[]" && out != "<no value>" {
+			break
+		}
+		c.Assert(i+1, checker.Not(checker.Equals), tries, check.Commentf("ExecIDs still empty after 10 second"))
+		time.Sleep(1 * time.Second)
+	}
+
+	// Save execID for later
+	execID, err := inspectFilter(id, "index .ExecIDs 0")
+	c.Assert(err, checker.IsNil, check.Commentf("failed to get the exec id"))
+
+	// End the exec by creating the missing file
+	err = exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", id,
+		"sh", "-c", "touch /execid1").Run()
+
+	c.Assert(err, checker.IsNil, check.Commentf("failed to run the 2nd exec cmd"))
+
+	// Wait for 1st exec to complete
+	cmd.Wait()
+
+	// Give the exec 10 chances/seconds to stop then give up and stop the test
+	for i := 0; i < tries; i++ {
+		// Since its still running we should see exec as part of the container
+		out = strings.TrimSpace(inspectField(c, id, "ExecIDs"))
+
+		if out == "[]" {
+			break
+		}
+		c.Assert(i+1, checker.Not(checker.Equals), tries, check.Commentf("ExecIDs still not empty after 10 second"))
+		time.Sleep(1 * time.Second)
+	}
+
+	// But we should still be able to query the execID
+	sc, body, err := sockRequest("GET", "/exec/"+execID+"/json", nil)
+	c.Assert(sc, checker.Equals, http.StatusOK, check.Commentf("received status != 200 OK: %d\n%s", sc, body))
+
+	//TODO: fix receive 500
+	// Now delete the container and then an 'inspect' on the exec should
+	// result in a 404 (not 'container not running')
+	/*out, ec := dockerCmd(c, "rm", "-f", id)
+	c.Assert(ec, checker.Equals, 0, check.Commentf("error removing container: %s", out))
+	sc, body, err = sockRequest("GET", "/exec/"+execID+"/json", nil)
+	c.Assert(sc, checker.Equals, http.StatusNotFound, check.Commentf("received status != 404: %d\n%s", sc, body))*/
+}
