@@ -1,16 +1,18 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
-// This is a heisen-test.  Because the created timestamp of images and the behavior of
+//TODO: add hyper build
+/*// This is a heisen-test.  Because the created timestamp of images and the behavior of
 // sort is not predictable it doesn't always fail.
 func (s *DockerSuite) TestBuildHistory(c *check.C) {
 	testRequires(c, DaemonIsLinux) // TODO Windows: This test passes on Windows,
@@ -59,18 +61,25 @@ RUN echo "Z"`,
 		c.Assert(actualValue, checker.Contains, echoValue)
 	}
 
-}
+}*/
 
 func (s *DockerSuite) TestHistoryExistentImage(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	dockerCmd(c, "history", "busybox")
 }
 
 func (s *DockerSuite) TestHistoryNonExistentImage(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	_, _, err := dockerCmdWithError("history", "testHistoryNonExistentImage")
 	c.Assert(err, checker.NotNil, check.Commentf("history on a non-existent image should fail."))
 }
 
-func (s *DockerSuite) TestHistoryImageWithComment(c *check.C) {
+//TODO: add hyper commit
+/*func (s *DockerSuite) TestHistoryImageWithComment(c *check.C) {
 	name := "testhistoryimagewithcomment"
 
 	// make a image through docker commit <container id> [ -m messages ]
@@ -87,9 +96,12 @@ func (s *DockerSuite) TestHistoryImageWithComment(c *check.C) {
 	outputTabs := strings.Fields(strings.Split(out, "\n")[1])
 	actualValue := outputTabs[len(outputTabs)-1]
 	c.Assert(actualValue, checker.Contains, comment)
-}
+}*/
 
 func (s *DockerSuite) TestHistoryHumanOptionFalse(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	out, _ := dockerCmd(c, "history", "--human=false", "busybox")
 	lines := strings.Split(out, "\n")
 	sizeColumnRegex, _ := regexp.Compile("SIZE +")
@@ -108,6 +120,9 @@ func (s *DockerSuite) TestHistoryHumanOptionFalse(c *check.C) {
 }
 
 func (s *DockerSuite) TestHistoryHumanOptionTrue(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	out, _ := dockerCmd(c, "history", "--human=true", "busybox")
 	lines := strings.Split(out, "\n")
 	sizeColumnRegex, _ := regexp.Compile("SIZE +")
