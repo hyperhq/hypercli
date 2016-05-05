@@ -21,40 +21,38 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"runtime"
 
 	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/integration"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/stringutils"
+	HyperCli "github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/go-check/check"
-	HyperCli "github.com/docker/engine-api/client"
 )
 
-
-var flag_host=""
+var flag_host = ""
 
 func init() {
 	/*
-	out, err := exec.Command(dockerBinary, "images").CombinedOutput()
-	if err != nil {
-		panic(err)
-	}
-	lines := strings.Split(string(out), "\n")[1:]
-	for _, l := range lines {
-		if l == "" {
-			continue
+		out, err := exec.Command(dockerBinary, "images").CombinedOutput()
+		if err != nil {
+			panic(err)
 		}
-		fields := strings.Fields(l)
-		imgTag := fields[0] + ":" + fields[1]
-		// just for case if we have dangling images in tested daemon
-		if imgTag != "<none>:<none>" {
-			protectedImages[imgTag] = struct{}{}
+		lines := strings.Split(string(out), "\n")[1:]
+		for _, l := range lines {
+			if l == "" {
+				continue
+			}
+			fields := strings.Fields(l)
+			imgTag := fields[0] + ":" + fields[1]
+			// just for case if we have dangling images in tested daemon
+			if imgTag != "<none>:<none>" {
+				protectedImages[imgTag] = struct{}{}
+			}
 		}
-	}
 	*/
 
 	// Obtain the daemon platform so that it can be used by tests to make
@@ -109,7 +107,7 @@ func init() {
 
 	//set flag_host
 	if os.Getenv("DOCKER_HOST") != "" {
-		flag_host="--host=" + os.Getenv("DOCKER_HOST")
+		flag_host = "--host=" + os.Getenv("DOCKER_HOST")
 	}
 	fmt.Println("finish init")
 }
@@ -492,7 +490,7 @@ func (d *Daemon) Cmd(name string, arg ...string) (string, error) {
 // CmdWithArgs will execute a docker CLI command against a daemon with the
 // given additional arguments
 func (d *Daemon) CmdWithArgs(daemonArgs []string, name string, arg ...string) (string, error) {
-	daemonArgs=append(daemonArgs, flag_host)
+	daemonArgs = append(daemonArgs, flag_host)
 	args := append(daemonArgs, name)
 	args = append(args, arg...)
 	c := exec.Command(dockerBinary, args...)
@@ -634,7 +632,7 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 	req = HyperCli.Sign4(os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"), req)
 
 	if endpoint == "/version" {
-	//output
+		//output
 		fmt.Println("--------------------------------------------------------------------------------------------")
 		fmt.Println("The following command is used for test connection to 'apirouter' service(expired after 5min)")
 		fmt.Println("--------------------------------------------------------------------------------------------")
@@ -1816,10 +1814,20 @@ func runSleepingContainerInImage(c *check.C, image string, extraArgs ...string) 
 //util, get name of current function
 func printTestCaseName() {
 	pc, _, _, _ := runtime.Caller(1)
-	fmt.Printf("[%s] %s",time.Now().Format("2006-01-02 15:04:05"), runtime.FuncForPC(pc).Name())
+	fmt.Printf("[%s] %s", time.Now().Format("2006-01-02 15:04:05"), runtime.FuncForPC(pc).Name())
 }
 
 func printTestDuration(start time.Time) {
 	duration := time.Now().Sub(start).Seconds()
-	fmt.Printf(" - %.6f sec\n",duration)
+	fmt.Printf(" - %.6f sec\n", duration)
+}
+
+func releaseFip(fipList []string) {
+	for fip := range fipList {
+		args := strings.Split("--host="+os.Getenv("DOCKER_HOST")+" fip release "+fip, " ")
+
+		if err := exec.Command(dockerBinary, args...).Run(); err != nil {
+			return err
+		}
+	}
 }
