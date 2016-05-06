@@ -1,11 +1,13 @@
 package main
 
 import (
+	"path/filepath"
 	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 	"github.com/hyperhq/hypercli/cliconfig"
+	"github.com/hyperhq/hypercli/pkg/homedir"
 )
 
 func (s *DockerSuite) TestConfigAndRewrite(c *check.C) {
@@ -15,7 +17,8 @@ func (s *DockerSuite) TestConfigAndRewrite(c *check.C) {
 	out, _ := dockerCmd(c, "config", "--accesskey", "xx", "--secretkey", "xxxx", "tcp://127.0.0.1:6443")
 	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in /root/.hyper/config.json")
 
-	conf, err := cliconfig.Load("/root/.hyper/")
+	configDir := filepath.Join(homedir.Get(), ".hyper")
+	conf, err := cliconfig.Load(configDir)
 	c.Assert(err, checker.IsNil)
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].AccessKey, checker.Equals, "xx", check.Commentf("Should get xx, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].AccessKey))
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey, checker.Equals, "xxxx", check.Commentf("Should get xxxx, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey))
@@ -36,7 +39,8 @@ func (s *DockerSuite) TestMultiHost(c *check.C) {
 	out, _ := dockerCmd(c, "config", "--accesskey", "xx", "--secretkey", "xxxx", "tcp://127.0.0.1:6443")
 	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in /root/.hyper/config.json")
 
-	conf, err := cliconfig.Load("/root/.hyper/")
+	configDir := filepath.Join(homedir.Get(), ".hyper")
+	conf, err := cliconfig.Load(configDir)
 	c.Assert(err, checker.IsNil)
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].AccessKey, checker.Equals, "xx", check.Commentf("Should get xx, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].AccessKey))
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey, checker.Equals, "xxxx", check.Commentf("Should get xxxx, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey))
