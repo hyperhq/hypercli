@@ -26,7 +26,7 @@ func (s *DockerSuite) TestConfigAndRewrite(c *check.C) {
 	out, _ = dockerCmd(c, "config", "--accesskey", "yy", "--secretkey", "yyyy", "tcp://127.0.0.1:6443")
 	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in /root/.hyper/config.json")
 
-	conf, err = cliconfig.Load("/root/.hyper/")
+	conf, err := cliconfig.Load(configDir)
 	c.Assert(err, checker.IsNil)
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].AccessKey, checker.Equals, "yy", check.Commentf("Should get yy, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].AccessKey))
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey, checker.Equals, "yyyy", check.Commentf("Should get yyyy, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey))
@@ -48,7 +48,7 @@ func (s *DockerSuite) TestMultiHost(c *check.C) {
 	out, _ = dockerCmd(c, "config", "--accesskey", "yy", "--secretkey", "yyyy", "tcp://127.0.0.1:6444")
 	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in /root/.hyper/config.json")
 
-	conf, err = cliconfig.Load("/root/.hyper/")
+	conf, err := cliconfig.Load(configDir)
 	c.Assert(err, checker.IsNil)
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6444"].AccessKey, checker.Equals, "yy", check.Commentf("Should get yy, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].AccessKey))
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6444"].SecretKey, checker.Equals, "yyyy", check.Commentf("Should get yyyy, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey))
