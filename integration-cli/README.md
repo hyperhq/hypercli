@@ -29,6 +29,7 @@ Integration test for hyper cli
 - [Check test result](#check-test-result)
 	- [if test case passed](#if-test-case-passed)
 	- [if find issues](#if-find-issues)
+	- [if test case will be supported in the future](#if-test-case-will-be-supported-in-the-future)
 - [After issues fixed](#after-issues-fixed)
 
 <!-- /TOC -->
@@ -45,7 +46,7 @@ Integration test for hyper cli
 - [x] cli_exec_unix_test
 - [ ] cli_help_test
 - [ ] cli_history_test
-- [ ] cli_images_test
+- [x] cli_images_test
 - [x] cli_info_test
 - [ ] cli_inspect_experimental_test
 - [ ] cli_inspect_test
@@ -263,6 +264,11 @@ ok      github.com/hyperhq/hypercli/integration-cli    ?s
 
 - move the test case to `integration-cli/issue` dir
 - please create a new issue here: https://github.com/hyperhq/hypercli/issues
+- continue next test case
+
+## if test case will be supported in the future
+
+- move the test case to `integration-cli/future` dir
 - continue next test case
 
 # After issues fixed
