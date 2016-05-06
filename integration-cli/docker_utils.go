@@ -18,6 +18,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -1811,6 +1812,14 @@ func runSleepingContainerInImage(c *check.C, image string, extraArgs ...string) 
 	return dockerCmd(c, args...)
 }
 
+func releaseFip(c *check.C, fipList []string) {
+	for _, fip := range fipList {
+		_, exitCode := dockerCmd(c, "fip", "release", fip)
+		c.Assert(exitCode, check.Equals, 0)
+		fmt.Println("release fip " + fip)
+	}
+}
+
 //util, get name of current function
 func printTestCaseName() {
 	pc, _, _, _ := runtime.Caller(1)
@@ -1820,14 +1829,4 @@ func printTestCaseName() {
 func printTestDuration(start time.Time) {
 	duration := time.Now().Sub(start).Seconds()
 	fmt.Printf(" - %.6f sec\n", duration)
-}
-
-func releaseFip(fipList []string) {
-	for fip := range fipList {
-		args := strings.Split("--host="+os.Getenv("DOCKER_HOST")+" fip release "+fip, " ")
-
-		if err := exec.Command(dockerBinary, args...).Run(); err != nil {
-			return err
-		}
-	}
 }
