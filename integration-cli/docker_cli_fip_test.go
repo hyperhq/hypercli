@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -9,24 +8,20 @@ import (
 	"github.com/go-check/check"
 )
 
-//TODO: release a non-IP
 func (s *DockerSuite) TestAssociateUsedIP(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
 	out, _ := dockerCmd(c, "fip", "allocate", "1")
 	firstIP := strings.TrimSpace(out)
-	fmt.Println(firstIP)
 	fipList := []string{firstIP}
 	defer releaseFip(c, fipList)
 
 	out, _ = runSleepingContainer(c, "-d")
 	firstContainerID := strings.TrimSpace(out)
-	fmt.Println(firstContainerID)
 
 	out, _ = runSleepingContainer(c, "-d")
 	secondContainerID := strings.TrimSpace(out)
-	fmt.Println(secondContainerID)
 
 	dockerCmd(c, "fip", "associate", firstIP, firstContainerID)
 	out, _, err := dockerCmdWithError("fip", "associate", firstIP, secondContainerID)
@@ -41,7 +36,6 @@ func (s *DockerSuite) TestAssociateConfedContainer(c *check.C) {
 
 	out, _ := dockerCmd(c, "fip", "allocate", "1")
 	firstIP := strings.TrimSpace(out)
-	fmt.Println(firstIP)
 	fipList := []string{firstIP}
 
 	out, _ = dockerCmd(c, "fip", "allocate", "1")
@@ -51,11 +45,51 @@ func (s *DockerSuite) TestAssociateConfedContainer(c *check.C) {
 
 	out, _ = runSleepingContainer(c, "-d")
 	firstContainerID := strings.TrimSpace(out)
-	fmt.Println(firstContainerID)
 
 	dockerCmd(c, "fip", "associate", firstIP, firstContainerID)
 	out, _, err := dockerCmdWithError("fip", "associate", secondIP, firstContainerID)
 	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
 	out, _ = dockerCmd(c, "fip", "disassociate", firstContainerID)
 	c.Assert(out, checker.Equals, firstIP+"\n")
+}
+
+func (s *DockerSuite) TestDisassociateUnconfedContainer(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
+	out, _ := runSleepingContainer(c, "-d")
+	firstContainerID := strings.TrimSpace(out)
+
+	out, _, err := dockerCmdWithError("fip", "disassociate", firstContainerID)
+	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
+}
+
+func (s *DockerSuite) TestReleaseUsedIP(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
+	out, _ := dockerCmd(c, "fip", "allocate", "1")
+	firstIP := strings.TrimSpace(out)
+	fipList := []string{firstIP}
+	defer releaseFip(c, fipList)
+
+	out, _ = runSleepingContainer(c, "-d")
+	firstContainerID := strings.TrimSpace(out)
+
+	dockerCmd(c, "fip", "associate", firstIP, firstContainerID)
+	out, _, err := dockerCmdWithError("fip", "release", firstIP)
+	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
+	out, _ = dockerCmd(c, "fip", "disassociate", firstContainerID)
+	c.Assert(out, checker.Equals, firstIP+"\n")
+}
+
+func (s *DockerSuite) TestReleaseInvalidIP(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
+	out, _, err := dockerCmdWithError("fip", "release", "InvalidIP")
+	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
+
+	out, _, err = dockerCmdWithError("fip", "release", "0.0.0.0")
+	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
 }

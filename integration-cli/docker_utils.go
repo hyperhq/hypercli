@@ -1816,7 +1816,6 @@ func releaseFip(c *check.C, fipList []string) {
 	for _, fip := range fipList {
 		_, exitCode := dockerCmd(c, "fip", "release", fip)
 		c.Assert(exitCode, check.Equals, 0)
-		fmt.Println("release fip " + fip)
 	}
 }
 
