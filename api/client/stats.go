@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -40,6 +41,8 @@ func (s *containerStats) Collect(cli *DockerCli, streamStats bool) {
 		s.mu.Lock()
 		s.err = err
 		s.mu.Unlock()
+		fmt.Println(err.Error())
+		os.Exit(1)
 		return
 	}
 	defer responseBody.Close()
@@ -182,7 +185,7 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 	}
 	// do a quick pause so that any failed connections for containers that do not exist are able to be
 	// evicted before we display the initial or default values.
-	time.Sleep(1500 * time.Millisecond)
+	time.Sleep(2500 * time.Millisecond)
 	var errs []string
 	cStats.mu.Lock()
 	for _, c := range cStats.cs {
