@@ -40,6 +40,7 @@ func (s *DockerSuite) TestStatsNoStream(c *check.C) {
 	}
 }
 
+// NEED TO BE FIXED
 func (s *DockerSuite) TestStatsContainerNotFound(c *check.C) {
 	// Windows does not support stats
 	testRequires(c, DaemonIsLinux)
@@ -95,6 +96,8 @@ func (s *DockerSuite) TestStatsAllNoStream(c *check.C) {
 	}
 }
 
+
+// NEED TO BE FIXED
 func (s *DockerSuite) TestStatsAllNewContainersAdded(c *check.C) {
 	// Windows does not support stats
 	testRequires(c, DaemonIsLinux)
@@ -127,7 +130,7 @@ func (s *DockerSuite) TestStatsAllNewContainersAdded(c *check.C) {
 	id <- strings.TrimSpace(out)[:12]
 
 	select {
-	case <-time.After(5 * time.Second):
+	case <-time.After(100 * time.Second):
 		c.Fatal("failed to observe new container created added to stats")
 	case <-addedChan:
 		// ignore, done

@@ -7,7 +7,7 @@ import (
 	"github.com/docker/engine-api/types"
 	"github.com/go-check/check"
 )
-
+// NEED TO BE FIXED
 func (s *DockerSuite) TestInspectNamedMountPoint(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "--name", "test", "-v", "data:/data", "busybox", "cat")
