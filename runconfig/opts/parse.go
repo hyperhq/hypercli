@@ -9,15 +9,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hyperhq/hypercli/opts"
-	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/hyperhq/hypercli/pkg/mount"
-	"github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/docker/engine-api/types/container"
 	networktypes "github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/strslice"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/go-units"
+	"github.com/hyperhq/hypercli/opts"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/mount"
+	"github.com/hyperhq/hypercli/pkg/signal"
 )
 
 // Parse parses the specified args for the specified command and generates a Config,
@@ -80,7 +80,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		flCpusetMems        = cmd.String([]string{}, "", "MEMs in which to allow execution (0-3, 0,1)")
 		flBlkioWeight       = cmd.Uint16([]string{}, 0, "Block IO (relative weight), between 10 and 1000")
 		flSwappiness        = cmd.Int64([]string{}, -1, "Tune container memory swappiness (0 to 100)")
-		flNetMode           = cmd.String([]string{}, "default", "Connect a container to a network")
+		flNetMode           = cmd.String([]string{}, "bridge", "Connect a container to a network")
 		flMacAddress        = cmd.String([]string{}, "", "Container MAC address (e.g. 92:d0:c6:0a:29:33)")
 		flIPv4Address       = cmd.String([]string{}, "", "Container IPv4 address (e.g. 172.30.100.104)")
 		flIPv6Address       = cmd.String([]string{}, "", "Container IPv6 address (e.g. 2001:db8::33)")
