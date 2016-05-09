@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/docker/docker/pkg/homedir"
@@ -13,6 +14,9 @@ import (
 )
 
 func (s *DockerSuite) TestHelpTextVerify(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	testRequires(c, DaemonIsLinux)
 	// Make sure main help text fits within 80 chars and that
 	// on non-windows system we use ~ when possible (to shorten things).
@@ -118,7 +122,7 @@ func (s *DockerSuite) TestHelpTextVerify(c *check.C) {
 		for _, cmd := range cmdsToTest {
 			var stderr string
 
-			args := strings.Split(cmd+" --help", " ")
+			args := strings.Split("--host="+os.Getenv("DOCKER_HOST")+" "+cmd+" --help", " ")
 
 			// Check the full usage text
 			helpCmd := exec.Command(dockerBinary, args...)
@@ -179,6 +183,7 @@ func (s *DockerSuite) TestHelpTextVerify(c *check.C) {
 				"logout":  "",
 				"network": "",
 				"stats":   "",
+				"config":  "",
 			}
 
 			if _, ok := noShortUsage[cmd]; !ok {
@@ -201,14 +206,14 @@ func (s *DockerSuite) TestHelpTextVerify(c *check.C) {
 
 				ec := 0
 				if _, ok := skipNoArgs[cmd]; !ok {
-					args = strings.Split(cmd, " ")
+					args = strings.Split("--host="+os.Getenv("DOCKER_HOST")+" "+cmd, " ")
 					dCmd = exec.Command(dockerBinary, args...)
 					stdout, stderr, ec, err = runCommandWithStdoutStderr(dCmd)
 				}
 
 				// If its ok w/o any args then try again with an arg
 				if ec == 0 {
-					args = strings.Split(cmd+" badArg", " ")
+					args = strings.Split("--host="+os.Getenv("DOCKER_HOST")+" "+cmd+" badArg", " ")
 					dCmd = exec.Command(dockerBinary, args...)
 					stdout, stderr, ec, err = runCommandWithStdoutStderr(dCmd)
 				}
@@ -238,6 +243,9 @@ func (s *DockerSuite) TestHelpTextVerify(c *check.C) {
 }
 
 func (s *DockerSuite) TestHelpExitCodesHelpOutput(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	testRequires(c, DaemonIsLinux)
 	// Test to make sure the exit code and output (stdout vs stderr) of
 	// various good and bad cases are what we expect
@@ -246,26 +254,26 @@ func (s *DockerSuite) TestHelpExitCodesHelpOutput(c *check.C) {
 	out, _, err := dockerCmdWithError()
 	c.Assert(err, checker.IsNil, check.Commentf(out))
 	// Be really pick
-	c.Assert(out, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'docker'\n"))
+	c.Assert(out, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'hyper'\n"))
 
 	// docker help: stdout=all, stderr=empty, rc=0
 	out, _, err = dockerCmdWithError("help")
 	c.Assert(err, checker.IsNil, check.Commentf(out))
 	// Be really pick
-	c.Assert(out, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'docker help'\n"))
+	c.Assert(out, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'hyper help'\n"))
 
 	// docker --help: stdout=all, stderr=empty, rc=0
 	out, _, err = dockerCmdWithError("--help")
 	c.Assert(err, checker.IsNil, check.Commentf(out))
 	// Be really pick
-	c.Assert(out, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'docker --help'\n"))
+	c.Assert(out, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'hyper --help'\n"))
 
 	// docker inspect busybox: stdout=all, stderr=empty, rc=0
 	// Just making sure stderr is empty on valid cmd
 	out, _, err = dockerCmdWithError("inspect", "busybox")
 	c.Assert(err, checker.IsNil, check.Commentf(out))
 	// Be really pick
-	c.Assert(out, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'docker inspect busyBox'\n"))
+	c.Assert(out, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'hyper inspect busyBox'\n"))
 
 	// docker rm: stdout=empty, stderr=all, rc!=0
 	// testing the min arg error msg
@@ -275,7 +283,7 @@ func (s *DockerSuite) TestHelpExitCodesHelpOutput(c *check.C) {
 	c.Assert(stdout, checker.Equals, "")
 	// Should not contain full help text but should contain info about
 	// # of args and Usage line
-	c.Assert(stderr, checker.Contains, "requires a minimum", check.Commentf("Missing # of args text from 'docker rm'\n"))
+	c.Assert(stderr, checker.Contains, "requires a minimum", check.Commentf("Missing # of args text from 'hyper rm'\n"))
 
 	// docker rm NoSuchContainer: stdout=empty, stderr=all, rc=0
 	// testing to make sure no blank line on error
@@ -285,12 +293,12 @@ func (s *DockerSuite) TestHelpExitCodesHelpOutput(c *check.C) {
 	c.Assert(len(stderr), checker.Not(checker.Equals), 0)
 	c.Assert(stdout, checker.Equals, "")
 	// Be really picky
-	c.Assert(stderr, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'docker rm'\n"))
+	c.Assert(stderr, checker.Not(checker.HasSuffix), "\n\n", check.Commentf("Should not have a blank line at the end of 'hyper rm'\n"))
 
 	// docker BadCmd: stdout=empty, stderr=all, rc=0
 	cmd = exec.Command(dockerBinary, "BadCmd")
 	stdout, stderr, _, err = runCommandWithStdoutStderr(cmd)
 	c.Assert(err, checker.NotNil)
 	c.Assert(stdout, checker.Equals, "")
-	c.Assert(stderr, checker.Equals, "docker: 'BadCmd' is not a docker command.\nSee 'docker --help'.\n", check.Commentf("Unexcepted output for 'docker badCmd'\n"))
+	c.Assert(stderr, checker.Equals, "hyper: 'BadCmd' is not a hyper command.\nSee 'hyper --help'.\n", check.Commentf("Unexcepted output for 'hyper badCmd'\n"))
 }
