@@ -32,6 +32,7 @@ func (s *DockerSuite) TearDownTest(c *check.C) {
 	//unpauseAllContainers()
 	deleteAllContainers()
 	deleteAllImages()
+	deleteAllSnapshots()
 	deleteAllVolumes()
 	deleteAllNetworks()
 }

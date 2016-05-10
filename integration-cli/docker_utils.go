@@ -728,6 +728,42 @@ func getAllNetworks() ([]types.NetworkResource, error) {
 	return networks, nil
 }
 
+func deleteAllSnapshots() error {
+	snapshots, err := getAllSnapshots()
+	if err != nil {
+		return err
+	}
+
+	var errors []string
+	for _, s := range snapshots {
+		status, b, err := sockRequest("DELETE", "/snapshots/"+s.Name, nil)
+		if err != nil {
+			errors = append(errors, err.Error())
+			continue
+		}
+		if status != http.StatusNoContent {
+			errors = append(errors, fmt.Sprintf("error deleting snapshot %s: %s", s.Name, string(b)))
+		}
+	}
+	if len(errors) > 0 {
+		return fmt.Errorf(strings.Join(errors, "\n"))
+	}
+	return nil
+}
+
+func getAllSnapshots() ([]*types.Snapshot, error) {
+	var snapshots types.SnapshotsListResponse
+	_, b, err := sockRequest("GET", "/snapshots", nil)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(b, &snapshots); err != nil {
+		return nil, err
+	}
+	return snapshots.Snapshots, nil
+}
+
+
 func deleteAllVolumes() error {
 	volumes, err := getAllVolumes()
 	if err != nil {
