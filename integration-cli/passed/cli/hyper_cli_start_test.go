@@ -32,7 +32,7 @@ func (s *DockerSuite) TestStartRecordError(c *check.C) {
 	c.Assert(stateErr, checker.Equals, "")
 }*/
 
-// NEED TO BE FIXED
+
 func (s *DockerSuite) TestStartMultipleContainers(c *check.C) {
 	// Windows does not support --link
 	testRequires(c, DaemonIsLinux)
@@ -53,7 +53,7 @@ func (s *DockerSuite) TestStartMultipleContainers(c *check.C) {
 	// start all the three containers, container `child_first` start first which should be failed
 	// container 'parent' start second and then start container 'child_second'
 	expOut := "Cannot link to a non running container"
-	expErr := "failed to start containers: [child-first]"
+	expErr := "failed to start containers: child-first"
 	out, _, err := dockerCmdWithError("start", "child-first", "parent", "child-second")
 	// err shouldn't be nil because start will fail
 	c.Assert(err, checker.NotNil, check.Commentf("out: %s", out))
