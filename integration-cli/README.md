@@ -54,7 +54,7 @@ Integration test for hyper cli
 - [ ] cli_links_test
 - [ ] cli_links_unix_test
 - [x] cli_login_test
-- [ ] cli_logs_test
+- [x] cli_logs_test
 - [ ] cli_port_test
 - [x] cli_ps_test
 - [x] cli_pull_test
