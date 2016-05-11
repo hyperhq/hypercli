@@ -1,5 +1,3 @@
-// +build experimental
-
 package main
 
 import (
@@ -7,7 +5,7 @@ import (
 	"github.com/docker/engine-api/types"
 	"github.com/go-check/check"
 )
-// NEED TO BE FIXED
+
 func (s *DockerSuite) TestInspectNamedMountPoint(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "--name", "test", "-v", "data:/data", "busybox", "cat")
@@ -22,8 +20,6 @@ func (s *DockerSuite) TestInspectNamedMountPoint(c *check.C) {
 
 	m := mp[0]
 	c.Assert(m.Name, checker.Equals, "data", check.Commentf("Expected name data"))
-
-	c.Assert(m.Driver, checker.Equals, "local", check.Commentf("Expected driver local"))
 
 	c.Assert(m.Source, checker.Not(checker.Equals), "", check.Commentf("Expected source to not be empty"))
 
