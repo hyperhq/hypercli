@@ -9,12 +9,6 @@ import (
 	"github.com/go-check/check"
 )
 
-const (
-	singlePortImage      = "hyperhq/test-port-single"
-	multiPortImage       = "hyperhq/test-port-list"
-	mixPortocalPortImage = "hyperhq/test-port-mix"
-)
-
 func (s *DockerSuite) TestPortList(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
