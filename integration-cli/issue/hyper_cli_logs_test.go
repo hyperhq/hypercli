@@ -182,9 +182,9 @@ func (s *DockerSuite) TestLogsContainerMuchBiggerThanPage(c *check.C) {
 
 	testRequires(c, DaemonIsLinux)
 	name := "testlogssince"
-	dockerCmd(c, "run", "--name="+name, "busybox", "/bin/sh", "-c", "for i in $(seq 1 30); do sleep 2; echo log$i; done")
+	dockerCmd(c, "run", "-d", --name="+name, "busybox", "/bin/sh", "-c", "for i in $(seq 1 30); do sleep 2; echo log$i; done")
 	//wait for container running
-	time.Sleep(20 * time.Second)
+	time.Sleep(5 * time.Second)
 	out, _ := dockerCmd(c, "logs", "-t", name)
 
 	log2Line := strings.Split(strings.Split(out, "\n")[1], " ")
