@@ -4,8 +4,8 @@ import (
 	//"encoding/json"
 	"fmt"
 	//"io"
-	//"os"
-	//"os/exec"
+	"os"
+	"os/exec"
 	//"regexp"
 	"strconv"
 	"strings"
@@ -176,13 +176,13 @@ func (s *DockerSuite) TestLogsContainerMuchBiggerThanPage(c *check.C) {
 }*/
 
 //TODO: fix #46
-/*func (s *DockerSuite) TestLogsSince(c *check.C) {
+func (s *DockerSuite) TestLogsSince(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
 	name := "testlogssince"
-	dockerCmd(c, "run", "-d", --name="+name, "busybox", "/bin/sh", "-c", "for i in $(seq 1 30); do sleep 2; echo log$i; done")
+	dockerCmd(c, "run", "--name="+name, "-d", "busybox", "/bin/sh", "-c", "for i in $(seq 1 30); do sleep 2; echo log$i; done")
 	//wait for container running
 	time.Sleep(5 * time.Second)
 	out, _ := dockerCmd(c, "logs", "-t", name)
@@ -215,7 +215,7 @@ func (s *DockerSuite) TestLogsContainerMuchBiggerThanPage(c *check.C) {
 			c.Assert(out, checker.Contains, v)
 		}
 	}
-}*/
+}
 
 func (s *DockerSuite) TestLogsSinceFutureFollow(c *check.C) {
 	printTestCaseName()
@@ -226,7 +226,7 @@ func (s *DockerSuite) TestLogsSinceFutureFollow(c *check.C) {
 	id := strings.TrimSpace(out)
 
 	now := daemonTime(c).Unix()
-	since := now - 2
+	since := now - 5
 	out, _ = dockerCmd(c, "logs", "-f", fmt.Sprintf("--since=%v", since), id)
 	lines := strings.Split(strings.TrimSpace(out), "\n")
 	c.Assert(lines, checker.Not(checker.HasLen), 0)
