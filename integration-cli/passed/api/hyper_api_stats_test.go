@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/docker/pkg/version"
@@ -43,41 +42,6 @@ func (s *DockerSuite) TestApiStatsNoStreamGetCpu(c *check.C) {
 	c.Assert(cpuPercent, check.Not(checker.Equals), 0.0, check.Commentf("docker stats with no-stream get cpu usage failed: was %v", cpuPercent))
 }
 
-func (s *DockerSuite) TestApiStatsStoppedContainerInGoroutines(c *check.C) {
-	testRequires(c, DaemonIsLinux)
-	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", "echo 1")
-	id := strings.TrimSpace(out)
-
-	getGoRoutines := func() int {
-		_, body, err := sockRequestRaw("GET", fmt.Sprintf("/info"), nil, "")
-		c.Assert(err, checker.IsNil)
-		info := types.Info{}
-		err = json.NewDecoder(body).Decode(&info)
-		c.Assert(err, checker.IsNil)
-		body.Close()
-		return info.NGoroutines
-	}
-
-	// When the HTTP connection is closed, the number of goroutines should not increase.
-	routines := getGoRoutines()
-	_, body, err := sockRequestRaw("GET", fmt.Sprintf("/containers/%s/stats", id), nil, "")
-	c.Assert(err, checker.IsNil)
-	body.Close()
-
-	t := time.After(30 * time.Second)
-	for {
-		select {
-		case <-t:
-			c.Assert(getGoRoutines(), checker.LessOrEqualThan, routines)
-			return
-		default:
-			if n := getGoRoutines(); n <= routines {
-				return
-			}
-			time.Sleep(200 * time.Millisecond)
-		}
-	}
-}
 
 func (s *DockerSuite) TestApiStatsNetworkStats(c *check.C) {
 	testRequires(c, SameHostDaemon)
