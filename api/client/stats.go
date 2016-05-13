@@ -222,16 +222,7 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 }
 
 func calculateCPUPercent(previousCPU, previousSystem uint64, v *types.StatsJSON) float64 {
-	var (
-		cpuPercent = 0.0
-		// calculate the change for the cpu usage of the container in between readings
-		cpuDelta = float64(v.CPUStats.CPUUsage.TotalUsage)
-	)
-
-	if cpuDelta > 0.0 {
-		cpuPercent = 100.0 * cpuDelta / float64(len(v.CPUStats.CPUUsage.PercpuUsage)*1000000000.0)
-	}
-	return cpuPercent
+	return float64(v.CPUStats.CPUUsage.TotalUsage) / 100.0
 }
 
 func calculateBlockIO(blkio types.BlkioStats) (blkRead uint64, blkWrite uint64) {
