@@ -2,12 +2,16 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 func (s *DockerSuite) TestInfoApi(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	endpoint := "/info"
 
 	status, body, err := sockRequest("GET", endpoint, nil)
