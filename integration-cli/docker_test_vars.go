@@ -13,6 +13,9 @@ var (
 	// the docker binary to use
 	dockerBinary = "hyper"
 
+	//debugEndpoint = "/version"
+	debugEndpoint = ""
+
 	// the private registry image to use for tests involving the registry
 	registryImageName = "registry"
 

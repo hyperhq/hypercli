@@ -617,6 +617,9 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 
 	client := httputil.NewClientConn(c, nil)
 
+	//save to postData
+	postData := fmt.Sprintf("%v",data)
+
 	req, err := http.NewRequest(method, fmt.Sprintf("/v1.23%s", endpoint), data)
 	if err != nil {
 		client.Close()
@@ -632,18 +635,25 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 	//calculate sign4 for apirouter
 	req = HyperCli.Sign4(os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"), req)
 
-	if endpoint == "/version" {
-		//output
+	//for debug
+	if endpoint == debugEndpoint {
+		//output curl command line
+		fmt.Println("\n--------------------------------------------------------------------------------------------")
+		fmt.Printf("debugEndpoint: %v (expired after 5min)\n",debugEndpoint)
 		fmt.Println("--------------------------------------------------------------------------------------------")
-		fmt.Println("The following command is used for test connection to 'apirouter' service(expired after 5min)")
-		fmt.Println("--------------------------------------------------------------------------------------------")
-		fmt.Println("curl -k \\")
+		fmt.Println("curl -v -k \\")
 		for k, v := range req.Header {
 			fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
 		}
-		fmt.Printf("  https://%v/v1.23/version\n", strings.Split(os.Getenv("DOCKER_HOST"), "://")[1])
-
+		fmt.Printf("  -X %v \\\n",  method )
+		if strings.Contains("POST|PUT",method) {
+			fmt.Printf("  -d '%v' \\\n", postData)
+		}
+		fmt.Printf("  https://%v/v1.23%v\n", strings.Split(os.Getenv("DOCKER_HOST"), "://")[1], debugEndpoint)
 		fmt.Println("--------------------------------------------------------------------------------------------")
+
+		//clear debugEndpoint
+		debugEndpoint = ""
 	}
 	return req, client, nil
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"testing"
 
@@ -12,7 +13,7 @@ func Test(t *testing.T) {
 	reexec.Init() // This is required for external graphdriver tests
 
 	if !isLocalDaemon {
-		fmt.Println("INFO: Testing against a remote daemon")
+		fmt.Printf("INFO: Testing against a remote daemon(%v)\n",os.Getenv("DOCKER_HOST"))
 	} else {
 		fmt.Println("INFO: Testing against a local daemon")
 	}
@@ -34,7 +35,7 @@ func (s *DockerSuite) TearDownTest(c *check.C) {
 	deleteAllImages()
 	deleteAllSnapshots()
 	deleteAllVolumes()
-	deleteAllNetworks()
+	//deleteAllNetworks()
 }
 
 func init() {
