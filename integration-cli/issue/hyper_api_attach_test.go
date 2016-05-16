@@ -10,60 +10,8 @@ import (
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
-	"golang.org/x/net/websocket"
 )
 
-func (s *DockerSuite) TestGetContainersAttachWebsocket(c *check.C) {
-	testRequires(c, DaemonIsLinux)
-	out, _ := dockerCmd(c, "run", "-dit", "busybox", "cat")
-
-	rwc, err := sockConn(time.Duration(10 * time.Second))
-	c.Assert(err, checker.IsNil)
-
-	cleanedContainerID := strings.TrimSpace(out)
-	config, err := websocket.NewConfig(
-		"/containers/"+cleanedContainerID+"/attach/ws?stream=1&stdin=1&stdout=1&stderr=1",
-		"http://localhost",
-	)
-	c.Assert(err, checker.IsNil)
-
-	ws, err := websocket.NewClient(config, rwc)
-	c.Assert(err, checker.IsNil)
-	defer ws.Close()
-
-	expected := []byte("hello")
-	actual := make([]byte, len(expected))
-
-	outChan := make(chan error)
-	go func() {
-		_, err := ws.Read(actual)
-		outChan <- err
-		close(outChan)
-	}()
-
-	inChan := make(chan error)
-	go func() {
-		_, err := ws.Write(expected)
-		inChan <- err
-		close(inChan)
-	}()
-
-	select {
-	case err := <-inChan:
-		c.Assert(err, checker.IsNil)
-	case <-time.After(5 * time.Second):
-		c.Fatal("Timeout writing to ws")
-	}
-
-	select {
-	case err := <-outChan:
-		c.Assert(err, checker.IsNil)
-	case <-time.After(5 * time.Second):
-		c.Fatal("Timeout reading from ws")
-	}
-
-	c.Assert(actual, checker.DeepEquals, expected, check.Commentf("Websocket didn't return the expected data"))
-}
 
 // regression gh14320
 func (s *DockerSuite) TestPostContainersAttachContainerNotFound(c *check.C) {
@@ -78,7 +26,7 @@ func (s *DockerSuite) TestGetContainersWsAttachContainerNotFound(c *check.C) {
 	status, body, err := sockRequest("GET", "/containers/doesnotexist/attach/ws", nil)
 	c.Assert(status, checker.Equals, http.StatusNotFound)
 	c.Assert(err, checker.IsNil)
-	expected := "No such container: doesnotexist\n"
+	expected := "No such container: doesnotexist"
 	c.Assert(string(body), checker.Contains, expected)
 }
 
