@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"path/filepath"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/engine-api/types"
@@ -27,6 +26,7 @@ func (s *DockerSuite) TestVolumesApiList(c *check.C) {
 func (s *DockerSuite) TestVolumesApiCreate(c *check.C) {
 	config := types.VolumeCreateRequest{
 		Name: "test",
+		Driver: "hyper",
 	}
 	status, b, err := sockRequest("POST", "/volumes/create", config)
 	c.Assert(err, check.IsNil)
@@ -36,7 +36,6 @@ func (s *DockerSuite) TestVolumesApiCreate(c *check.C) {
 	err = json.Unmarshal(b, &vol)
 	c.Assert(err, checker.IsNil)
 
-	c.Assert(filepath.Base(filepath.Dir(vol.Mountpoint)), checker.Equals, config.Name)
 }
 
 func (s *DockerSuite) TestVolumesApiRemove(c *check.C) {
@@ -66,6 +65,7 @@ func (s *DockerSuite) TestVolumesApiRemove(c *check.C) {
 func (s *DockerSuite) TestVolumesApiInspect(c *check.C) {
 	config := types.VolumeCreateRequest{
 		Name: "test",
+		Driver: "hyper",
 	}
 	status, b, err := sockRequest("POST", "/volumes/create", config)
 	c.Assert(err, check.IsNil)
