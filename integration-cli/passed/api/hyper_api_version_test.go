@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+    "time"
+    "fmt"
 
 	"github.com/docker/docker/dockerversion"
 	"github.com/docker/docker/pkg/integration/checker"
@@ -11,6 +13,8 @@ import (
 )
 
 func (s *DockerSuite) TestGetVersion(c *check.C) {
+    printTestCaseName()
+    defer printTestDuration(time.Now())
 	status, body, err := sockRequest("GET", "/version", nil)
 	c.Assert(status, checker.Equals, http.StatusOK)
 	c.Assert(err, checker.IsNil)
@@ -20,4 +24,20 @@ func (s *DockerSuite) TestGetVersion(c *check.C) {
 	c.Assert(json.Unmarshal(body, &v), checker.IsNil)
 
 	c.Assert(v.Version, checker.Equals, dockerversion.Version, check.Commentf("Version mismatch"))
+}
+
+func (s *DockerSuite) TestSimpleCreate(c *check.C) {
+    config := map[string]interface{}{
+        "Image": "busybox",
+        "Cmd": []string{"/bin/sh"},
+    }
+    status, b, err := sockRequest("POST", "/containers/create", config)
+    c.Assert(err, checker.IsNil)
+    type createResp struct {
+        ID string
+        Warning string
+    }
+    //var container createResp
+    fmt.Println(string(b))
+    c.Assert(status, checker.Equals, http.StatusCreated)
 }
