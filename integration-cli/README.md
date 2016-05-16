@@ -8,6 +8,7 @@ Integration test for hyper cli
 
 - [Project status](#project-status)
 	- [cli test case](#cli-test-case)
+	- [api test case](#api-test-case)
 	- [extra](#extra)
 	- [skip](#skip)
 - [Command list](#command-list)
@@ -48,14 +49,14 @@ Integration test for hyper cli
 - [x] cli_history_test
 - [x] cli_images_test
 - [x] cli_info_test
-- [ ] cli_inspect_experimental_test
-- [ ] cli_inspect_test
+- [x] cli_inspect_experimental_test
+- [x] cli_inspect_test
 - [x] cli_kill_test
 - [ ] cli_links_test
 - [ ] cli_links_unix_test
 - [x] cli_login_test
 - [x] cli_logs_test
-- [ ] cli_port_test
+- [x] cli_port_test
 - [x] cli_ps_test
 - [x] cli_pull_test
 - [x] cli_rename_test
@@ -65,11 +66,30 @@ Integration test for hyper cli
 - [ ] cli_run_test
 - [ ] cli_run_unix_test
 - [x] cli_search_test
-- [ ] cli_start_test
+- [x] cli_start_test
 - [ ] cli_stats_test
 - [x] cli_version_test
-- [ ] cli_volume_test
+- [x] cli_volume_test
 
+
+## api test case
+
+- [ ] api_attach_test
+- [ ] api_containers_test
+- [ ] api_create_test
+- [ ] api_exec_test
+- [x] api_exec_resize_test
+- [ ] api_images_test
+- [ ] api_info_test
+- [ ] api_inspect_test
+- [ ] api_inspect_unix_test
+- [ ] api_logs_test
+- [ ] api_network_test
+- [ ] api_resize_test
+- [x] api_stats_test
+- [ ] api_test
+- [ ] api_version_test
+- [ ] api_volumes_test
 
 ## extra
 
