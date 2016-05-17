@@ -116,14 +116,3 @@ func (s *DockerSuite) TestApiImagesHistory(c *check.C) {
 	c.Assert(historydata, checker.Not(checker.HasLen), 0)
 	c.Assert(historydata[0].Tags[0], checker.Equals, "test-api-images-history:latest")
 }
-
-// #14846
-func (s *DockerSuite) TestApiImagesSearchJSONContentType(c *check.C) {
-	testRequires(c, Network)
-
-	res, b, err := sockRequestRaw("GET", "/images/search?term=test", nil, "application/json")
-	c.Assert(err, check.IsNil)
-	b.Close()
-	c.Assert(res.StatusCode, checker.Equals, http.StatusOK)
-	c.Assert(res.Header.Get("Content-Type"), checker.Equals, "application/json")
-}
