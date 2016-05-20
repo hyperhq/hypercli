@@ -1,7 +1,7 @@
 Integration test for hyper cli
 ==================================
 
-> functional test for hyper cli  
+> functional test for hyper cli
 > use apirouter service on packet(dev env) as backend
 
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
@@ -77,13 +77,13 @@ Integration test for hyper cli
 - [ ] api_attach_test
 - [ ] api_containers_test
 - [ ] api_create_test
-- [ ] api_exec_test
+- [x] api_exec_test
 - [x] api_exec_resize_test
-- [ ] api_images_test
-- [ ] api_info_test
+- [x] api_images_test
+- [x] api_info_test
 - [ ] api_inspect_test
 - [ ] api_inspect_unix_test
-- [ ] api_logs_test
+- [x] api_logs_test
 - [ ] api_network_test
 - [ ] api_resize_test
 - [x] api_stats_test
@@ -180,7 +180,7 @@ $ git clone https://github.com/hyperhq/hypercli.git -b integration-test
 
 ## build docker image
 
-> build docker image in host OS  
+> build docker image in host OS
 > Use `CentOS` as test env
 
 ```
@@ -217,7 +217,7 @@ integration-cli
 
 ## enter container
 
-> update `ACCESS_KEY` and `SECRET_KEY` in `integration-cli/util.conf`  
+> update `ACCESS_KEY` and `SECRET_KEY` in `integration-cli/util.conf`
 
 ```
 // run in dir hypercli/integration-cli on host os
@@ -242,7 +242,7 @@ $ hypercli images
 
 ### adjust test case code
 
-- add `printTestCaseName(); defer printTestDuration(time.Now())` in function start with `Test`  
+- add `printTestCaseName(); defer printTestDuration(time.Now())` in function start with `Test`
 - hyper cli source will be mapped in to the container, so the test case code can be modified out of container
 
 ```
