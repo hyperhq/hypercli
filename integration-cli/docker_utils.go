@@ -32,6 +32,9 @@ import (
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/go-check/check"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 var flag_host = ""
@@ -834,7 +837,7 @@ func deleteAllImages() error {
 	if len(imgs) == 0 {
 		return nil
 	}
-	args := append([]string{"rmi", "-f"}, imgs...)
+	args := append([]string{flag_host, "rmi", "-f"}, imgs...)
 	if err := exec.Command(dockerBinary, args...).Run(); err != nil {
 		return err
 	}
@@ -1874,4 +1877,29 @@ func printTestCaseName() {
 func printTestDuration(start time.Time) {
 	duration := time.Now().Sub(start).Seconds()
 	fmt.Printf(" - %.6f sec\n", duration)
+}
+
+func generateS3PreSignedURL(region,s3bucket,s3key string) (string, error) {
+
+	accessKey := os.Getenv("AWS_ACCESS_KEY")
+	secretKey := os.Getenv("AWS_SECRET_KEY")
+
+	if region == "" || accessKey == "" || secretKey == "" {
+		return "", errors.New("missing AWS Credential ENV(AWS_REGION|AWS_ACCESS_KEY|AWS_SECRET_KEY)")
+	}
+
+	s3cli := s3.New(&aws.Config{
+		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
+		Region: &region,
+	})
+
+	r, _ := s3cli.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(s3bucket),
+		Key:    aws.String(s3key),
+	})
+	url, err := r.Presign(15 * time.Minute)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("error presigning request", err))
+	}
+	return url, nil
 }
