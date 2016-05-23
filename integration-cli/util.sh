@@ -24,9 +24,13 @@ if [ ! -s ${WORKDIR}/util.conf ];then
 #apirouter service
 DOCKER_HOST=tcp://147.75.195.39:6443
 
-#credentials
+#Hyper Credentials(from ~/.hyper/config.json)
 ACCESS_KEY=
 SECRET_KEY=
+
+#AWS Credentials(from ~/.aws/credentials)
+AWS_ACCESS_KEY=
+AWS_SECRET_KEY=
 EOF
 
 fi
@@ -58,6 +62,8 @@ case $1 in
         -e DOCKER_HOST=${DOCKER_HOST} \
         -e ACCESS_KEY=${ACCESS_KEY} \
         -e SECRET_KEY=${SECRET_KEY} \
+        -e AWS_ACCESS_KEY=${AWS_ACCESS_KEY} \
+        -e AWS_SECRET_KEY=${AWS_SECRET_KEY} \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
         hyperhq/hypercli zsh
     ;;
