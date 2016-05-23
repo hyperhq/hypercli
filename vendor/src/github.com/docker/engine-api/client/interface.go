@@ -50,7 +50,7 @@ type APIClient interface {
 	ImageImport(options types.ImageImportOptions) (io.ReadCloser, error)
 	ImageInspectWithRaw(imageID string, getSize bool) (types.ImageInspect, []byte, error)
 	ImageList(options types.ImageListOptions) ([]types.Image, error)
-	ImageLoad(input io.Reader) (types.ImageLoadResponse, error)
+	ImageLoad(input interface{}) (types.ImageLoadResponse, error)
 	ImagePull(options types.ImagePullOptions, privilegeFunc RequestPrivilegeFunc) (io.ReadCloser, error)
 	ImagePush(options types.ImagePushOptions, privilegeFunc RequestPrivilegeFunc) (io.ReadCloser, error)
 	ImageRemove(options types.ImageRemoveOptions) ([]types.ImageDelete, error)

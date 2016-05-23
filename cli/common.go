@@ -1,8 +1,8 @@
 package cli
 
 import (
-	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/docker/go-connections/tlsconfig"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // CommonFlags represents flags that are common to both the client and the daemon.
@@ -42,7 +42,7 @@ var dockerCommands = []Command{
 	{"info", "Display system-wide information"},
 	{"inspect", "Return low-level information on a container or image"},
 	{"kill", "Kill a running container"},
-	//{"load", "Load an image from a tar archive or STDIN"},
+	{"load", "Load an image from a tar archive"},
 	{"login", "Register or log in to a Docker registry"},
 	{"logout", "Log out from a Docker registry"},
 	{"logs", "Fetch the logs of a container"},
