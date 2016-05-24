@@ -15,7 +15,7 @@ import (
 // Usage: docker load [OPTIONS]
 func (cli *DockerCli) CmdLoad(args ...string) error {
 	cmd := Cli.Subcmd("load", nil, Cli.DockerCommands["load"].Description, true)
-	infile := cmd.String([]string{"i", "-input"}, "", "Read from a remote archive file")
+	infile := cmd.String([]string{"i", "-input"}, "", "Read from a remote archive file compressed with gzip, bzip, or xz")
 	quiet := cmd.Bool([]string{"q", "-quiet"}, false, "Do not show load process")
 	cmd.Require(flag.Exact, 0)
 	cmd.ParseFlags(args, true)
