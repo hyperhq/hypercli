@@ -76,20 +76,17 @@ Integration test for hyper cli
 
 - [ ] api_attach_test
 - [ ] api_containers_test
-- [ ] api_create_test
+- [x] api_create_test
 - [x] api_exec_test
 - [x] api_exec_resize_test
 - [x] api_images_test
 - [x] api_info_test
-- [ ] api_inspect_test
-- [ ] api_inspect_unix_test
+- [x] api_inspect_test
 - [x] api_logs_test
-- [ ] api_network_test
-- [ ] api_resize_test
 - [x] api_stats_test
-- [ ] api_test
-- [ ] api_version_test
-- [ ] api_volumes_test
+- [x] api_snapshots_test
+- [x] api_version_test
+- [x] api_volumes_test
 
 ## extra
 
