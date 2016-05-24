@@ -39,7 +39,7 @@ func (s *DockerSuite) TestSearchCmdOptions(c *check.C) {
 	testRequires(c, Network)
 
 	out, _ := dockerCmd(c, "search", "--help")
-	c.Assert(out, checker.Contains, "Usage:\tdocker search [OPTIONS] TERM")
+	c.Assert(out, checker.Contains, "Usage:\thyper search [OPTIONS] TERM")
 
 	outSearchCmd, _ := dockerCmd(c, "search", "busybox")
 	outSearchCmdNotrunc, _ := dockerCmd(c, "search", "--no-trunc=true", "busybox")
