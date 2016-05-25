@@ -30,6 +30,7 @@ func (s *DockerSuite) TestRmContainerWithRemovedVolume(c *check.C) {
 
 func (s *DockerSuite) TestRmContainerWithVolume(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
+	deleteAllContainers()
 	prefix, slash := getPrefixAndSlashFromDaemonPlatform()
 
 	dockerCmd(c, "run", "--name", "foo", "-v", prefix+slash+"srv", "busybox", "true")
@@ -39,6 +40,7 @@ func (s *DockerSuite) TestRmContainerWithVolume(c *check.C) {
 
 func (s *DockerSuite) TestRmContainerRunning(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
+	deleteAllContainers()
 	createRunningContainer(c, "foo")
 
 	_, _, err := dockerCmdWithError("rm", "foo")
@@ -47,6 +49,7 @@ func (s *DockerSuite) TestRmContainerRunning(c *check.C) {
 
 func (s *DockerSuite) TestRmContainerForceRemoveRunning(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
+	deleteAllContainers()
 	createRunningContainer(c, "foo")
 
 	// Stop then remove with -s
@@ -63,4 +66,5 @@ func (s *DockerSuite) TestRmInvalidContainer(c *check.C) {
 
 func createRunningContainer(c *check.C, name string) {
 	runSleepingContainer(c, "-dt", "--name", name)
+	time.Sleep( 1 * time.Second)
 }

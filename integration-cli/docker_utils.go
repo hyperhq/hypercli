@@ -35,6 +35,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/docker/docker/pkg/integration/checker"
 )
 
 var flag_host = ""
@@ -1902,4 +1903,33 @@ func generateS3PreSignedURL(region,s3bucket,s3key string) (string, error) {
 		return "", errors.New(fmt.Sprintf("error presigning request", err))
 	}
 	return url, nil
+}
+
+func getImageInspect(c *check.C, imageName string) *types.ImageInspect {
+	status, b, err := sockRequest("GET", "/images/"+imageName+"/json", nil)
+	c.Assert(err, checker.IsNil)
+	c.Assert(status, checker.Equals, http.StatusOK)
+
+	var image types.ImageInspect = types.ImageInspect{}
+	err = json.Unmarshal(b, &image)
+	c.Assert(err, checker.IsNil)
+	return &image
+}
+
+func ensureImageExist(c *check.C, imageName string){
+	for i := 0; i < 3; i++ {
+		if _err := pullImageIfNotExist(imageName); _err != nil {
+			c.Logf("couldn't find the %s image locally and failed to pull it, try againt\n",imageName)
+		} else {
+			break
+		}
+	}
+}
+
+//get containerId or imageId from hyper command output
+func getIDfromOutput(c *check.C, output string)(string){
+	outAry := strings.Split(output, "\n")
+	c.Assert(len(outAry), checker.GreaterOrEqualThan,2)
+	id := outAry[len(outAry)-2]
+	return strings.TrimSpace(id)
 }

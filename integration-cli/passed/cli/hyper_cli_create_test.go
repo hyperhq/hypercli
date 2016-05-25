@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"os/exec"
+//	"os/exec"
 
-	"io/ioutil"
+//	"io/ioutil"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
@@ -26,7 +26,7 @@ func (s *DockerSuite) TestCreateArgs(c *check.C) {
 	}
 	out, _ := dockerCmd(c, "create", "busybox", "command", "arg1", "arg2", "arg with space")
 
-	cleanedContainerID := strings.TrimSpace(out)
+	cleanedContainerID := getIDfromOutput(c, out)
 
 	out, _ = dockerCmd(c, "inspect", cleanedContainerID)
 
@@ -64,7 +64,7 @@ func (s *DockerSuite) TestCreateHostConfig(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "create", "busybox", "echo")
 
-	cleanedContainerID := strings.TrimSpace(out)
+	cleanedContainerID := getIDfromOutput(c, out)
 
 	out, _ = dockerCmd(c, "inspect", cleanedContainerID)
 
@@ -88,11 +88,11 @@ func (s *DockerSuite) TestCreateEchoStdout(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "create", "busybox", "echo", "test123")
 
-	cleanedContainerID := strings.TrimSpace(out)
+	cleanedContainerID := getIDfromOutput(c, out)
 
 	out, _ = dockerCmd(c, "start", "-ai", cleanedContainerID)
+	time.Sleep( 5 * time.Second )
 	c.Assert(out, checker.Equals, "test123\n", check.Commentf("container should've printed 'test123', got %q", out))
-
 }
 
 func (s *DockerSuite) TestCreateVolumesCreated(c *check.C) {
@@ -121,7 +121,7 @@ func (s *DockerSuite) TestCreateVolumesCreated(c *check.C) {
 func (s *DockerSuite) TestCreateLabels(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	name := "test-create-labels"
-	expected := map[string]string{"k1": "v1", "k2": "v2", "sh_hyper_instancetype": "xs"}
+	expected := map[string]string{"k1": "v1", "k2": "v2", "sh.hyper.fip": "", "sh_hyper_instancetype": "xs"}
 	dockerCmd(c, "create", "--name", name, "-l", "k1=v1", "--label", "k2=v2", "busybox")
 
 	actual := make(map[string]string)
@@ -140,7 +140,7 @@ func (s *DockerSuite) TestCreateRM(c *check.C) {
 
 	// create a container
 	out, _ := dockerCmd(c, "create", "busybox")
-	cID := strings.TrimSpace(out)
+	cID := getIDfromOutput(c, out)
 
 	dockerCmd(c, "rm", cID)
 
@@ -163,7 +163,7 @@ func (s *DockerSuite) TestCreateModeIpcContainer(c *check.C) {
 	dockerCmd(c, "create", fmt.Sprintf("--ipc=container:%s", id), "busybox")
 }
 
-
+/*
 func (s *DockerTrustSuite) TestTrustedCreate(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	repoName := s.setupTrustedImage(c, "trusted-create")
@@ -296,7 +296,7 @@ func (s *DockerTrustSuite) TestTrustedCreateFromBadTrustServer(c *check.C) {
 	c.Assert(string(out), checker.Contains, "valid signatures did not meet threshold", check.Commentf("Missing expected output on trusted push:\n%s", out))
 
 }
-
+*/
 
 func (s *DockerSuite) TestCreateWithWorkdir(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())

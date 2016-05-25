@@ -34,6 +34,7 @@ func (s *DockerSuite) TestStartRecordError(c *check.C) {
 
 
 func (s *DockerSuite) TestStartMultipleContainers(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	// Windows does not support --link
 	testRequires(c, DaemonIsLinux)
 	// run a container named 'parent' and create two container link to `parent`
@@ -70,6 +71,7 @@ func (s *DockerSuite) TestStartMultipleContainers(c *check.C) {
 }
 
 func (s *DockerSuite) TestStartAttachMultipleContainers(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
 	// run  multiple containers to test
 	for _, container := range []string{"test1", "test2", "test3"} {
 		dockerCmd(c, "run", "-d", "--name", container, "busybox", "top")
