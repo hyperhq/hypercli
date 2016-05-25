@@ -152,7 +152,9 @@ func (s *DockerSuite) TestInfoDisplaysStoppedContainers(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
-	cleanedContainerID := strings.TrimSpace(out)
+	outAry := strings.Split(out, "\n")
+	c.Assert(len(outAry), checker.GreaterOrEqualThan,2)
+	cleanedContainerID := outAry[len(outAry)-2]
 
 	dockerCmd(c, "stop", cleanedContainerID)
 
