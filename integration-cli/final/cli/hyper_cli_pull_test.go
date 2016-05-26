@@ -180,3 +180,30 @@ func (s *DockerHubPullSuite) TestPullClientDisconnect(c *check.C) {
 	c.Assert(err, checker.NotNil, check.Commentf("image was pulled after client disconnected"))
 }
 */
+
+func (s *DockerHubPullSuite) TestPullFromDaocloudRegistry(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	testRegistry := "daocloud.io"
+	testRepo := "daocloud/dao-wordpress"
+	testImage := testRegistry + "/" + testRepo
+
+	out := s.Cmd(c, "pull", testImage)
+	defer deleteImages(testImage)
+
+	c.Assert(out, checker.Contains, "Using default tag: latest", check.Commentf("expected the 'latest' tag to be automatically assumed"))
+	c.Assert(out, checker.Contains, "Pulling from " + testRepo, check.Commentf("expected the 'daocloud/' prefix to be automatically assumed"))
+
+	matches := regexp.MustCompile(`Digest: (.+)\n`).FindAllStringSubmatch(out, -1)
+	c.Assert(len(matches), checker.Equals, 1, check.Commentf("expected exactly one image digest in the output"))
+	c.Assert(len(matches[0]), checker.Equals, 2, check.Commentf("unexpected number of submatches for the digest"))
+	_, err := digest.ParseDigest(matches[0][1])
+	c.Check(err, checker.IsNil, check.Commentf("invalid digest %q in output", matches[0][1]))
+
+	// We should have a single entry in images.
+	img := strings.TrimSpace(s.Cmd(c, "images"))
+	splitImg := strings.Split(img, "\n")
+	c.Assert(splitImg, checker.HasLen, 2)
+	c.Assert(splitImg[1], checker.Matches, `daocloud.io/daocloud/dao-wordpress\s+latest.*?`, check.Commentf("invalid output for ` hyper images` (expected image and tag name"))
+}
