@@ -15,7 +15,7 @@ func (s *DockerSuite) TestLoadFromInvalidUrlProtocal(c *check.C) {
 	output, exitCode, err := dockerCmdWithError("load", "-i", invalidURL)
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Equals, "Get " + invalidURL + ": unsupported protocol scheme \"ftp\"\n")
+	c.Assert(output, checker.Equals, "Error response from daemon: Get " + invalidURL + ": unsupported protocol scheme \"ftp\"\n")
 }
 
 func (s *DockerSuite) TestLoadFromInvalidUrlHost(c *check.C) {
@@ -26,7 +26,7 @@ func (s *DockerSuite) TestLoadFromInvalidUrlHost(c *check.C) {
 	output, exitCode, err := dockerCmdWithError("load", "-i", invalidURL)
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Equals, "Get " + invalidURL + ": dial tcp: lookup invalidhost: no such host\n")
+	c.Assert(output, checker.Equals, "Error response from daemon: Get " + invalidURL + ": dial tcp: lookup invalidhost: no such host\n")
 }
 
 func (s *DockerSuite) TestLoadFromInvalidUrlPath(c *check.C) {
@@ -35,7 +35,7 @@ func (s *DockerSuite) TestLoadFromInvalidUrlPath(c *check.C) {
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/notexist.tar")
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Equals, "Got HTTP status code >= 400: 403 Forbidden\n")
+	c.Assert(output, checker.Equals, "Error response from daemon: Got HTTP status code >= 400: 403 Forbidden\n")
 }
 
 
@@ -46,7 +46,7 @@ func (s *DockerSuite) TestLoadFromInvalidContentType(c *check.C) {
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/readme.txt")
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Equals, "Download failed: image archive format should be tar, gzip, bzip, or xz\n")
+	c.Assert(output, checker.Equals, "Error response from daemon: Download failed: image archive format should be tar, gzip, bzip, or xz\n")
 }
 
 func (s *DockerSuite) TestLoadFromInvalidContentLength(c *check.C) {
@@ -55,7 +55,7 @@ func (s *DockerSuite) TestLoadFromInvalidContentLength(c *check.C) {
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/largefile.tar")
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Contains, "Download failed: image archive size is 2147491840, should be less than 2147483647\n")
+	c.Assert(output, checker.Equals, "Error response from daemon: Download failed: image archive size is 2147491840, should be less than 2147483647\n")
 }
 
 //test invalid content///////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ func (s *DockerSuite) TestLoadFromInvalidArchiveEmpty(c *check.C) {
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/emptyfile.tar")
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Contains, "invalid character 'i' looking for beginning of value")
+	c.Assert(output, checker.Equals, "invalid argument\n")
 }
 
 func (s *DockerSuite) TestLoadFromInvalidContentUnrelated(c *check.C) {
@@ -76,7 +76,7 @@ func (s *DockerSuite) TestLoadFromInvalidContentUnrelated(c *check.C) {
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/readme.tar")
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Contains, "invalid character 'i' looking for beginning of value")
+	c.Assert(output, checker.Equals, "invalid argument\n")
 }
 
 func (s *DockerSuite) TestLoadFromInvalidUntarFail(c *check.C) {
@@ -86,7 +86,7 @@ func (s *DockerSuite) TestLoadFromInvalidUntarFail(c *check.C) {
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/nottar.tar")
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Contains, "Untar re-exec error: exit status 1: output: unexpected EOF")
+	c.Assert(output, checker.Equals, "Untar re-exec error: exit status 1: output: unexpected EOF\n")
 
 }
 
