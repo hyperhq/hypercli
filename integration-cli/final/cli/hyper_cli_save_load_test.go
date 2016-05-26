@@ -49,24 +49,27 @@ func (s *DockerSuite) TestLoadFromInvalidContentType(c *check.C) {
 	c.Assert(output, checker.Equals, "Error response from daemon: Download failed: image archive format should be tar, gzip, bzip, or xz\n")
 }
 
-func (s *DockerSuite) TestLoadFromInvalidContentLength(c *check.C) {
+func (s *DockerSuite) TestLoadFromInvalidContentLengthTooLarge(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
+	const MAX_LENGTH = 2147483647
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/largefile.tar")
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Equals, "Error response from daemon: Download failed: image archive size is 2147491840, should be less than 2147483647\n")
+	c.Assert(output, checker.Contains, "should be greater than zero, less than or equal to %v\n", MAX_LENGTH)
 }
 
 //test invalid content///////////////////////////////////////////////////////////////////////////
-func (s *DockerSuite) TestLoadFromInvalidArchiveEmpty(c *check.C) {
+func (s *DockerSuite) TestLoadFromInvalidContentLengthZero(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
+	const MAX_LENGTH = 2147483647
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/emptyfile.tar")
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Equals, "invalid argument\n")
+	c.Assert(output, checker.Equals, "Error response from daemon: Size of image archive is 0, should be greater than zero, less than or equal to %v\n", MAX_LENGTH)
 }
 
 func (s *DockerSuite) TestLoadFromInvalidContentUnrelated(c *check.C) {
