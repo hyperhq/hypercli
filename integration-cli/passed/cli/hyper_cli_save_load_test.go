@@ -2,49 +2,132 @@ package main
 
 import (
 	"time"
-
+	"os"
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
-
+/// test invalid url //////////////////////////////////////////////////////////////////////////
 func (s *DockerSuite) TestLoadFromInvalidUrlProtocal(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
-	invalidURL := "tcp://hyper-upload.s3.amazonaws.com/image_tarball/test/public/helloworld.tar"
+	invalidURL := "ftp://image-tarball.s3.amazonaws.com/test/public/helloworld.tar"
 	output, exitCode, err := dockerCmdWithError("load", "-i", invalidURL)
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Equals, "Error response from daemon: Download failed: Get " + invalidURL + ": unsupported protocol scheme \"tcp\"\n")
+	c.Assert(output, checker.Equals, "Get " + invalidURL + ": unsupported protocol scheme \"ftp\"\n")
 }
 
 func (s *DockerSuite) TestLoadFromInvalidUrlHost(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	invalidHost := "invalidhost"
-	invalidURL := "http://" + invalidHost + "/image_tarball/test/public/helloworld.tar"
+	invalidURL := "http://" + invalidHost + "/test/public/helloworld.tar"
 	output, exitCode, err := dockerCmdWithError("load", "-i", invalidURL)
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Equals, "Error response from daemon: Download failed: Get " + invalidURL + ": dial tcp: lookup " + invalidHost + ": no such host\n")
+	c.Assert(output, checker.Equals, "Get " + invalidURL + ": dial tcp: lookup invalidhost: no such host\n")
 }
-
 
 func (s *DockerSuite) TestLoadFromInvalidUrlPath(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
-	output, exitCode, err := dockerCmdWithError("load", "-i", "http://hyper-upload.s3.amazonaws.com/image_tarball/test/public/notexist.tar")
+	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/notexist.tar")
 	c.Assert(err, checker.NotNil)
 	c.Assert(exitCode, checker.Equals, 1)
-	c.Assert(output, checker.Equals, "Error response from daemon: Download failed: Got HTTP status code >= 400: 403 Forbidden\n")
+	c.Assert(output, checker.Equals, "Got HTTP status code >= 400: 403 Forbidden\n")
 }
 
 
+//test invalid ContentType and ContentLength///////////////////////////////////////////////////////////////////////////
+func (s *DockerSuite) TestLoadFromInvalidContentType(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/readme.txt")
+	c.Assert(err, checker.NotNil)
+	c.Assert(exitCode, checker.Equals, 1)
+	c.Assert(output, checker.Equals, "Download failed: image archive format should be tar, gzip, bzip, or xz\n")
+}
+
+func (s *DockerSuite) TestLoadFromInvalidContentLength(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/largefile.tar")
+	c.Assert(err, checker.NotNil)
+	c.Assert(exitCode, checker.Equals, 1)
+	c.Assert(output, checker.Contains, "Download failed: image archive size is 2147491840, should be less than 2147483647\n")
+}
+
+//test invalid content///////////////////////////////////////////////////////////////////////////
+func (s *DockerSuite) TestLoadFromInvalidArchiveEmpty(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/emptyfile.tar")
+	c.Assert(err, checker.NotNil)
+	c.Assert(exitCode, checker.Equals, 1)
+	c.Assert(output, checker.Contains, "invalid character 'i' looking for beginning of value")
+}
+
+func (s *DockerSuite) TestLoadFromInvalidContentUnrelated(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/readme.tar")
+	c.Assert(err, checker.NotNil)
+	c.Assert(exitCode, checker.Equals, 1)
+	c.Assert(output, checker.Contains, "invalid character 'i' looking for beginning of value")
+}
+
+func (s *DockerSuite) TestLoadFromInvalidUntarFail(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/nottar.tar")
+	c.Assert(err, checker.NotNil)
+	c.Assert(exitCode, checker.Equals, 1)
+	c.Assert(output, checker.Contains, "Untar re-exec error: exit status 1: output: unexpected EOF")
+
+}
+
+func (s *DockerSuite) TestLoadFromInvalidContentIncomplete(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	deleteAllImages()
+	url := "http://image-tarball.s3.amazonaws.com/test/public/helloworld-no-repositories.tgz"
+	output, exitCode, err := dockerCmdWithError("load", "-i", url)
+	c.Assert(err, checker.IsNil)
+	c.Assert(exitCode, checker.Equals, 0)
+	c.Assert(output, checker.Contains, "has been loaded.")
+	images, _ := dockerCmd(c, "images", "hello-world")
+	c.Assert(images, checker.Contains, "hello-world")
+
+	deleteAllImages()
+	url = "http://image-tarball.s3.amazonaws.com/test/public/helloworld-no-manifest.tgz"
+	output, exitCode, err = dockerCmdWithError("load", "-i", url)
+	c.Assert(err, checker.IsNil)
+	c.Assert(exitCode, checker.Equals, 0)
+	c.Assert(output, check.Not(checker.Contains), "has been loaded.")
+	images, _ = dockerCmd(c, "images", "hello-world")
+	c.Assert(images, checker.Contains, "hello-world")
+
+	deleteAllImages()
+	url = "http://image-tarball.s3.amazonaws.com/test/public/helloworld-no-layer.tgz"
+	output, exitCode, err = dockerCmdWithError("load", "-i", url)
+	c.Assert(err, checker.NotNil)
+	c.Assert(exitCode, checker.Equals, 1)
+	c.Assert(output, checker.Contains, "json: no such file or directory")
+	images, _ = dockerCmd(c, "images", "hello-world")
+	c.Assert(images, check.Not(checker.Contains), "hello-world")
+}
+
+//test normal///////////////////////////////////////////////////////////////////////////
 func (s *DockerSuite) TestLoadFromPublicURL(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	publicURL := "http://hyper-upload.s3.amazonaws.com/image_tarball/test/public/helloworld.tar"
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/helloworld.tar"
 	output, exitCode, err := dockerCmdWithError("load", "-i", publicURL)
 	c.Assert(err, checker.IsNil)
 	c.Assert(exitCode, checker.Equals, 0)
@@ -62,7 +145,7 @@ func (s *DockerSuite) TestLoadFromCompressedArchive(c *check.C) {
 	extAry := [...]string{"tar.gz", "tgz", "tar.bz2", "tar.xz"}
 
 	for _, val := range extAry {
-		publicURL := "http://hyper-upload.s3.amazonaws.com/image_tarball/test/public/helloworld." + val
+		publicURL := "http://image-tarball.s3.amazonaws.com/test/public/helloworld." + val
 		output, exitCode, err := dockerCmdWithError("load", "-i", publicURL)
 		c.Assert(err, checker.IsNil)
 		c.Assert(exitCode, checker.Equals, 0)
@@ -76,7 +159,7 @@ func (s *DockerSuite) TestLoadFromPublicURLWithQuiet(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	publicURL := "http://hyper-upload.s3.amazonaws.com/image_tarball/test/public/helloworld.tar"
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/helloworld.tar"
 	out, _, _ := dockerCmdWithStdoutStderr(c, "load", "-q", "-i", publicURL)
 	c.Assert(out, check.Equals, "")
 
@@ -88,7 +171,7 @@ func (s *DockerSuite) TestLoadFromPublicURLMultipeImage(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	multiImgURL := "http://hyper-upload.s3.amazonaws.com/image_tarball/test/public/busybox_alpine.tar"
+	multiImgURL := "http://image-tarball.s3.amazonaws.com/test/public/busybox_alpine.tar"
 	dockerCmd(c, "load", "-i", multiImgURL)
 
 	images, _ := dockerCmd(c, "images", "busybox")
@@ -102,7 +185,9 @@ func (s *DockerSuite) TestLoadFromBasicAuthURL(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	urlWithAuth := "http://hyper:aaa123aa@test.hyper.sh/ubuntu.tar.gz"
+	urlWithAuth := os.Getenv("URL_WITH_BASIC_AUTH")
+	c.Assert(urlWithAuth, checker.NotNil)
+
 	dockerCmd(c, "load", "-i", urlWithAuth)
 
 	images, _ := dockerCmd(c, "images", "ubuntu")
@@ -113,9 +198,9 @@ func (s *DockerSuite) TestLoadFromS3PreSignedURL(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	s3Region := "ap-northeast-1"
-	s3Bucket := "hyper-upload"
-	s3Key := "image_tarball/test/private/cirros.tar"
+	s3Region := "us-west-1"
+	s3Bucket := "image-tarball"
+	s3Key := "test/private/cirros.tar"
 	preSignedUrl, err := generateS3PreSignedURL(s3Region, s3Bucket, s3Key)
 	c.Assert(err, checker.IsNil)
 
@@ -132,12 +217,12 @@ func (s *DockerSuite) TestLoadFromPublicURLWithBalance(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	publicURL := "http://hyper-upload.s3.amazonaws.com/image_tarball/test/public/helloworld.tar"
-	multiImgURL := "http://hyper-upload.s3.amazonaws.com/image_tarball/test/public/busybox_alpine.tar"
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/helloworld.tar"
+	multiImgURL := "http://image-tarball.s3.amazonaws.com/test/public/busybox_alpine.tar"
 	exceedQuotaMsg := "Exceeded quota, please either delete images, or email support@hyper.sh to request increased quota"
-	s3Region := "ap-northeast-1"
-	s3Bucket := "hyper-upload"
-	s3Key := "image_tarball/test/private/cirros.tar"
+	s3Region := "us-west-1"
+	s3Bucket := "image-tarball"
+	s3Key := "test/private/cirros.tar"
 
 	//balance 2 -> 1: load hello-world image(new)
 	dockerCmd(c, "load", "-i", publicURL)
@@ -174,7 +259,7 @@ func (s *DockerSuite) TestLoadFromPublicURLWithBalance(c *check.C) {
 	images, _ = dockerCmd(c, "images", "hello-world")
 	c.Assert(images, checker.Contains, "hello-world")
 
-	//balance 0 -> 0: load cirros(not exist)
+	//balance 0 -> 0: load new cirros
 	preSignedUrl, err := generateS3PreSignedURL(s3Region, s3Bucket, s3Key)
 	c.Assert(err, checker.IsNil)
 	output, exitCode, err = dockerCmdWithError("load", "-i", preSignedUrl)

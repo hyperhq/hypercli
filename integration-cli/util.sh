@@ -28,9 +28,13 @@ DOCKER_HOST=tcp://147.75.195.39:6443
 ACCESS_KEY=
 SECRET_KEY=
 
+##For test load image from S3 Pre-Signed URL
 #AWS Credentials(from ~/.aws/credentials)
 AWS_ACCESS_KEY=
 AWS_SECRET_KEY=
+
+##For test load image from basic auth url
+URL_WITH_BASIC_AUTH=http://username:password@test.xx.xx/ubuntu.tar.gz
 EOF
 
 fi
@@ -64,6 +68,7 @@ case $1 in
         -e SECRET_KEY=${SECRET_KEY} \
         -e AWS_ACCESS_KEY=${AWS_ACCESS_KEY} \
         -e AWS_SECRET_KEY=${AWS_SECRET_KEY} \
+        -e URL_WITH_BASIC_AUTH=${URL_WITH_BASIC_AUTH} \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
         hyperhq/hypercli zsh
     ;;
