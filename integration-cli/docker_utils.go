@@ -1933,3 +1933,13 @@ func getIDfromOutput(c *check.C, output string)(string){
 	id := outAry[len(outAry)-2]
 	return strings.TrimSpace(id)
 }
+
+
+func checkImage(c *check.C, shouldExist bool, imageName string) {
+	images, _ := dockerCmd(c, "images", imageName)
+	if shouldExist {
+		c.Assert(images, checker.Contains, imageName)
+	} else {
+		c.Assert(images, check.Not(checker.Contains), imageName)
+	}
+}
