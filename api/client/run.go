@@ -19,6 +19,12 @@ import (
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
 )
 
+type InitVolume struct {
+	Source      string
+	Destination string
+	Name        string
+}
+
 func (cid *cidFile) Close() error {
 	cid.file.Close()
 
@@ -60,6 +66,32 @@ func runStartContainerErr(err error) error {
 		statusError = Cli.StatusError{StatusCode: 125}
 	}
 	return statusError
+}
+
+func parseProtoAndLocalBind(bind string) (string, string, bool) {
+	switch {
+	case strings.HasPrefix(bind, "git://"):
+		fallthrough
+	case strings.HasPrefix(bind, "http://"):
+		fallthrough
+	case strings.HasPrefix(bind, "https://"):
+		if strings.Count(bind, ":") < 2 {
+			return "", "", false
+		}
+	case strings.HasPrefix(bind, "/"):
+		if strings.Count(bind, ":") < 1 {
+			return "", "", false
+		}
+	default:
+		return "", "", false
+	}
+
+	pos := strings.LastIndex(bind, ":")
+	if pos < 0 || pos >= len(bind)-1 {
+		return "", "", false
+	}
+
+	return bind[:pos], bind[pos+1:], true
 }
 
 // CmdRun runs a command in a new container.
@@ -147,11 +179,41 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = cli.getTtySize()
 	}
 
+	// Check/create protocol and local volume
+	var initvols []*InitVolume
+	defer func() {
+		for _, vol := range initvols {
+			cli.client.VolumeRemove(vol.Name)
+		}
+	}()
+	for idx, bind := range hostConfig.Binds {
+		if source, dest, ok := parseProtoAndLocalBind(bind); ok {
+			volReq := types.VolumeCreateRequest{
+				Driver: "hyper",
+				Labels: map[string]string{
+					"source": source,
+				}}
+			if vol, err := cli.client.VolumeCreate(volReq); err != nil {
+				cmd.ReportError(err.Error(), true)
+				return runStartContainerErr(err)
+			} else {
+				initvols = append(initvols, &InitVolume{
+					Source:      source,
+					Destination: dest,
+					Name:        vol.Name,
+				})
+				hostConfig.Binds[idx] = vol.Name + ":" + dest
+			}
+		}
+	}
+
 	createResponse, err := cli.createContainer(config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
 	if err != nil {
 		cmd.ReportError(err.Error(), true)
 		return runStartContainerErr(err)
 	}
+	initvols = nil
+
 	if sigProxy {
 		sigc := cli.forwardAllSignals(createResponse.ID)
 		defer signal.StopCatch(sigc)
