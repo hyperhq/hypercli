@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
@@ -166,8 +167,8 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 		case "git":
 			cmd = append(cmd, "git", "clone", vol.Source, INIT_VOLUME_PATH+vol.Destination)
 		case "http":
-			// TODO
-			// cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
+			parts := strings.Split(vol.Source, "/")
+			cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
 		case "local":
 			// TODO
 		default:
