@@ -3,12 +3,14 @@ package client
 import (
 	"fmt"
 	"io"
+	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/promise"
-	"github.com/docker/engine-api/types"
 )
 
 // CmdExec runs a command in a running container.
@@ -161,4 +163,46 @@ func ParseExec(cmd *flag.FlagSet, args []string) (*types.ExecConfig, error) {
 	}
 
 	return execConfig, nil
+}
+
+func (cli *DockerCli) ExecCmd(user, contID string, cmd []string) (string, error) {
+	execConfig := &types.ExecConfig{
+		User:      user,
+		Container: contID,
+		Detach:    true,
+		Cmd:       cmd,
+	}
+	execCreateResponse, err := cli.client.ContainerExecCreate(*execConfig)
+	if err != nil {
+		return "", err
+	}
+	execID := execCreateResponse.ID
+	if execID == "" {
+		err = fmt.Errorf("Failed to exec %s: Empty exec ID", strings.Join(cmd, " "))
+		return "", err
+	}
+	execStartCheck := types.ExecStartCheck{Detach: execConfig.Detach}
+	if err := cli.client.ContainerExecStart(execID, execStartCheck); err != nil {
+		return "", err
+	}
+
+	return execID, nil
+}
+
+func (cli *DockerCli) WaitExec(execID string) error {
+	for {
+		running, status, err := getExecExitCode(cli, execID)
+		switch {
+		case err != nil:
+			return err
+		case running:
+			time.Sleep(100 * time.Millisecond)
+		case status != 0:
+			err = fmt.Errorf("Failed to init volume: %d", status)
+			return err
+		case status == 0:
+			return nil
+		}
+	}
+
 }
