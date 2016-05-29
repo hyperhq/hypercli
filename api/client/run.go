@@ -96,6 +96,24 @@ func parseProtoAndLocalBind(bind string) (string, string, bool) {
 	return bind[:pos], bind[pos+1:], true
 }
 
+func checkSourceType(source string) string {
+	part := strings.Split(source, ":")
+	count := len(part)
+	switch {
+	case strings.HasPrefix(source, "git://") || strings.HasSuffix(source, ".git") ||
+		(count >= 2 && strings.HasSuffix(part[count-2], ".git")):
+		return "git"
+	case strings.HasPrefix(source, "http://"):
+		fallthrough
+	case strings.HasPrefix(source, "https://"):
+		return "http"
+	case strings.HasPrefix(source, "/"):
+		return "local"
+	default:
+		return "unknown"
+	}
+}
+
 func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, initvols []*InitVolume) error {
 	const INIT_VOLUME_PATH = "/vol/"
 	const INIT_VOLUME_IMAGE = "hyperhq/volume_uploader:latest"
@@ -143,16 +161,17 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 
 	for _, vol := range initvols {
 		var cmd []string
-		switch {
-		case strings.HasPrefix(vol.Source, "git://"):
+		volType := checkSourceType(vol.Source)
+		switch volType {
+		case "git":
 			cmd = append(cmd, "git", "clone", vol.Source, INIT_VOLUME_PATH+vol.Destination)
-		case strings.HasPrefix(vol.Source, "http://"):
-			fallthrough
-		case strings.HasPrefix(vol.Source, "https://"):
+		case "http":
 			// TODO
 			// cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
-		case strings.HasPrefix(vol.Source, "/"):
+		case "local":
 			// TODO
+		default:
+			continue
 		}
 		if len(cmd) == 0 {
 			continue
