@@ -14,12 +14,13 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/hyperhq/hypercli/pkg/signal"
-	"github.com/hyperhq/hypercli/pkg/term"
-	"github.com/hyperhq/hypercli/registry"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 	registrytypes "github.com/docker/engine-api/types/registry"
+	"github.com/dutchcoders/goftp"
+	"github.com/hyperhq/hypercli/pkg/signal"
+	"github.com/hyperhq/hypercli/pkg/term"
+	"github.com/hyperhq/hypercli/registry"
 )
 
 func (cli *DockerCli) electAuthServer() string {
@@ -215,4 +216,33 @@ func (cli *DockerCli) resolveAuthConfig(authConfigs map[string]types.AuthConfig,
 
 	// When all else fails, return an empty auth config
 	return types.AuthConfig{}
+}
+
+// uploadLocalResource upload a local file/directory to a container
+func (cli *DockerCli) uploadLocalResource(source, dest, serverIP, user, passwd string) error {
+	if !strings.Contains(serverIP, ":") {
+		serverIP += ":21"
+	}
+	ftp, err := goftp.Connect(serverIP)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		ftp.Close()
+	}()
+
+	if err = ftp.Login(user, passwd); err != nil {
+		return err
+	}
+
+	if err = ftp.Cwd(dest); err != nil {
+		return err
+	}
+
+	if err = ftp.Upload(source); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -179,12 +179,20 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 			parts := strings.Split(vol.Source, "/")
 			cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
 		case "local":
+			execCount++
 			if fip == "" {
 				fip, err = cli.associateNewFip(createResponse.ID)
 				if err != nil {
 					return err
 				}
 			}
+			go func(vol *InitVolume) {
+				err := cli.uploadLocalResource(vol.Source, INIT_VOLUME_PATH+vol.Destination, fip, "root", passwd.String())
+				if err != nil {
+					err = fmt.Errorf("Failed to upload %s: %s", vol.Source, err.Error())
+				}
+				errCh <- err
+			}(vol)
 		default:
 			continue
 		}
