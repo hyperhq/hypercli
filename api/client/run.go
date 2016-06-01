@@ -20,6 +20,7 @@ import (
 	"github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
+	"github.com/satori/go.uuid"
 )
 
 type InitVolume struct {
@@ -123,11 +124,11 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 		initHostConfig *container.HostConfig
 		errCh          chan error
 		execCount      uint32
+		fip            string
 	)
 
 	initConfig = &container.Config{
 		User:       config.User,
-		Env:        config.Env,
 		Image:      INIT_VOLUME_IMAGE,
 		StopSignal: config.StopSignal,
 	}
@@ -143,6 +144,8 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 	for _, vol := range initvols {
 		initHostConfig.Binds = append(initHostConfig.Binds, vol.Name+":"+INIT_VOLUME_PATH+vol.Destination)
 	}
+	passwd := uuid.NewV1()
+	initConfig.Env = append(config.Env, "ROOTPASSWORD="+passwd.String(), "LOCALROOT="+INIT_VOLUME_PATH)
 
 	createResponse, err := cli.createContainer(initConfig, initHostConfig, networkingConfig, hostConfig.ContainerIDFile, "")
 	if err != nil {
@@ -152,6 +155,11 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 		if err != nil {
 			if _, rmErr := cli.removeContainer(createResponse.ID, true, false, true); rmErr != nil {
 				fmt.Fprintf(cli.err, "clean up init container failed: %s\n", rmErr.Error())
+			}
+		}
+		if fip != "" {
+			if rmErr := cli.releaseFip(fip); rmErr != nil {
+				fmt.Fprintf(cli.err, "failed to clean up container fip %s: %s\n", fip, rmErr.Error())
 			}
 		}
 	}()
@@ -171,7 +179,12 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 			parts := strings.Split(vol.Source, "/")
 			cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
 		case "local":
-			// TODO
+			if fip == "" {
+				fip, err = cli.associateNewFip(createResponse.ID)
+				if err != nil {
+					return err
+				}
+			}
 		default:
 			continue
 		}
@@ -196,6 +209,14 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 		if err != nil {
 			return err
 		}
+	}
+
+	// release fip
+	if fip != "" {
+		if err = cli.releaseContainerFip(createResponse.ID); err != nil {
+			return err
+		}
+		fip = ""
 	}
 
 	// Need to sync before tearing down container because data might be still cached
