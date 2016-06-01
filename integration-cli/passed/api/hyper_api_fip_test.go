@@ -50,4 +50,11 @@ func (s *DockerSuite) TestFipApi(c *check.C) {
 	status, body, err = sockRequest("POST", endpoint, nil)
 	c.Assert(status, checker.Equals, http.StatusNoContent)
 	c.Assert(err, checker.IsNil)
+
+	//make sure that IP[0] has been released
+	endpoint = "/fips"
+	status, body, err = sockRequest("GET", endpoint, nil)
+	c.Assert(status, checker.Equals, http.StatusOK)
+	c.Assert(err, checker.IsNil)
+	c.Assert(string(body), checker.Not(checker.Contains), IP[0], check.Commentf("should not get IP %s", IP[0]))
 }
