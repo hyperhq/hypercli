@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -25,7 +24,6 @@ func (s *DockerSuite) TestFipApi(c *check.C) {
 	var IP []string
 	err = json.Unmarshal(body, &IP)
 	c.Assert(err, checker.IsNil)
-	fmt.Println(IP[0])
 
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 	containerID := strings.TrimSpace(out)
@@ -44,9 +42,10 @@ func (s *DockerSuite) TestFipApi(c *check.C) {
 
 	endpoint = "/fips/disassociate?container=" + containerID
 	status, body, err = sockRequest("POST", endpoint, nil)
-	c.Assert(status, checker.Equals, http.StatusNoContent)
+	c.Assert(status, checker.Equals, http.StatusOK)
 	c.Assert(err, checker.IsNil)
 
+	time.Sleep(5 * time.Second)
 	endpoint = "/fips/release?ip=" + IP[0]
 	status, body, err = sockRequest("POST", endpoint, nil)
 	c.Assert(status, checker.Equals, http.StatusNoContent)
