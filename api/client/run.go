@@ -121,8 +121,8 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 	var (
 		initConfig     *container.Config
 		initHostConfig *container.HostConfig
-		execJobs       []string
-		execID         string
+		errCh          chan error
+		execCount      uint32
 	)
 
 	initConfig = &container.Config{
@@ -160,6 +160,7 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 		return err
 	}
 
+	errCh = make(chan error, len(initvols))
 	for _, vol := range initvols {
 		var cmd []string
 		volType := checkSourceType(vol.Source)
@@ -177,29 +178,34 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 		if len(cmd) == 0 {
 			continue
 		}
-		if execID, err = cli.ExecCmd(initConfig.User, createResponse.ID, cmd); err != nil {
-			return err
-		} else {
-			execJobs = append(execJobs, execID)
-		}
+
+		execCount++
+		go func() {
+			execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, cmd)
+			if err != nil {
+				errCh <- err
+			} else {
+				errCh <- cli.WaitExec(execID)
+			}
+		}()
 	}
 
 	// wait results
-	for _, execID = range execJobs {
-		if err = cli.WaitExec(execID); err != nil {
+	for ; execCount > 0; execCount-- {
+		err = <-errCh
+		if err != nil {
 			return err
 		}
 	}
 
 	// Need to sync before tearing down container because data might be still cached
-	if len(execJobs) > 0 {
-		syncCmd := []string{"sync"}
-		if execID, err = cli.ExecCmd(initConfig.User, createResponse.ID, syncCmd); err != nil {
-			return err
-		}
-		if err = cli.WaitExec(execID); err != nil {
-			return err
-		}
+	syncCmd := []string{"sync"}
+	execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, syncCmd)
+	if err != nil {
+		return err
+	}
+	if err = cli.WaitExec(execID); err != nil {
+		return err
 	}
 
 	_, err = cli.removeContainer(createResponse.ID, false, false, true)
