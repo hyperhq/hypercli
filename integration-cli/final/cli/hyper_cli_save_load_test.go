@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
+	"strings"
 )
 
 /// test invalid url //////////////////////////////////////////////////////////////////////////
@@ -54,9 +55,9 @@ func (s *DockerSuite) TestLoadFromInvalidContentLengthTooLarge(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	const MAX_LENGTH = 2147483647
+	const MAX_LENGTH = 4294967295
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/largefile.tar")
-	c.Assert(output, checker.Contains, fmt.Sprintf("should be greater than zero, less than or equal to %v\n", MAX_LENGTH))
+	c.Assert(output, checker.Contains, fmt.Sprintf("should be greater than zero and less than or equal to %v\n", MAX_LENGTH))
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 }
@@ -66,9 +67,9 @@ func (s *DockerSuite) TestLoadFromInvalidContentLengthZero(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	const MAX_LENGTH = 2147483647
+	const MAX_LENGTH = 4294967295
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/emptyfile.tar")
-	c.Assert(output, checker.Equals, fmt.Sprintf("Error response from daemon: Size of image archive is 0, should be greater than zero, less than or equal to %v\n", MAX_LENGTH))
+	c.Assert(output, checker.Equals, fmt.Sprintf("Error response from daemon: The size of the image archive file is 0, should be greater than zero and less than or equal to %v\n", MAX_LENGTH))
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 }
@@ -78,7 +79,7 @@ func (s *DockerSuite) TestLoadFromInvalidContentUnrelated(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/readme.tar")
-	c.Assert(output, checker.Equals, "invalid argument\n")
+	c.Assert(output, checker.Contains, "invalid argument\n")
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 }
@@ -88,7 +89,7 @@ func (s *DockerSuite) TestLoadFromInvalidUntarFail(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/nottar.tar")
-	c.Assert(output, checker.Equals, "Untar re-exec error: exit status 1: output: unexpected EOF\n")
+	c.Assert(output, checker.Contains, "Untar re-exec error: exit status 1: output: unexpected EOF\n")
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 }
@@ -109,19 +110,19 @@ func (s *DockerSuite) TestLoadFromInvalidContentIncomplete(c *check.C) {
 
 	deleteAllImages()
 
-	/*
-	// load this image will be OK, but after delete this image, there is a residual image with <none> tag occur.
-	url = "http://image-tarball.s3.amazonaws.com/test/public/helloworld-no-manifest.tgz"
-	output, exitCode, err = dockerCmdWithError("load", "-i", url)
-	c.Assert(output, check.Not(checker.Contains), "has been loaded.")
-	c.Assert(exitCode, checker.Equals, 0)
-	c.Assert(err, checker.IsNil)
 
-	images, _ = dockerCmd(c, "images", "hello-world")
-	c.Assert(images, checker.Contains, "hello-world")
+	//// load this image will be OK, but after delete this image, there is a residual image with <none> tag occur.
+	//url = "http://image-tarball.s3.amazonaws.com/test/public/helloworld-no-manifest.tgz"
+	//output, exitCode, err = dockerCmdWithError("load", "-i", url)
+	//c.Assert(output, check.Not(checker.Contains), "has been loaded.")
+	//c.Assert(exitCode, checker.Equals, 0)
+	//c.Assert(err, checker.IsNil)
+	//
+	//images, _ = dockerCmd(c, "images", "hello-world")
+	//c.Assert(images, checker.Contains, "hello-world")
+	//
+	//deleteAllImages()
 
-	deleteAllImages()
-	*/
 
 	url = "http://image-tarball.s3.amazonaws.com/test/public/helloworld-no-layer.tgz"
 	output, exitCode, err = dockerCmdWithError("load", "-i", url)
@@ -363,4 +364,22 @@ func (s *DockerSuite) TestLoadFromPublicURLWithQuota(c *check.C) {
 
 	out, _ = dockerCmd(c, "info")
 	c.Assert(out, checker.Contains, "Images: 2")
+}
+
+func (s *DockerSuite) TestLoadFromLargeImageArchiveFile(c *check.C) {
+	printTestCaseName(); defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	imageName := "consol/centos-xfce-vnc";
+	imageUrl := "http://image-tarball.s3.amazonaws.com/test/public/consol_centos-xfce-vnc.tar"; //1.53GB
+
+	output, exitCode, err := dockerCmdWithError("load", "-i", imageUrl)
+	c.Assert(output, checker.Contains, "Start to download and load the image archive, please wait...\n")
+	c.Assert(output, checker.Contains, "has been loaded.\n")
+	c.Assert(exitCode, checker.Equals, 0)
+	c.Assert(err, checker.IsNil)
+
+	images, _ := dockerCmd(c, "images")
+	c.Assert(images, checker.Contains, imageName)
+	c.Assert(len(strings.Split(images, "\n")), checker.Equals, 3)
 }
