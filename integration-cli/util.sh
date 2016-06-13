@@ -21,17 +21,34 @@ cd ${WORKDIR}
 # ensure util.conf
 if [ ! -s ${WORKDIR}/util.conf ];then
     cat > ${WORKDIR}/util.conf <<EOF
+#########################################
+#packet env
+#########################################
 #apirouter service
 DOCKER_HOST=tcp://147.75.195.39:6443
 
-#Hyper Credentials(from ~/.hyper/config.json)
+#Hyper Credentials
 ACCESS_KEY=
 SECRET_KEY=
 
-##For test load image from S3 Pre-Signed URL
-#AWS Credentials(from ~/.aws/credentials)
+
+#########################################
+#zenlayer env
+#########################################
+#apirouter service
+#DOCKER_HOST=tcp://us-west-1.hyper.sh:443
+
+#Hyper Credentials
+#ACCESS_KEY=
+#SECRET_KEY=
+
+
+#########################################
+##AWS Credentials
+#########################################
 AWS_ACCESS_KEY=
 AWS_SECRET_KEY=
+
 
 ##For test load image from basic auth url
 URL_WITH_BASIC_AUTH=http://username:password@test.xx.xx/ubuntu.tar.gz
