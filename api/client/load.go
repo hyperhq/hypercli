@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"io"
 
 	Cli "github.com/hyperhq/hypercli/cli"
@@ -19,6 +20,10 @@ func (cli *DockerCli) CmdLoad(args ...string) error {
 	quiet := cmd.Bool([]string{"q", "-quiet"}, false, "Do not show load process")
 	cmd.Require(flag.Exact, 0)
 	cmd.ParseFlags(args, true)
+
+	if *infile == "" {
+		return errors.New("remote archive must be specified via --input")
+	}
 
 	var input struct {
 		FromSrc string `json:"fromSrc"`
