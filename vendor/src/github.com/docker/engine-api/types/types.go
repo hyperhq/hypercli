@@ -28,7 +28,7 @@ type ContainerExecCreateResponse struct {
 }
 
 // ContainerUpdateResponse contains response of Remote API:
-// POST /containers/{name:.*}/update
+// POST "/containers/{name:.*}/update"
 type ContainerUpdateResponse struct {
 	// Warnings are any warnings encountered during the updating of the container.
 	Warnings []string `json:"Warnings"`
@@ -39,6 +39,10 @@ type ContainerUpdateResponse struct {
 type AuthResponse struct {
 	// Status is the authentication status
 	Status string `json:"Status"`
+
+	// IdentityToken is an opaque token used for authenticating
+	// a user after a successful login.
+	IdentityToken string `json:"IdentityToken,omitempty"`
 }
 
 // ContainerWaitResponse contains response of Remote API:
@@ -99,6 +103,13 @@ type GraphDriverData struct {
 	Data map[string]string
 }
 
+// RootFS returns Image's RootFS description including the layer IDs.
+type RootFS struct {
+	Type      string
+	Layers    []string `json:",omitempty"`
+	BaseLayer string   `json:",omitempty"`
+}
+
 // ImageInspect contains response of Remote API:
 // GET "/images/{name:.*}/json"
 type ImageInspect struct {
@@ -118,6 +129,7 @@ type ImageInspect struct {
 	Size            int64
 	VirtualSize     int64
 	GraphDriver     GraphDriverData
+	RootFS          RootFS
 }
 
 // Port stores open ports info of container
@@ -130,7 +142,7 @@ type Port struct {
 }
 
 // Container contains response of Remote API:
-// GET  "/containers/json"
+// GET "/containers/json"
 type Container struct {
 	ID         string `json:"Id"`
 	Names      []string
@@ -148,6 +160,7 @@ type Container struct {
 		NetworkMode string `json:",omitempty"`
 	}
 	NetworkSettings *SummaryNetworkSettings
+	Mounts          []MountPoint
 }
 
 // CopyConfig contains request body of Remote API:
@@ -203,6 +216,7 @@ type Info struct {
 	Plugins            PluginsInfo
 	MemoryLimit        bool
 	SwapLimit          bool
+	KernelMemory       bool
 	CPUCfsPeriod       bool `json:"CpuCfsPeriod"`
 	CPUCfsQuota        bool `json:"CpuCfsQuota"`
 	CPUShares          bool
@@ -217,6 +231,7 @@ type Info struct {
 	SystemTime         string
 	ExecutionDriver    string
 	LoggingDriver      string
+	CgroupDriver       string
 	NEventsListener    int
 	KernelVersion      string
 	OperatingSystem    string
@@ -236,10 +251,11 @@ type Info struct {
 	ServerVersion      string
 	ClusterStore       string
 	ClusterAdvertise   string
+	SecurityOptions    []string
 }
 
-// PluginsInfo is temp struct holds Plugins name
-// registered with docker daemon. It used by Info struct
+// PluginsInfo is a temp struct holding Plugins name
+// registered with docker daemon. It is used by Info struct
 type PluginsInfo struct {
 	// List of Volume plugins registered
 	Volume []string
@@ -274,6 +290,18 @@ type ContainerState struct {
 	FinishedAt string
 }
 
+// ContainerNode stores information about the node that a container
+// is running on.  It's only available in Docker Swarm
+type ContainerNode struct {
+	ID        string
+	IPAddress string `json:"IP"`
+	Addr      string
+	Name      string
+	Cpus      int
+	Memory    int
+	Labels    map[string]string
+}
+
 // ContainerJSONBase contains response of Remote API:
 // GET "/containers/{name:.*}/json"
 type ContainerJSONBase struct {
@@ -287,6 +315,7 @@ type ContainerJSONBase struct {
 	HostnamePath    string
 	HostsPath       string
 	LogPath         string
+	Node            *ContainerNode `json:",omitempty"`
 	Name            string
 	RestartCount    int
 	Driver          string
@@ -323,13 +352,13 @@ type SummaryNetworkSettings struct {
 
 // NetworkSettingsBase holds basic information about networks
 type NetworkSettingsBase struct {
-	Bridge                 string
-	SandboxID              string
-	HairpinMode            bool
-	LinkLocalIPv6Address   string
-	LinkLocalIPv6PrefixLen int
-	Ports                  nat.PortMap
-	SandboxKey             string
+	Bridge                 string      // Bridge is the Bridge name the network uses(e.g. `docker0`)
+	SandboxID              string      // SandboxID uniquely represents a container's network stack
+	HairpinMode            bool        // HairpinMode specifies if hairpin NAT should be enabled on the virtual interface
+	LinkLocalIPv6Address   string      // LinkLocalIPv6Address is an IPv6 unicast address using the link-local prefix
+	LinkLocalIPv6PrefixLen int         // LinkLocalIPv6PrefixLen is the prefix length of an IPv6 unicast address
+	Ports                  nat.PortMap // Ports is a collection of PortBinding indexed by Port
+	SandboxKey             string      // SandboxKey identifies the sandbox
 	SecondaryIPAddresses   []network.Address
 	SecondaryIPv6Addresses []network.Address
 }
@@ -338,14 +367,14 @@ type NetworkSettingsBase struct {
 // during the 2 release deprecation period.
 // It will be removed in Docker 1.11.
 type DefaultNetworkSettings struct {
-	EndpointID          string
-	Gateway             string
-	GlobalIPv6Address   string
-	GlobalIPv6PrefixLen int
-	IPAddress           string
-	IPPrefixLen         int
-	IPv6Gateway         string
-	MacAddress          string
+	EndpointID          string // EndpointID uniquely represents a service endpoint in a Sandbox
+	Gateway             string // Gateway holds the gateway address for the network
+	GlobalIPv6Address   string // GlobalIPv6Address holds network's global IPv6 address
+	GlobalIPv6PrefixLen int    // GlobalIPv6PrefixLen represents mask length of network's global IPv6 address
+	IPAddress           string // IPAddress holds the IPv4 address for the network
+	IPPrefixLen         int    // IPPrefixLen represents mask length of network's IPv4 address
+	IPv6Gateway         string // IPv6Gateway holds gateway address specific for IPv6
+	MacAddress          string // MacAddress holds the MAC address for the network
 }
 
 // MountPoint represents a mount point configuration inside the container.
@@ -383,7 +412,8 @@ type Volume struct {
 	Driver     string                 // Driver is the Driver name used to create the volume
 	Mountpoint string                 // Mountpoint is the location on disk of the volume
 	Status     map[string]interface{} `json:",omitempty"` // Status provides low-level status information about the volume
-	Labels     map[string]string      // Labels is meta data specific to the volume
+	Labels     map[string]string      // Labels is metadata specific to the volume
+	Scope      string                 // Scope describes the level at which the volume exists (e.g. `global` for cluster-wide or `local` for machine level)
 }
 
 // VolumesListResponse contains the response for the remote API:
@@ -404,15 +434,16 @@ type VolumeCreateRequest struct {
 
 // NetworkResource is the body of the "get network" http response message
 type NetworkResource struct {
-	Name       string
-	ID         string `json:"Id"`
-	Scope      string
-	Driver     string
-	IPAM       network.IPAM
-	Internal   bool
-	Containers map[string]EndpointResource
-	Options    map[string]string
-	Labels     map[string]string
+	Name       string                      // Name is the requested name of the volume
+	ID         string                      `json:"Id"` // ID uniquely indentifies a network on a single machine
+	Scope      string                      // Scope describes the level at which the network exists (e.g. `global` for cluster-wide or `local` for machine level)
+	Driver     string                      // Driver is the Driver name used to create the volume (e.g. `bridge`, `overlay`)
+	EnableIPv6 bool                        // EnableIPv6 represents whether to enable IPv6
+	IPAM       network.IPAM                // IPAM is the network's IP Address Management
+	Internal   bool                        // Internal respresents if the network is used internal only
+	Containers map[string]EndpointResource // Containers contains endpoints belonging to the network
+	Options    map[string]string           // Options holds the network specific options to use for when creating the network
+	Labels     map[string]string           // Labels holds metadata specific to the network being created
 }
 
 // EndpointResource contains network resources allocated and used for a container in a network
@@ -426,13 +457,19 @@ type EndpointResource struct {
 
 // NetworkCreate is the expected body of the "create network" http request message
 type NetworkCreate struct {
-	Name           string
 	CheckDuplicate bool
 	Driver         string
+	EnableIPv6     bool
 	IPAM           network.IPAM
 	Internal       bool
 	Options        map[string]string
 	Labels         map[string]string
+}
+
+// NetworkCreateRequest is the request message sent to the server for network create call.
+type NetworkCreateRequest struct {
+	NetworkCreate
+	Name string
 }
 
 // NetworkCreateResponse is the response message sent by the server for network create call
@@ -451,4 +488,9 @@ type NetworkConnect struct {
 type NetworkDisconnect struct {
 	Container string
 	Force     bool
+}
+
+// Checkpoint represents the details of a checkpoint
+type Checkpoint struct {
+	Name string // Name is the name of the checkpoint
 }
