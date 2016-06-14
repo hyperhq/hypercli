@@ -156,7 +156,7 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 	}
 	defer func() {
 		if err != nil {
-			if _, rmErr := cli.removeContainer(createResponse.ID, true, false, true); rmErr != nil {
+			if _, rmErr := cli.removeContainer(createResponse.ID, false, false, true); rmErr != nil {
 				fmt.Fprintf(cli.err, "clean up init container failed: %s\n", rmErr.Error())
 			}
 		}
@@ -365,6 +365,9 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 	if len(initvols) > 0 {
 		err := cli.initSpecialVolumes(config, hostConfig, networkingConfig, initvols)
 		if err != nil {
+			for _, vol := range initvols {
+				cli.client.VolumeRemove(vol.Name)
+			}
 			cmd.ReportError(err.Error(), true)
 			return runStartContainerErr(err)
 		}
