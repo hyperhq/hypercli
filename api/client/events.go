@@ -8,13 +8,15 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/engine-api/types"
+	eventtypes "github.com/docker/engine-api/types/events"
+	"github.com/docker/engine-api/types/filters"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	"github.com/hyperhq/hypercli/pkg/jsonlog"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/engine-api/types"
-	eventtypes "github.com/docker/engine-api/types/events"
-	"github.com/docker/engine-api/types/filters"
 )
 
 // CmdEvents prints a live stream of real time events from the server.
@@ -48,7 +50,7 @@ func (cli *DockerCli) Events(args ...string) error {
 		Filters: eventFilterArgs,
 	}
 
-	responseBody, err := cli.client.Events(options)
+	responseBody, err := cli.client.Events(context.Background(), options)
 	if err != nil {
 		return err
 	}

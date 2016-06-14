@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"io"
 
+	"golang.org/x/net/context"
+
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/promise"
-	"github.com/docker/engine-api/types"
 )
 
 // CmdExec runs a command in a running container.
@@ -19,8 +21,9 @@ func (cli *DockerCli) CmdExec(args ...string) error {
 	detachKeys := cmd.String([]string{}, "", "Override the key sequence for detaching a container")
 
 	execConfig, err := ParseExec(cmd, args)
+	container := cmd.Arg(0)
 	// just in case the ParseExec does not exit
-	if execConfig.Container == "" || err != nil {
+	if container == "" || err != nil {
 		return Cli.StatusError{StatusCode: 1}
 	}
 
@@ -31,7 +34,9 @@ func (cli *DockerCli) CmdExec(args ...string) error {
 	// Send client escape keys
 	execConfig.DetachKeys = cli.configFile.DetachKeys
 
-	response, err := cli.client.ContainerExecCreate(*execConfig)
+	ctx := context.Background()
+
+	response, err := cli.client.ContainerExecCreate(ctx, container, *execConfig)
 	if err != nil {
 		return err
 	}
@@ -53,7 +58,7 @@ func (cli *DockerCli) CmdExec(args ...string) error {
 			Tty:    execConfig.Tty,
 		}
 
-		if err := cli.client.ContainerExecStart(execID, execStartCheck); err != nil {
+		if err := cli.client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
 			return err
 		}
 		// For now don't print this - wait for when we support exec wait()
@@ -82,7 +87,7 @@ func (cli *DockerCli) CmdExec(args ...string) error {
 		}
 	}
 
-	resp, err := cli.client.ContainerExecAttach(execID, *execConfig)
+	resp, err := cli.client.ContainerExecAttach(ctx, execID, *execConfig)
 	if err != nil {
 		return err
 	}
@@ -98,7 +103,7 @@ func (cli *DockerCli) CmdExec(args ...string) error {
 	})
 
 	if execConfig.Tty && cli.isTerminalIn {
-		if err := cli.monitorTtySize(execID, true); err != nil {
+		if err := cli.monitorTtySize(ctx, execID, true); err != nil {
 			fmt.Fprintf(cli.err, "Error monitoring TTY size: %s\n", err)
 		}
 	}
@@ -109,7 +114,7 @@ func (cli *DockerCli) CmdExec(args ...string) error {
 	}
 
 	var status int
-	if _, status, err = getExecExitCode(cli, execID); err != nil {
+	if _, status, err = getExecExitCode(ctx, cli, execID); err != nil {
 		return err
 	}
 
@@ -132,13 +137,11 @@ func ParseExec(cmd *flag.FlagSet, args []string) (*types.ExecConfig, error) {
 		flUser       = cmd.String([]string{}, "", "Username or UID (format: <name|uid>[:<group|gid>])")
 		flPrivileged = cmd.Bool([]string{}, false, "Give extended privileges to the command")
 		execCmd      []string
-		container    string
 	)
 	cmd.Require(flag.Min, 2)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return nil, err
 	}
-	container = cmd.Arg(0)
 	parsedArgs := cmd.Args()
 	execCmd = parsedArgs[1:]
 
@@ -147,7 +150,6 @@ func ParseExec(cmd *flag.FlagSet, args []string) (*types.ExecConfig, error) {
 		Privileged: *flPrivileged,
 		Tty:        *flTty,
 		Cmd:        execCmd,
-		Container:  container,
 		Detach:     *flDetach,
 	}
 

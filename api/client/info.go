@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	"github.com/docker/go-units"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/pkg/ioutils"
@@ -20,7 +22,7 @@ func (cli *DockerCli) CmdInfo(args ...string) error {
 
 	cmd.ParseFlags(args, true)
 
-	info, err := cli.client.Info()
+	info, err := cli.client.Info(context.Background())
 	if err != nil {
 		return err
 	}

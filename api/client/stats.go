@@ -10,6 +10,8 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types"
 	"github.com/docker/go-units"
 	Cli "github.com/hyperhq/hypercli/cli"
@@ -34,8 +36,8 @@ type stats struct {
 	cs []*containerStats
 }
 
-func (s *containerStats) Collect(cli *DockerCli, streamStats bool) {
-	responseBody, err := cli.client.ContainerStats(s.Name, streamStats)
+func (s *containerStats) Collect(cli *DockerCli, ctx context.Context, streamStats bool) {
+	responseBody, err := cli.client.ContainerStats(ctx, s.Name, streamStats)
 	if err != nil {
 		s.mu.Lock()
 		s.err = err
@@ -146,11 +148,13 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 	names := cmd.Args()
 	showAll := len(names) == 0
 
+	ctx := context.Background()
+
 	if showAll {
 		options := types.ContainerListOptions{
 			All: *all,
 		}
-		cs, err := cli.client.ContainerList(options)
+		cs, err := cli.client.ContainerList(ctx, options)
 		if err != nil {
 			return err
 		}
@@ -178,7 +182,7 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 		s := &containerStats{Name: n}
 		// no need to lock here since only the main goroutine is running here
 		cStats.cs = append(cStats.cs, s)
-		go s.Collect(cli, !*noStream)
+		go s.Collect(cli, ctx, !*noStream)
 	}
 	// do a quick pause so that any failed connections for containers that do not exist are able to be
 	// evicted before we display the initial or default values.

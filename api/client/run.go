@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/libnetwork/resolvconf/dns"
@@ -147,13 +149,15 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = cli.getTtySize()
 	}
 
-	createResponse, err := cli.createContainer(config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
+	ctx := context.Background()
+
+	createResponse, err := cli.createContainer(ctx, config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
 	if err != nil {
 		cmd.ReportError(err.Error(), true)
 		return runStartContainerErr(err)
 	}
 	if sigProxy {
-		sigc := cli.forwardAllSignals(createResponse.ID)
+		sigc := cli.forwardAllSignals(ctx, createResponse.ID)
 		defer signal.StopCatch(sigc)
 	}
 	var (
@@ -196,15 +200,14 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		}
 
 		options := types.ContainerAttachOptions{
-			ContainerID: createResponse.ID,
-			Stream:      true,
-			Stdin:       config.AttachStdin,
-			Stdout:      config.AttachStdout,
-			Stderr:      config.AttachStderr,
-			DetachKeys:  cli.configFile.DetachKeys,
+			Stream:     true,
+			Stdin:      config.AttachStdin,
+			Stdout:     config.AttachStdout,
+			Stderr:     config.AttachStderr,
+			DetachKeys: cli.configFile.DetachKeys,
 		}
 
-		resp, err := cli.client.ContainerAttach(options)
+		resp, err := cli.client.ContainerAttach(ctx, createResponse.ID, options)
 		if err != nil {
 			return err
 		}
@@ -221,20 +224,20 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 	if *flAutoRemove {
 		defer func() {
-			if _, err := cli.removeContainer(createResponse.ID, true, false, false); err != nil {
+			if _, err := cli.removeContainer(ctx, createResponse.ID, true, false, false); err != nil {
 				fmt.Fprintf(cli.err, "%v\n", err)
 			}
 		}()
 	}
 
 	//start the container
-	if err := cli.client.ContainerStart(createResponse.ID); err != nil {
+	if err := cli.client.ContainerStart(ctx, createResponse.ID, ""); err != nil {
 		cmd.ReportError(err.Error(), false)
 		return runStartContainerErr(err)
 	}
 
 	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && cli.isTerminalOut {
-		if err := cli.monitorTtySize(createResponse.ID, false); err != nil {
+		if err := cli.monitorTtySize(ctx, createResponse.ID, false); err != nil {
 			fmt.Fprintf(cli.err, "Error monitoring TTY size: %s\n", err)
 		}
 	}
@@ -258,7 +261,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 	// Attached mode
 	if *flAutoRemove {
 		// Warn user if they detached us
-		js, err := cli.client.ContainerInspect(createResponse.ID)
+		js, err := cli.client.ContainerInspect(ctx, createResponse.ID)
 		if err != nil {
 			return runStartContainerErr(err)
 		}
@@ -269,23 +272,23 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 		// Autoremove: wait for the container to finish, retrieve
 		// the exit code and remove the container
-		if status, err = cli.client.ContainerWait(createResponse.ID); err != nil {
+		if status, err = cli.client.ContainerWait(ctx, createResponse.ID); err != nil {
 			return runStartContainerErr(err)
 		}
-		if _, status, err = getExitCode(cli, createResponse.ID); err != nil {
+		if _, status, err = getExitCode(ctx, cli, createResponse.ID); err != nil {
 			return err
 		}
 	} else {
 		// No Autoremove: Simply retrieve the exit code
 		if !config.Tty {
 			// In non-TTY mode, we can't detach, so we must wait for container exit
-			if status, err = cli.client.ContainerWait(createResponse.ID); err != nil {
+			if status, err = cli.client.ContainerWait(ctx, createResponse.ID); err != nil {
 				return err
 			}
 		} else {
 			// In TTY mode, there is a race: if the process dies too slowly, the state could
 			// be updated after the getExitCode call and result in the wrong exit code being reported
-			if _, status, err = getExitCode(cli, createResponse.ID); err != nil {
+			if _, status, err = getExitCode(ctx, cli, createResponse.ID); err != nil {
 				return err
 			}
 		}

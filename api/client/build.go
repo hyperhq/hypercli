@@ -14,6 +14,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/docker/engine-api/types"
+	"github.com/docker/go-units"
 	"github.com/hyperhq/hypercli/api"
 	"github.com/hyperhq/hypercli/builder/dockerignore"
 	Cli "github.com/hyperhq/hypercli/cli"
@@ -30,12 +32,10 @@ import (
 	"github.com/hyperhq/hypercli/pkg/urlutil"
 	"github.com/hyperhq/hypercli/reference"
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/container"
-	"github.com/docker/go-units"
+	"golang.org/x/net/context"
 )
 
-type translatorFunc func(reference.NamedTagged) (reference.Canonical, error)
+type translatorFunc func(context.Context, reference.NamedTagged) (reference.Canonical, error)
 
 // CmdBuild builds a new image from the source code at a given path.
 //
@@ -63,7 +63,6 @@ func (cli *DockerCli) Build(args ...string) error {
 	flCgroupParent := cmd.String([]string{"-cgroup-parent"}, "", "Optional parent cgroup for the container")
 	flBuildArg := opts.NewListOpts(runconfigopts.ValidateEnv)
 	cmd.Var(&flBuildArg, []string{"-build-arg"}, "Set build-time variables")
-	isolation := cmd.String([]string{"-isolation"}, "", "Container isolation level")
 
 	ulimits := make(map[string]*units.Ulimit)
 	flUlimits := runconfigopts.NewUlimitOpt(&ulimits)
@@ -77,8 +76,8 @@ func (cli *DockerCli) Build(args ...string) error {
 	cmd.ParseFlags(args, true)
 
 	var (
-		context io.ReadCloser
-		err     error
+		buildCtx io.ReadCloser
+		err      error
 	)
 
 	specifiedContext := cmd.Arg(0)
@@ -100,11 +99,11 @@ func (cli *DockerCli) Build(args ...string) error {
 
 	switch {
 	case specifiedContext == "-":
-		context, relDockerfile, err = getContextFromReader(cli.in, *dockerfileName)
+		buildCtx, relDockerfile, err = getContextFromReader(cli.in, *dockerfileName)
 	case urlutil.IsGitURL(specifiedContext):
 		tempDir, relDockerfile, err = getContextFromGitURL(specifiedContext, *dockerfileName)
 	case urlutil.IsURL(specifiedContext):
-		context, relDockerfile, err = getContextFromURL(progBuff, specifiedContext, *dockerfileName)
+		buildCtx, relDockerfile, err = getContextFromURL(progBuff, specifiedContext, *dockerfileName)
 	default:
 		contextDir, relDockerfile, err = getContextFromLocalDir(specifiedContext, *dockerfileName)
 	}
@@ -121,7 +120,7 @@ func (cli *DockerCli) Build(args ...string) error {
 		contextDir = tempDir
 	}
 
-	if context == nil {
+	if buildCtx == nil {
 		// And canonicalize dockerfile name to a platform-independent one
 		relDockerfile, err = archive.CanonicalTarNameForPath(relDockerfile)
 		if err != nil {
@@ -159,7 +158,7 @@ func (cli *DockerCli) Build(args ...string) error {
 			includes = append(includes, ".dockerignore", relDockerfile)
 		}
 
-		context, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
+		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
 			Compression:     archive.Uncompressed,
 			ExcludePatterns: excludes,
 			IncludeFiles:    includes,
@@ -169,17 +168,19 @@ func (cli *DockerCli) Build(args ...string) error {
 		}
 	}
 
+	ctx := context.Background()
+
 	var resolvedTags []*resolvedTag
 	if isTrusted() {
 		// Wrap the tar archive to replace the Dockerfile entry with the rewritten
 		// Dockerfile which uses trusted pulls.
-		context = replaceDockerfileTarWrapper(context, relDockerfile, cli.trustedReference, &resolvedTags)
+		buildCtx = replaceDockerfileTarWrapper(ctx, buildCtx, relDockerfile, cli.trustedReference, &resolvedTags)
 	}
 
 	// Setup an upload progress bar
 	progressOutput := streamformatter.NewStreamFormatter().NewProgressOutput(progBuff, true)
 
-	var body io.Reader = progress.NewProgressReader(context, progressOutput, 0, "", "Sending build context to Docker daemon")
+	var body io.Reader = progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
 
 	var memory int64
 	if *flMemoryString != "" {
@@ -212,7 +213,6 @@ func (cli *DockerCli) Build(args ...string) error {
 	}
 
 	options := types.ImageBuildOptions{
-		Context:        body,
 		Memory:         memory,
 		MemorySwap:     memorySwap,
 		Tags:           flTags.GetAll(),
@@ -221,7 +221,6 @@ func (cli *DockerCli) Build(args ...string) error {
 		Remove:         *rm,
 		ForceRemove:    *forceRm,
 		PullParent:     *pull,
-		IsolationLevel: container.IsolationLevel(*isolation),
 		CPUSetCPUs:     *flCPUSetCpus,
 		CPUSetMems:     *flCPUSetMems,
 		CPUShares:      *flCPUShares,
@@ -235,7 +234,7 @@ func (cli *DockerCli) Build(args ...string) error {
 		AuthConfigs:    cli.configFile.AuthConfigs,
 	}
 
-	response, err := cli.client.ImageBuild(options)
+	response, err := cli.client.ImageBuild(ctx, body, options)
 	if err != nil {
 		return err
 	}
@@ -270,7 +269,7 @@ func (cli *DockerCli) Build(args ...string) error {
 		// Since the build was successful, now we must tag any of the resolved
 		// images from the above Dockerfile rewrite.
 		for _, resolved := range resolvedTags {
-			if err := cli.tagTrusted(resolved.digestRef, resolved.tagRef); err != nil {
+			if err := cli.tagTrusted(ctx, resolved.digestRef, resolved.tagRef); err != nil {
 				return err
 			}
 		}
@@ -557,7 +556,7 @@ type resolvedTag struct {
 // "FROM <image>" instructions to a digest reference. `translator` is a
 // function that takes a repository name and tag reference and returns a
 // trusted digest reference.
-func rewriteDockerfileFrom(dockerfile io.Reader, translator translatorFunc) (newDockerfile []byte, resolvedTags []*resolvedTag, err error) {
+func rewriteDockerfileFrom(ctx context.Context, dockerfile io.Reader, translator translatorFunc) (newDockerfile []byte, resolvedTags []*resolvedTag, err error) {
 	scanner := bufio.NewScanner(dockerfile)
 	buf := bytes.NewBuffer(nil)
 
@@ -574,7 +573,7 @@ func rewriteDockerfileFrom(dockerfile io.Reader, translator translatorFunc) (new
 			}
 			ref = reference.WithDefaultTag(ref)
 			if ref, ok := ref.(reference.NamedTagged); ok && isTrusted() {
-				trustedRef, err := translator(ref)
+				trustedRef, err := translator(ctx, ref)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -600,7 +599,7 @@ func rewriteDockerfileFrom(dockerfile io.Reader, translator translatorFunc) (new
 // replaces the entry with the given Dockerfile name with the contents of the
 // new Dockerfile. Returns a new tar archive stream with the replaced
 // Dockerfile.
-func replaceDockerfileTarWrapper(inputTarStream io.ReadCloser, dockerfileName string, translator translatorFunc, resolvedTags *[]*resolvedTag) io.ReadCloser {
+func replaceDockerfileTarWrapper(ctx context.Context, inputTarStream io.ReadCloser, dockerfileName string, translator translatorFunc, resolvedTags *[]*resolvedTag) io.ReadCloser {
 	pipeReader, pipeWriter := io.Pipe()
 	go func() {
 		tarReader := tar.NewReader(inputTarStream)
@@ -627,7 +626,7 @@ func replaceDockerfileTarWrapper(inputTarStream io.ReadCloser, dockerfileName st
 				// generated from a directory on the local filesystem, the
 				// Dockerfile will only appear once in the archive.
 				var newDockerfile []byte
-				newDockerfile, *resolvedTags, err = rewriteDockerfileFrom(content, translator)
+				newDockerfile, *resolvedTags, err = rewriteDockerfileFrom(ctx, content, translator)
 				if err != nil {
 					pipeWriter.CloseWithError(err)
 					return
