@@ -177,7 +177,12 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 		volType := checkSourceType(vol.Source)
 		switch volType {
 		case "git":
-			cmd = append(cmd, "git", "clone", vol.Source, INIT_VOLUME_PATH+vol.Destination)
+			// Only need to clone for the very first time volume gets initialized
+			if config.Image != "" {
+				cmd = append(cmd, "git", "clone", vol.Source, INIT_VOLUME_PATH+vol.Destination)
+			} else {
+				cmd = append(cmd, "sh", "-c", "cd "+INIT_VOLUME_PATH+vol.Destination+" && git pull")
+			}
 		case "http":
 			parts := strings.Split(vol.Source, "/")
 			cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
