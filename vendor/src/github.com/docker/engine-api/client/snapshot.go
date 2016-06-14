@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"net/url"
 
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
 )
 
 // SnapshotList returns the snapshots configured in the docker host.
-func (cli *Client) SnapshotList(filter filters.Args) (types.SnapshotsListResponse, error) {
+func (cli *Client) SnapshotList(ctx context.Context, filter filters.Args) (types.SnapshotsListResponse, error) {
 	var snapshots types.SnapshotsListResponse
 	query := url.Values{}
 
@@ -21,7 +23,7 @@ func (cli *Client) SnapshotList(filter filters.Args) (types.SnapshotsListRespons
 		}
 		query.Set("filters", filterJSON)
 	}
-	resp, err := cli.get("/snapshots", query, nil)
+	resp, err := cli.get(ctx, "/snapshots", query, nil)
 	if err != nil {
 		return snapshots, err
 	}
@@ -32,9 +34,9 @@ func (cli *Client) SnapshotList(filter filters.Args) (types.SnapshotsListRespons
 }
 
 // SnapshotInspect returns the information about a specific snapshot in the docker host.
-func (cli *Client) SnapshotInspect(snapshotID string) (types.Snapshot, error) {
+func (cli *Client) SnapshotInspect(ctx context.Context, snapshotID string) (types.Snapshot, error) {
 	var snapshot types.Snapshot
-	resp, err := cli.get("/snapshots/"+snapshotID, nil, nil)
+	resp, err := cli.get(ctx, "/snapshots/"+snapshotID, nil, nil)
 	if err != nil {
 		if resp.statusCode == http.StatusNotFound {
 			return snapshot, snapshotNotFoundError{snapshotID}
@@ -47,7 +49,7 @@ func (cli *Client) SnapshotInspect(snapshotID string) (types.Snapshot, error) {
 }
 
 // SnapshotCreate creates a snapshot in the docker host.
-func (cli *Client) SnapshotCreate(options types.SnapshotCreateRequest) (types.Snapshot, error) {
+func (cli *Client) SnapshotCreate(ctx context.Context, options types.SnapshotCreateRequest) (types.Snapshot, error) {
 	var snapshot types.Snapshot
 	v := url.Values{}
 	v.Set("volume", options.Volume)
@@ -55,7 +57,7 @@ func (cli *Client) SnapshotCreate(options types.SnapshotCreateRequest) (types.Sn
 	if options.Force {
 		v.Set("force", "true")
 	}
-	resp, err := cli.post("/snapshots/create?"+v.Encode(), nil, options, nil)
+	resp, err := cli.post(ctx, "/snapshots/create?"+v.Encode(), nil, options, nil)
 	if err != nil {
 		return snapshot, err
 	}
@@ -65,8 +67,8 @@ func (cli *Client) SnapshotCreate(options types.SnapshotCreateRequest) (types.Sn
 }
 
 // SnapshotRemove removes a snapshot from the docker host.
-func (cli *Client) SnapshotRemove(snapshotID string) error {
-	resp, err := cli.delete("/snapshots/"+snapshotID, nil, nil)
+func (cli *Client) SnapshotRemove(ctx context.Context, snapshotID string) error {
+	resp, err := cli.delete(ctx, "/snapshots/"+snapshotID, nil, nil)
 	ensureReaderClosed(resp)
 	return err
 }
