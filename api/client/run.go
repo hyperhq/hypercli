@@ -5,10 +5,13 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/container"
+	networktypes "github.com/docker/engine-api/types/network"
 	"github.com/docker/libnetwork/resolvconf/dns"
 	Cli "github.com/hyperhq/hypercli/cli"
 	derr "github.com/hyperhq/hypercli/errors"
@@ -18,6 +21,12 @@ import (
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
 )
+
+type InitVolume struct {
+	Source      string
+	Destination string
+	Name        string
+}
 
 func (cid *cidFile) Close() error {
 	cid.file.Close()
@@ -60,6 +69,145 @@ func runStartContainerErr(err error) error {
 		statusError = Cli.StatusError{StatusCode: 125}
 	}
 	return statusError
+}
+
+func parseProtoAndLocalBind(bind string) (string, string, bool) {
+	switch {
+	case strings.HasPrefix(bind, "git://"):
+		fallthrough
+	case strings.HasPrefix(bind, "http://"):
+		fallthrough
+	case strings.HasPrefix(bind, "https://"):
+		if strings.Count(bind, ":") < 2 {
+			return "", "", false
+		}
+	case strings.HasPrefix(bind, "/"):
+		if strings.Count(bind, ":") < 1 {
+			return "", "", false
+		}
+	default:
+		return "", "", false
+	}
+
+	pos := strings.LastIndex(bind, ":")
+	if pos < 0 || pos >= len(bind)-1 {
+		return "", "", false
+	}
+
+	return bind[:pos], bind[pos+1:], true
+}
+
+func checkSourceType(source string) string {
+	part := strings.Split(source, ":")
+	count := len(part)
+	switch {
+	case strings.HasPrefix(source, "git://") || strings.HasSuffix(source, ".git") ||
+		(count >= 2 && strings.HasSuffix(part[count-2], ".git")):
+		return "git"
+	case strings.HasPrefix(source, "http://"):
+		fallthrough
+	case strings.HasPrefix(source, "https://"):
+		return "http"
+	case strings.HasPrefix(source, "/"):
+		return "local"
+	default:
+		return "unknown"
+	}
+}
+
+func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, initvols []*InitVolume) error {
+	const INIT_VOLUME_PATH = "/vol/"
+	const INIT_VOLUME_IMAGE = "hyperhq/volume_uploader:latest"
+	var (
+		initConfig     *container.Config
+		initHostConfig *container.HostConfig
+		execJobs       []string
+		execID         string
+	)
+
+	initConfig = &container.Config{
+		User:       config.User,
+		Env:        config.Env,
+		Image:      INIT_VOLUME_IMAGE,
+		StopSignal: config.StopSignal,
+	}
+
+	initHostConfig = &container.HostConfig{
+		Binds:      make([]string, 0),
+		DNS:        hostConfig.DNS,
+		DNSOptions: hostConfig.DNSOptions,
+		DNSSearch:  hostConfig.DNSSearch,
+		ExtraHosts: hostConfig.ExtraHosts,
+	}
+
+	for _, vol := range initvols {
+		initHostConfig.Binds = append(initHostConfig.Binds, vol.Name+":"+INIT_VOLUME_PATH+vol.Destination)
+	}
+
+	createResponse, err := cli.createContainer(initConfig, initHostConfig, networkingConfig, hostConfig.ContainerIDFile, "")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if _, rmErr := cli.removeContainer(createResponse.ID, true, false, true); rmErr != nil {
+				fmt.Fprintf(cli.err, "clean up init container failed: %s\n", rmErr.Error())
+			}
+		}
+	}()
+
+	if err = cli.client.ContainerStart(createResponse.ID); err != nil {
+		return err
+	}
+
+	for _, vol := range initvols {
+		var cmd []string
+		volType := checkSourceType(vol.Source)
+		switch volType {
+		case "git":
+			cmd = append(cmd, "git", "clone", vol.Source, INIT_VOLUME_PATH+vol.Destination)
+		case "http":
+			parts := strings.Split(vol.Source, "/")
+			cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
+		case "local":
+			// TODO
+		default:
+			continue
+		}
+		if len(cmd) == 0 {
+			continue
+		}
+		if execID, err = cli.ExecCmd(initConfig.User, createResponse.ID, cmd); err != nil {
+			return err
+		} else {
+			execJobs = append(execJobs, execID)
+		}
+	}
+
+	// wait results
+	for _, execID = range execJobs {
+		if err = cli.WaitExec(execID); err != nil {
+			return err
+		}
+	}
+
+	// Need to sync before tearing down container because data might be still cached
+	if len(execJobs) > 0 {
+		syncCmd := []string{"sync"}
+		if execID, err = cli.ExecCmd(initConfig.User, createResponse.ID, syncCmd); err != nil {
+			return err
+		}
+		if err = cli.WaitExec(execID); err != nil {
+			return err
+		}
+	}
+
+	_, err = cli.removeContainer(createResponse.ID, false, false, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // CmdRun runs a command in a new container.
@@ -147,11 +295,50 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = cli.getTtySize()
 	}
 
+	// Check/create protocol and local volume
+	var initvols []*InitVolume
+	defer func() {
+		for _, vol := range initvols {
+			cli.client.VolumeRemove(vol.Name)
+		}
+	}()
+	for idx, bind := range hostConfig.Binds {
+		if source, dest, ok := parseProtoAndLocalBind(bind); ok {
+			volReq := types.VolumeCreateRequest{
+				Driver: "hyper",
+				Labels: map[string]string{
+					"source": source,
+				}}
+			if vol, err := cli.client.VolumeCreate(volReq); err != nil {
+				cmd.ReportError(err.Error(), true)
+				return runStartContainerErr(err)
+			} else {
+				initvols = append(initvols, &InitVolume{
+					Source:      source,
+					Destination: dest,
+					Name:        vol.Name,
+				})
+				hostConfig.Binds[idx] = vol.Name + ":" + dest
+			}
+		}
+	}
+
+	// initialize special volumes
+	if len(initvols) > 0 {
+		err := cli.initSpecialVolumes(config, hostConfig, networkingConfig, initvols)
+		if err != nil {
+			cmd.ReportError(err.Error(), true)
+			return runStartContainerErr(err)
+		}
+	}
+
 	createResponse, err := cli.createContainer(config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
 	if err != nil {
 		cmd.ReportError(err.Error(), true)
 		return runStartContainerErr(err)
 	}
+	initvols = nil
+
 	if sigProxy {
 		sigc := cli.forwardAllSignals(createResponse.ID)
 		defer signal.StopCatch(sigc)
