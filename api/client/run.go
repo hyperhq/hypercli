@@ -20,6 +20,7 @@ import (
 	"github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
+	"github.com/satori/go.uuid"
 )
 
 type InitVolume struct {
@@ -121,13 +122,13 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 	var (
 		initConfig     *container.Config
 		initHostConfig *container.HostConfig
-		execJobs       []string
-		execID         string
+		errCh          chan error
+		execCount      uint32
+		fip            string
 	)
 
 	initConfig = &container.Config{
 		User:       config.User,
-		Env:        config.Env,
 		Image:      INIT_VOLUME_IMAGE,
 		StopSignal: config.StopSignal,
 	}
@@ -143,6 +144,8 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 	for _, vol := range initvols {
 		initHostConfig.Binds = append(initHostConfig.Binds, vol.Name+":"+INIT_VOLUME_PATH+vol.Destination)
 	}
+	passwd := uuid.NewV1()
+	initConfig.Env = append(config.Env, "ROOTPASSWORD="+passwd.String(), "LOCALROOT="+INIT_VOLUME_PATH)
 
 	createResponse, err := cli.createContainer(initConfig, initHostConfig, networkingConfig, hostConfig.ContainerIDFile, "")
 	if err != nil {
@@ -154,12 +157,18 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 				fmt.Fprintf(cli.err, "clean up init container failed: %s\n", rmErr.Error())
 			}
 		}
+		if fip != "" {
+			if rmErr := cli.releaseFip(fip); rmErr != nil {
+				fmt.Fprintf(cli.err, "failed to clean up container fip %s: %s\n", fip, rmErr.Error())
+			}
+		}
 	}()
 
 	if err = cli.client.ContainerStart(createResponse.ID); err != nil {
 		return err
 	}
 
+	errCh = make(chan error, len(initvols))
 	for _, vol := range initvols {
 		var cmd []string
 		volType := checkSourceType(vol.Source)
@@ -170,36 +179,62 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 			parts := strings.Split(vol.Source, "/")
 			cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
 		case "local":
-			// TODO
+			execCount++
+			if fip == "" {
+				fip, err = cli.associateNewFip(createResponse.ID)
+				if err != nil {
+					return err
+				}
+			}
+			go func(vol *InitVolume) {
+				err := cli.uploadLocalResource(vol.Source, INIT_VOLUME_PATH+vol.Destination, fip, "root", passwd.String())
+				if err != nil {
+					err = fmt.Errorf("Failed to upload %s: %s", vol.Source, err.Error())
+				}
+				errCh <- err
+			}(vol)
 		default:
 			continue
 		}
 		if len(cmd) == 0 {
 			continue
 		}
-		if execID, err = cli.ExecCmd(initConfig.User, createResponse.ID, cmd); err != nil {
-			return err
-		} else {
-			execJobs = append(execJobs, execID)
-		}
+
+		execCount++
+		go func() {
+			execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, cmd)
+			if err != nil {
+				errCh <- err
+			} else {
+				errCh <- cli.WaitExec(execID)
+			}
+		}()
 	}
 
 	// wait results
-	for _, execID = range execJobs {
-		if err = cli.WaitExec(execID); err != nil {
+	for ; execCount > 0; execCount-- {
+		err = <-errCh
+		if err != nil {
 			return err
 		}
 	}
 
+	// release fip
+	if fip != "" {
+		if err = cli.releaseContainerFip(createResponse.ID); err != nil {
+			return err
+		}
+		fip = ""
+	}
+
 	// Need to sync before tearing down container because data might be still cached
-	if len(execJobs) > 0 {
-		syncCmd := []string{"sync"}
-		if execID, err = cli.ExecCmd(initConfig.User, createResponse.ID, syncCmd); err != nil {
-			return err
-		}
-		if err = cli.WaitExec(execID); err != nil {
-			return err
-		}
+	syncCmd := []string{"sync"}
+	execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, syncCmd)
+	if err != nil {
+		return err
+	}
+	if err = cli.WaitExec(execID); err != nil {
+		return err
 	}
 
 	_, err = cli.removeContainer(createResponse.ID, false, false, true)
