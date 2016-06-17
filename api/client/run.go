@@ -5,10 +5,13 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/container"
+	networktypes "github.com/docker/engine-api/types/network"
 	"github.com/docker/libnetwork/resolvconf/dns"
 	Cli "github.com/hyperhq/hypercli/cli"
 	derr "github.com/hyperhq/hypercli/errors"
@@ -17,7 +20,14 @@ import (
 	"github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
+	"github.com/satori/go.uuid"
 )
+
+type InitVolume struct {
+	Source      string
+	Destination string
+	Name        string
+}
 
 func (cid *cidFile) Close() error {
 	cid.file.Close()
@@ -60,6 +70,179 @@ func runStartContainerErr(err error) error {
 		statusError = Cli.StatusError{StatusCode: 125}
 	}
 	return statusError
+}
+
+func parseProtoAndLocalBind(bind string) (string, string, bool) {
+	switch {
+	case strings.HasPrefix(bind, "git://"):
+		fallthrough
+	case strings.HasPrefix(bind, "http://"):
+		fallthrough
+	case strings.HasPrefix(bind, "https://"):
+		if strings.Count(bind, ":") < 2 {
+			return "", "", false
+		}
+	case strings.HasPrefix(bind, "/"):
+		if strings.Count(bind, ":") < 1 {
+			return "", "", false
+		}
+	default:
+		return "", "", false
+	}
+
+	pos := strings.LastIndex(bind, ":")
+	if pos < 0 || pos >= len(bind)-1 {
+		return "", "", false
+	}
+
+	return bind[:pos], bind[pos+1:], true
+}
+
+func checkSourceType(source string) string {
+	part := strings.Split(source, ":")
+	count := len(part)
+	switch {
+	case strings.HasPrefix(source, "git://") || strings.HasSuffix(source, ".git") ||
+		(count >= 2 && strings.HasSuffix(part[count-2], ".git")):
+		return "git"
+	case strings.HasPrefix(source, "http://"):
+		fallthrough
+	case strings.HasPrefix(source, "https://"):
+		return "http"
+	case strings.HasPrefix(source, "/"):
+		return "local"
+	default:
+		return "unknown"
+	}
+}
+
+func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, initvols []*InitVolume) error {
+	const INIT_VOLUME_PATH = "/vol/"
+	const INIT_VOLUME_IMAGE = "hyperhq/volume_uploader:latest"
+	var (
+		initConfig     *container.Config
+		initHostConfig *container.HostConfig
+		errCh          chan error
+		execCount      uint32
+		fip            string
+	)
+
+	initConfig = &container.Config{
+		User:       config.User,
+		Image:      INIT_VOLUME_IMAGE,
+		StopSignal: config.StopSignal,
+	}
+
+	initHostConfig = &container.HostConfig{
+		Binds:      make([]string, 0),
+		DNS:        hostConfig.DNS,
+		DNSOptions: hostConfig.DNSOptions,
+		DNSSearch:  hostConfig.DNSSearch,
+		ExtraHosts: hostConfig.ExtraHosts,
+	}
+
+	for _, vol := range initvols {
+		initHostConfig.Binds = append(initHostConfig.Binds, vol.Name+":"+INIT_VOLUME_PATH+vol.Destination)
+	}
+	passwd := uuid.NewV1()
+	initConfig.Env = append(config.Env, "ROOTPASSWORD="+passwd.String(), "LOCALROOT="+INIT_VOLUME_PATH)
+
+	createResponse, err := cli.createContainer(initConfig, initHostConfig, networkingConfig, hostConfig.ContainerIDFile, "")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if _, rmErr := cli.removeContainer(createResponse.ID, true, false, true); rmErr != nil {
+				fmt.Fprintf(cli.err, "clean up init container failed: %s\n", rmErr.Error())
+			}
+		}
+		if fip != "" {
+			if rmErr := cli.releaseFip(fip); rmErr != nil {
+				fmt.Fprintf(cli.err, "failed to clean up container fip %s: %s\n", fip, rmErr.Error())
+			}
+		}
+	}()
+
+	if err = cli.client.ContainerStart(createResponse.ID); err != nil {
+		return err
+	}
+
+	errCh = make(chan error, len(initvols))
+	for _, vol := range initvols {
+		var cmd []string
+		volType := checkSourceType(vol.Source)
+		switch volType {
+		case "git":
+			cmd = append(cmd, "git", "clone", vol.Source, INIT_VOLUME_PATH+vol.Destination)
+		case "http":
+			parts := strings.Split(vol.Source, "/")
+			cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
+		case "local":
+			execCount++
+			if fip == "" {
+				fip, err = cli.associateNewFip(createResponse.ID)
+				if err != nil {
+					return err
+				}
+			}
+			go func(vol *InitVolume) {
+				err := cli.uploadLocalResource(vol.Source, INIT_VOLUME_PATH+vol.Destination, fip, "root", passwd.String())
+				if err != nil {
+					err = fmt.Errorf("Failed to upload %s: %s", vol.Source, err.Error())
+				}
+				errCh <- err
+			}(vol)
+		default:
+			continue
+		}
+		if len(cmd) == 0 {
+			continue
+		}
+
+		execCount++
+		go func() {
+			execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, cmd)
+			if err != nil {
+				errCh <- err
+			} else {
+				errCh <- cli.WaitExec(execID)
+			}
+		}()
+	}
+
+	// wait results
+	for ; execCount > 0; execCount-- {
+		err = <-errCh
+		if err != nil {
+			return err
+		}
+	}
+
+	// release fip
+	if fip != "" {
+		if err = cli.releaseContainerFip(createResponse.ID); err != nil {
+			return err
+		}
+		fip = ""
+	}
+
+	// Need to sync before tearing down container because data might be still cached
+	syncCmd := []string{"sync"}
+	execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, syncCmd)
+	if err != nil {
+		return err
+	}
+	if err = cli.WaitExec(execID); err != nil {
+		return err
+	}
+
+	_, err = cli.removeContainer(createResponse.ID, false, false, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // CmdRun runs a command in a new container.
@@ -147,11 +330,50 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = cli.getTtySize()
 	}
 
+	// Check/create protocol and local volume
+	var initvols []*InitVolume
+	defer func() {
+		for _, vol := range initvols {
+			cli.client.VolumeRemove(vol.Name)
+		}
+	}()
+	for idx, bind := range hostConfig.Binds {
+		if source, dest, ok := parseProtoAndLocalBind(bind); ok {
+			volReq := types.VolumeCreateRequest{
+				Driver: "hyper",
+				Labels: map[string]string{
+					"source": source,
+				}}
+			if vol, err := cli.client.VolumeCreate(volReq); err != nil {
+				cmd.ReportError(err.Error(), true)
+				return runStartContainerErr(err)
+			} else {
+				initvols = append(initvols, &InitVolume{
+					Source:      source,
+					Destination: dest,
+					Name:        vol.Name,
+				})
+				hostConfig.Binds[idx] = vol.Name + ":" + dest
+			}
+		}
+	}
+
+	// initialize special volumes
+	if len(initvols) > 0 {
+		err := cli.initSpecialVolumes(config, hostConfig, networkingConfig, initvols)
+		if err != nil {
+			cmd.ReportError(err.Error(), true)
+			return runStartContainerErr(err)
+		}
+	}
+
 	createResponse, err := cli.createContainer(config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
 	if err != nil {
 		cmd.ReportError(err.Error(), true)
 		return runStartContainerErr(err)
 	}
+	initvols = nil
+
 	if sigProxy {
 		sigc := cli.forwardAllSignals(createResponse.ID)
 		defer signal.StopCatch(sigc)
