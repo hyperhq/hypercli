@@ -50,6 +50,12 @@ AWS_ACCESS_KEY=
 AWS_SECRET_KEY=
 
 
+#########################################
+##MONGODB
+#########################################
+MONGODB_URL=
+
+
 ##For test load image from basic auth url
 URL_WITH_BASIC_AUTH=http://username:password@test.xx.xx/ubuntu.tar.gz
 EOF
@@ -86,6 +92,7 @@ case $1 in
         -e AWS_ACCESS_KEY=${AWS_ACCESS_KEY} \
         -e AWS_SECRET_KEY=${AWS_SECRET_KEY} \
         -e URL_WITH_BASIC_AUTH=${URL_WITH_BASIC_AUTH} \
+        -e MONGODB_URL=${MONGODB_URL} \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
         hyperhq/hypercli zsh
     ;;
