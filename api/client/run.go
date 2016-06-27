@@ -119,6 +119,7 @@ func checkSourceType(source string) string {
 func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, initvols []*InitVolume) error {
 	const INIT_VOLUME_PATH = "/vol/"
 	const INIT_VOLUME_IMAGE = "hyperhq/volume_uploader:latest"
+	const INIT_VOLUME_FILENAME = ".hyper_file_volume_data_do_not_create_on_your_own"
 	var (
 		initConfig     *container.Config
 		initHostConfig *container.HostConfig
@@ -176,9 +177,21 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 		case "git":
 			cmd = append(cmd, "git", "clone", vol.Source, INIT_VOLUME_PATH+vol.Destination)
 		case "http":
+			isFile, err := fileSourceVolume(vol.Source)
+			if err != nil {
+				return err
+			}
 			parts := strings.Split(vol.Source, "/")
-			cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
+			if isFile {
+				cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", vol.Source, "--output-document="+INIT_VOLUME_PATH+vol.Destination+"/"+INIT_VOLUME_FILENAME)
+			} else {
+				cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
+			}
 		case "local":
+			isFile, err := fileSourceVolume(vol.Source)
+			if err != nil {
+				return err
+			}
 			execCount++
 			if fip == "" {
 				fip, err = cli.associateNewFip(createResponse.ID)
@@ -187,7 +200,11 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 				}
 			}
 			go func(vol *InitVolume) {
-				err := cli.uploadLocalResource(vol.Source, INIT_VOLUME_PATH+vol.Destination, fip, "root", passwd.String())
+				dest := INIT_VOLUME_PATH + vol.Destination
+				if isFile {
+					dest = dest + "/" + INIT_VOLUME_FILENAME
+				}
+				err := cli.uploadLocalResource(vol.Source, dest, fip, "root", passwd.String(), isFile)
 				if err != nil {
 					err = fmt.Errorf("Failed to upload %s: %s", vol.Source, err.Error())
 				}
@@ -243,6 +260,38 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 	}
 
 	return nil
+}
+
+func fileSourceVolume(source string) (bool, error) {
+	switch {
+	case strings.HasPrefix(source, "git://"):
+		return false, nil
+	case strings.HasPrefix(source, "http://"):
+		fallthrough
+	case strings.HasPrefix(source, "https://"):
+		part := strings.Split(source, ":")
+		count := len(part)
+		if strings.HasSuffix(source, "/") || strings.HasSuffix(source, ".git") ||
+			(count >= 3 && strings.HasSuffix(part[count-2], ".git")) {
+			return false, nil
+		} else {
+			return true, nil
+		}
+	case strings.HasPrefix(source, "/"):
+		info, err := os.Stat(source)
+		if err != nil {
+			return false, err
+		}
+		if info.IsDir() {
+			return false, nil
+		} else if info.Mode()&os.ModeType != 0 {
+			return false, fmt.Errorf("cannot init volume from special file: %s", source)
+		}
+		return true, nil
+	default:
+		return false, fmt.Errorf("unsupported volume source type: %s", source)
+	}
+
 }
 
 // CmdRun runs a command in a new container.
