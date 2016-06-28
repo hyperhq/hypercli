@@ -916,11 +916,7 @@ func (s *DockerSuite) TestRunAllowPortRangeThroughExpose(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-	_, exitCode := dockerCmd(c, "pull", rangePortImage)
-	if exitCode != 0 {
-		c.Fatalf("pull image %s failed", rangePortImage)
-	}
-	out, _ := dockerCmd(c, "run", "-d", rangePortImage, "top")
+	out, _ := dockerCmd(c, "run", "-d", "--expose", "3000-3003", "-P", "busybox", "top")
 
 	id := strings.TrimSpace(out)
 	portstr := inspectFieldJSON(c, id, "NetworkSettings.Ports")
@@ -930,12 +926,55 @@ func (s *DockerSuite) TestRunAllowPortRangeThroughExpose(c *check.C) {
 	}
 	for port, binding := range ports {
 		portnum, _ := strconv.Atoi(strings.Split(string(port), "/")[0])
-		if portnum < 80 || portnum > 90 {
+		if portnum < 3000 || portnum > 3003 {
 			c.Fatalf("Port %d is out of range ", portnum)
 		}
 		if binding == nil || len(binding) != 1 || len(binding[0].HostPort) == 0 {
 			c.Fatalf("Port is not mapped for the port %s", port)
 		}
+	}
+}
+
+// test docker run expose a invalid port
+func (s *DockerSuite) TestRunExposePort(c *check.C) {
+	out, _, err := dockerCmdWithError("run", "--expose", "80000", "busybox")
+	//expose a invalid port should with a error out
+	if err == nil || !strings.Contains(out, "Invalid range format for --expose") {
+		c.Fatalf("run --expose a invalid port should with error out")
+	}
+}
+
+func (s *DockerSuite) TestRunAllowPortRangeThroughPublish(c *check.C) {
+	// TODO Windows. This may be possible to enable in the future. However,
+	// Windows does not currently support --expose, or populate the network
+	// settings seen through inspect.
+	testRequires(c, DaemonIsLinux)
+	out, _ := dockerCmd(c, "run", "-d", "--expose", "3000-3003", "-p", "3000-3003", "busybox", "top")
+
+	id := strings.TrimSpace(out)
+	portstr := inspectFieldJSON(c, id, "NetworkSettings.Ports")
+
+	var ports nat.PortMap
+	err := unmarshalJSON([]byte(portstr), &ports)
+	c.Assert(err, checker.IsNil, check.Commentf("failed to unmarshal: %v", portstr))
+	for port, binding := range ports {
+		portnum, _ := strconv.Atoi(strings.Split(string(port), "/")[0])
+		if portnum < 3000 || portnum > 3003 {
+			c.Fatalf("Port %d is out of range ", portnum)
+		}
+		if binding == nil || len(binding) != 1 || len(binding[0].HostPort) == 0 {
+			c.Fatal("Port is not mapped for the port "+port, out)
+		}
+	}
+}
+
+func (s *DockerSuite) TestRunPublishPort(c *check.C) {
+	testRequires(c, DaemonIsLinux)
+	dockerCmd(c, "run", "-d", "--name", "test", "--expose", "8080", "busybox", "top")
+	out, _ := dockerCmd(c, "port", "test")
+	out = strings.Trim(out, "\r\n")
+	if out != "" {
+		c.Fatalf("run without --publish-all should not publish port, out should be nil, but got: %s", out)
 	}
 }
 
@@ -1053,7 +1092,7 @@ func (s *DockerSuite) TestRunSetDefaultRestartPolicy(c *check.C) {
 func (s *DockerSuite) TestRunRestartMaxRetries(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:3", "busybox", "false")
+	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:3", "busybox", "sh -c 'sleep 15s; false'")
 	timeout := 60 * time.Second
 	if daemonPlatform == "windows" {
 		timeout = 45 * time.Second
