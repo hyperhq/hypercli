@@ -90,7 +90,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		flLoggingDriver     = cmd.String([]string{}, "", "Logging driver for container")
 		flCgroupParent      = cmd.String([]string{}, "", "Optional parent cgroup for the container")
 		flVolumeDriver      = cmd.String([]string{}, "", "Optional volume driver for the container")
-		flStopSignal        = cmd.String([]string{}, signal.DefaultStopSignal, fmt.Sprintf("Signal to stop a container, %v by default", signal.DefaultStopSignal))
+		flStopSignal        = cmd.String([]string{"-stop-signal"}, signal.DefaultStopSignal, fmt.Sprintf("Signal to stop a container, %v by default", signal.DefaultStopSignal))
 		flIsolation         = cmd.String([]string{}, "", "Container isolation level")
 		flShmSize           = cmd.String([]string{}, "", "Size of /dev/shm, default value is 64MB")
 		flInstanceType      = cmd.String([]string{"-size"}, "xs", "The type for each instance (e.g. xxs, xs, s, m, l, xl, xxl)")
