@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	Cli "github.com/hyperhq/hypercli/cli"
-	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/go-units"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
 // CmdUpdate updates resources of one or more containers.
@@ -86,10 +88,12 @@ func (cli *DockerCli) Update(args ...string) error {
 		Resources: resources,
 	}
 
+	ctx := context.Background()
+
 	names := cmd.Args()
 	var errs []string
 	for _, name := range names {
-		if err := cli.client.ContainerUpdate(name, updateConfig); err != nil {
+		if err := cli.client.ContainerUpdate(ctx, name, updateConfig); err != nil {
 			errs = append(errs, err.Error())
 		} else {
 			fmt.Fprintf(cli.out, "%s\n", name)

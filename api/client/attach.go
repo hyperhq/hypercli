@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"io"
 
+	"golang.org/x/net/context"
+
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/signal"
-	"github.com/docker/engine-api/types"
 )
 
 // CmdAttach attaches to a running container.
@@ -23,8 +25,10 @@ func (cli *DockerCli) CmdAttach(args ...string) error {
 	cmd.Require(flag.Exact, 1)
 
 	cmd.ParseFlags(args, true)
+	ctx := context.Background()
+	containerID := cmd.Arg(0)
 
-	c, err := cli.client.ContainerInspect(cmd.Arg(0))
+	c, err := cli.client.ContainerInspect(ctx, containerID)
 	if err != nil {
 		return err
 	}
@@ -42,7 +46,7 @@ func (cli *DockerCli) CmdAttach(args ...string) error {
 	}
 
 	if c.Config.Tty && cli.isTerminalOut {
-		if err := cli.monitorTtySize(cmd.Arg(0), false); err != nil {
+		if err := cli.monitorTtySize(ctx, cmd.Arg(0), false); err != nil {
 			logrus.Debugf("Error monitoring TTY size: %s", err)
 		}
 	}
@@ -52,12 +56,11 @@ func (cli *DockerCli) CmdAttach(args ...string) error {
 	}
 
 	options := types.ContainerAttachOptions{
-		ContainerID: cmd.Arg(0),
-		Stream:      true,
-		Stdin:       !*noStdin && c.Config.OpenStdin,
-		Stdout:      true,
-		Stderr:      true,
-		DetachKeys:  cli.configFile.DetachKeys,
+		Stream:     true,
+		Stdin:      !*noStdin && c.Config.OpenStdin,
+		Stdout:     true,
+		Stderr:     true,
+		DetachKeys: cli.configFile.DetachKeys,
 	}
 
 	var in io.ReadCloser
@@ -66,11 +69,11 @@ func (cli *DockerCli) CmdAttach(args ...string) error {
 	}
 
 	if *proxy && !c.Config.Tty {
-		sigc := cli.forwardAllSignals(options.ContainerID)
+		sigc := cli.forwardAllSignals(ctx, containerID)
 		defer signal.StopCatch(sigc)
 	}
 
-	resp, err := cli.client.ContainerAttach(options)
+	resp, err := cli.client.ContainerAttach(ctx, containerID, options)
 	if err != nil {
 		return err
 	}
@@ -86,7 +89,7 @@ func (cli *DockerCli) CmdAttach(args ...string) error {
 		return err
 	}
 
-	_, status, err := getExitCode(cli, options.ContainerID)
+	_, status, err := getExitCode(ctx, cli, containerID)
 	if err != nil {
 		return err
 	}

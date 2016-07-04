@@ -4,6 +4,8 @@ import (
 	"errors"
 	"io"
 
+	"golang.org/x/net/context"
+
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/pkg/jsonmessage"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
@@ -32,7 +34,7 @@ func (cli *DockerCli) CmdLoad(args ...string) error {
 	input.FromSrc = *infile
 	input.Quiet = *quiet
 
-	response, err := cli.client.ImageLoad(input)
+	response, err := cli.client.ImageLoad(context.Background(), input)
 	if err != nil {
 		return err
 	}

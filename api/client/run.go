@@ -20,7 +20,8 @@ import (
 	"github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
+	"golang.org/x/net/context"
 )
 
 type InitVolume struct {
@@ -116,7 +117,7 @@ func checkSourceType(source string) string {
 	}
 }
 
-func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, initvols []*InitVolume) error {
+func (cli *DockerCli) initSpecialVolumes(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, initvols []*InitVolume) error {
 	const INIT_VOLUME_PATH = "/vol/"
 	const INIT_VOLUME_IMAGE = "hyperhq/volume_uploader:latest"
 	const INIT_VOLUME_FILENAME = ".hyper_file_volume_data_do_not_create_on_your_own"
@@ -148,24 +149,24 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 	passwd := uuid.NewV1()
 	initConfig.Env = append(config.Env, "ROOTPASSWORD="+passwd.String(), "LOCALROOT="+INIT_VOLUME_PATH)
 
-	createResponse, err := cli.createContainer(initConfig, initHostConfig, networkingConfig, hostConfig.ContainerIDFile, "")
+	createResponse, err := cli.createContainer(ctx, initConfig, initHostConfig, networkingConfig, hostConfig.ContainerIDFile, "")
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
-			if _, rmErr := cli.removeContainer(createResponse.ID, true, false, true); rmErr != nil {
+			if _, rmErr := cli.removeContainer(ctx, createResponse.ID, true, false, true); rmErr != nil {
 				fmt.Fprintf(cli.err, "clean up init container failed: %s\n", rmErr.Error())
 			}
 		}
 		if fip != "" {
-			if rmErr := cli.releaseFip(fip); rmErr != nil {
+			if rmErr := cli.releaseFip(ctx, fip); rmErr != nil {
 				fmt.Fprintf(cli.err, "failed to clean up container fip %s: %s\n", fip, rmErr.Error())
 			}
 		}
 	}()
 
-	if err = cli.client.ContainerStart(createResponse.ID); err != nil {
+	if err = cli.client.ContainerStart(ctx, createResponse.ID, ""); err != nil {
 		return err
 	}
 
@@ -194,7 +195,7 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 			}
 			execCount++
 			if fip == "" {
-				fip, err = cli.associateNewFip(createResponse.ID)
+				fip, err = cli.associateNewFip(ctx, createResponse.ID)
 				if err != nil {
 					return err
 				}
@@ -219,11 +220,11 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 
 		execCount++
 		go func() {
-			execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, cmd)
+			execID, err := cli.ExecCmd(ctx, initConfig.User, createResponse.ID, cmd)
 			if err != nil {
 				errCh <- err
 			} else {
-				errCh <- cli.WaitExec(execID)
+				errCh <- cli.WaitExec(ctx, execID)
 			}
 		}()
 	}
@@ -238,7 +239,7 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 
 	// release fip
 	if fip != "" {
-		if err = cli.releaseContainerFip(createResponse.ID); err != nil {
+		if err = cli.releaseContainerFip(ctx, createResponse.ID); err != nil {
 			return err
 		}
 		fip = ""
@@ -246,15 +247,15 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 
 	// Need to sync before tearing down container because data might be still cached
 	syncCmd := []string{"sync"}
-	execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, syncCmd)
+	execID, err := cli.ExecCmd(ctx, initConfig.User, createResponse.ID, syncCmd)
 	if err != nil {
 		return err
 	}
-	if err = cli.WaitExec(execID); err != nil {
+	if err = cli.WaitExec(ctx, execID); err != nil {
 		return err
 	}
 
-	_, err = cli.removeContainer(createResponse.ID, false, false, true)
+	_, err = cli.removeContainer(ctx, createResponse.ID, false, false, true)
 	if err != nil {
 		return err
 	}
@@ -379,11 +380,13 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = cli.getTtySize()
 	}
 
+	ctx := context.Background()
+
 	// Check/create protocol and local volume
 	var initvols []*InitVolume
 	defer func() {
 		for _, vol := range initvols {
-			cli.client.VolumeRemove(vol.Name)
+			cli.client.VolumeRemove(ctx, vol.Name)
 		}
 	}()
 	for idx, bind := range hostConfig.Binds {
@@ -393,7 +396,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 				Labels: map[string]string{
 					"source": source,
 				}}
-			if vol, err := cli.client.VolumeCreate(volReq); err != nil {
+			if vol, err := cli.client.VolumeCreate(ctx, volReq); err != nil {
 				cmd.ReportError(err.Error(), true)
 				return runStartContainerErr(err)
 			} else {
@@ -409,14 +412,15 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 	// initialize special volumes
 	if len(initvols) > 0 {
-		err := cli.initSpecialVolumes(config, hostConfig, networkingConfig, initvols)
+		err := cli.initSpecialVolumes(ctx, config, hostConfig, networkingConfig, initvols)
 		if err != nil {
 			cmd.ReportError(err.Error(), true)
 			return runStartContainerErr(err)
 		}
 	}
 
-	createResponse, err := cli.createContainer(config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
+	createResponse, err := cli.createContainer(ctx, config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
+
 	if err != nil {
 		cmd.ReportError(err.Error(), true)
 		return runStartContainerErr(err)
@@ -424,7 +428,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 	initvols = nil
 
 	if sigProxy {
-		sigc := cli.forwardAllSignals(createResponse.ID)
+		sigc := cli.forwardAllSignals(ctx, createResponse.ID)
 		defer signal.StopCatch(sigc)
 	}
 	var (
@@ -467,15 +471,14 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		}
 
 		options := types.ContainerAttachOptions{
-			ContainerID: createResponse.ID,
-			Stream:      true,
-			Stdin:       config.AttachStdin,
-			Stdout:      config.AttachStdout,
-			Stderr:      config.AttachStderr,
-			DetachKeys:  cli.configFile.DetachKeys,
+			Stream:     true,
+			Stdin:      config.AttachStdin,
+			Stdout:     config.AttachStdout,
+			Stderr:     config.AttachStderr,
+			DetachKeys: cli.configFile.DetachKeys,
 		}
 
-		resp, err := cli.client.ContainerAttach(options)
+		resp, err := cli.client.ContainerAttach(ctx, createResponse.ID, options)
 		if err != nil {
 			return err
 		}
@@ -492,20 +495,20 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 	if *flAutoRemove {
 		defer func() {
-			if _, err := cli.removeContainer(createResponse.ID, true, false, false); err != nil {
+			if _, err := cli.removeContainer(ctx, createResponse.ID, true, false, false); err != nil {
 				fmt.Fprintf(cli.err, "%v\n", err)
 			}
 		}()
 	}
 
 	//start the container
-	if err := cli.client.ContainerStart(createResponse.ID); err != nil {
+	if err := cli.client.ContainerStart(ctx, createResponse.ID, ""); err != nil {
 		cmd.ReportError(err.Error(), false)
 		return runStartContainerErr(err)
 	}
 
 	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && cli.isTerminalOut {
-		if err := cli.monitorTtySize(createResponse.ID, false); err != nil {
+		if err := cli.monitorTtySize(ctx, createResponse.ID, false); err != nil {
 			fmt.Fprintf(cli.err, "Error monitoring TTY size: %s\n", err)
 		}
 	}
@@ -529,7 +532,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 	// Attached mode
 	if *flAutoRemove {
 		// Warn user if they detached us
-		js, err := cli.client.ContainerInspect(createResponse.ID)
+		js, err := cli.client.ContainerInspect(ctx, createResponse.ID)
 		if err != nil {
 			return runStartContainerErr(err)
 		}
@@ -540,23 +543,23 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 		// Autoremove: wait for the container to finish, retrieve
 		// the exit code and remove the container
-		if status, err = cli.client.ContainerWait(createResponse.ID); err != nil {
+		if status, err = cli.client.ContainerWait(ctx, createResponse.ID); err != nil {
 			return runStartContainerErr(err)
 		}
-		if _, status, err = getExitCode(cli, createResponse.ID); err != nil {
+		if _, status, err = getExitCode(ctx, cli, createResponse.ID); err != nil {
 			return err
 		}
 	} else {
 		// No Autoremove: Simply retrieve the exit code
 		if !config.Tty {
 			// In non-TTY mode, we can't detach, so we must wait for container exit
-			if status, err = cli.client.ContainerWait(createResponse.ID); err != nil {
+			if status, err = cli.client.ContainerWait(ctx, createResponse.ID); err != nil {
 				return err
 			}
 		} else {
 			// In TTY mode, there is a race: if the process dies too slowly, the state could
 			// be updated after the getExitCode call and result in the wrong exit code being reported
-			if _, status, err = getExitCode(cli, createResponse.ID); err != nil {
+			if _, status, err = getExitCode(ctx, cli, createResponse.ID); err != nil {
 				return err
 			}
 		}

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/engine-api/types/network"
@@ -71,7 +73,6 @@ func (cli *DockerCli) NetworkCreate(args ...string) error {
 
 	// Construct network create request body
 	nc := types.NetworkCreate{
-		Name:           cmd.Arg(0),
 		Driver:         driver,
 		IPAM:           network.IPAM{Driver: *flIpamDriver, Config: ipamCfg, Options: flIpamOpt.GetAll()},
 		Options:        flOpts.GetAll(),
@@ -79,7 +80,7 @@ func (cli *DockerCli) NetworkCreate(args ...string) error {
 		Internal:       *flInternal,
 	}
 
-	resp, err := cli.client.NetworkCreate(nc)
+	resp, err := cli.client.NetworkCreate(context.Background(), cmd.Arg(0), nc)
 	if err != nil {
 		return err
 	}
@@ -99,7 +100,7 @@ func (cli *DockerCli) NetworkRm(args ...string) error {
 
 	status := 0
 	for _, net := range cmd.Args() {
-		if err := cli.client.NetworkRemove(net); err != nil {
+		if err := cli.client.NetworkRemove(context.Background(), net); err != nil {
 			fmt.Fprintf(cli.err, "%s\n", err)
 			status = 1
 			continue
@@ -134,7 +135,7 @@ func (cli *DockerCli) NetworkConnect(args ...string) error {
 		Links:   flLinks.GetAll(),
 		Aliases: flAliases.GetAll(),
 	}
-	return cli.client.NetworkConnect(cmd.Arg(0), cmd.Arg(1), epConfig)
+	return cli.client.NetworkConnect(context.Background(), cmd.Arg(0), cmd.Arg(1), epConfig)
 }
 
 // CmdNetworkDisconnect disconnects a container from a network
@@ -148,7 +149,7 @@ func (cli *DockerCli) NetworkDisconnect(args ...string) error {
 		return err
 	}
 
-	return cli.client.NetworkDisconnect(cmd.Arg(0), cmd.Arg(1), *force)
+	return cli.client.NetworkDisconnect(context.Background(), cmd.Arg(0), cmd.Arg(1), *force)
 }
 
 // CmdNetworkLs lists all the networks managed by docker daemon
@@ -181,7 +182,7 @@ func (cli *DockerCli) NetworkLs(args ...string) error {
 		Filters: netFilterArgs,
 	}
 
-	networkResources, err := cli.client.NetworkList(options)
+	networkResources, err := cli.client.NetworkList(context.Background(), options)
 	if err != nil {
 		return err
 	}
@@ -227,7 +228,7 @@ func (cli *DockerCli) NetworkInspect(args ...string) error {
 	}
 
 	inspectSearcher := func(name string) (interface{}, []byte, error) {
-		i, err := cli.client.NetworkInspect(name)
+		i, err := cli.client.NetworkInspect(context.Background(), name)
 		return i, nil, err
 	}
 

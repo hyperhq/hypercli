@@ -8,11 +8,13 @@ import (
 	"runtime"
 	"strings"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/engine-api/client"
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/term"
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
 )
 
 // CmdLogin logs in or registers a user to a Docker registry service.
@@ -35,11 +37,13 @@ func (cli *DockerCli) CmdLogin(args ...string) error {
 		cli.in = os.Stdin
 	}
 
+	ctx := context.Background()
+
 	var serverAddress string
 	if len(cmd.Args()) > 0 {
 		serverAddress = cmd.Arg(0)
 	} else {
-		serverAddress = cli.electAuthServer()
+		serverAddress = cli.electAuthServer(ctx)
 	}
 
 	authConfig, err := cli.configureAuth(*flUser, *flPassword, *flEmail, serverAddress)
@@ -47,7 +51,7 @@ func (cli *DockerCli) CmdLogin(args ...string) error {
 		return err
 	}
 
-	response, err := cli.client.RegistryLogin(authConfig)
+	response, err := cli.client.RegistryLogin(ctx, authConfig)
 	if err != nil {
 		if client.IsErrUnauthorized(err) {
 			delete(cli.configFile.AuthConfigs, serverAddress)

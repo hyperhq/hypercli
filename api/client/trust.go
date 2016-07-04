@@ -15,11 +15,12 @@ import (
 	"strconv"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/digest"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
-	apiclient "github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 	registrytypes "github.com/docker/engine-api/types/registry"
 	"github.com/docker/go-connections/tlsconfig"
@@ -228,14 +229,14 @@ func (cli *DockerCli) getPassphraseRetriever() passphrase.Retriever {
 	}
 }
 
-func (cli *DockerCli) trustedReference(ref reference.NamedTagged) (reference.Canonical, error) {
+func (cli *DockerCli) trustedReference(ctx context.Context, ref reference.NamedTagged) (reference.Canonical, error) {
 	repoInfo, err := registry.ParseRepositoryInfo(ref)
 	if err != nil {
 		return nil, err
 	}
 
 	// Resolve the Auth config relevant for this server
-	authConfig := cli.resolveAuthConfig(cli.configFile.AuthConfigs, repoInfo.Index)
+	authConfig := cli.resolveAuthConfig(ctx, cli.configFile.AuthConfigs, repoInfo.Index)
 
 	notaryRepo, err := cli.getNotaryRepository(repoInfo, authConfig)
 	if err != nil {
@@ -256,17 +257,14 @@ func (cli *DockerCli) trustedReference(ref reference.NamedTagged) (reference.Can
 	return reference.WithDigest(ref, r.digest)
 }
 
-func (cli *DockerCli) tagTrusted(trustedRef reference.Canonical, ref reference.NamedTagged) error {
+func (cli *DockerCli) tagTrusted(ctx context.Context, trustedRef reference.Canonical, ref reference.NamedTagged) error {
 	fmt.Fprintf(cli.out, "Tagging %s as %s\n", trustedRef.String(), ref.String())
 
 	options := types.ImageTagOptions{
-		ImageID:        trustedRef.String(),
-		RepositoryName: trustedRef.Name(),
-		Tag:            ref.Tag(),
-		Force:          true,
+		Force: true,
 	}
 
-	return cli.client.ImageTag(options)
+	return cli.client.ImageTag(ctx, trustedRef.String(), ref.String(), options)
 }
 
 func notaryError(repoName string, err error) error {
@@ -299,7 +297,7 @@ func notaryError(repoName string, err error) error {
 	return err
 }
 
-func (cli *DockerCli) trustedPull(repoInfo *registry.RepositoryInfo, ref registry.Reference, authConfig types.AuthConfig, requestPrivilege apiclient.RequestPrivilegeFunc) error {
+func (cli *DockerCli) trustedPull(ctx context.Context, repoInfo *registry.RepositoryInfo, ref registry.Reference, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
 	var refs []target
 
 	notaryRepo, err := cli.getNotaryRepository(repoInfo, authConfig)
@@ -341,8 +339,12 @@ func (cli *DockerCli) trustedPull(repoInfo *registry.RepositoryInfo, ref registr
 			displayTag = ":" + displayTag
 		}
 		fmt.Fprintf(cli.out, "Pull (%d of %d): %s%s@%s\n", i+1, len(refs), repoInfo.Name(), displayTag, r.digest)
+		ref, err := reference.WithDigest(repoInfo, r.digest)
+		if err != nil {
+			return err
+		}
 
-		if err := cli.imagePullPrivileged(authConfig, repoInfo.Name(), r.digest.String(), requestPrivilege); err != nil {
+		if err := cli.imagePullPrivileged(ctx, authConfig, ref.String(), requestPrivilege, false); err != nil {
 			return err
 		}
 
@@ -356,7 +358,7 @@ func (cli *DockerCli) trustedPull(repoInfo *registry.RepositoryInfo, ref registr
 			if err != nil {
 				return err
 			}
-			if err := cli.tagTrusted(trustedRef, tagged); err != nil {
+			if err := cli.tagTrusted(ctx, trustedRef, tagged); err != nil {
 				return err
 			}
 		}
@@ -364,8 +366,8 @@ func (cli *DockerCli) trustedPull(repoInfo *registry.RepositoryInfo, ref registr
 	return nil
 }
 
-func (cli *DockerCli) trustedPush(repoInfo *registry.RepositoryInfo, tag string, authConfig types.AuthConfig, requestPrivilege apiclient.RequestPrivilegeFunc) error {
-	responseBody, err := cli.imagePushPrivileged(authConfig, repoInfo.Name(), tag, requestPrivilege)
+func (cli *DockerCli) trustedPush(ctx context.Context, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
+	responseBody, err := cli.imagePushPrivileged(ctx, authConfig, ref.String(), requestPrivilege)
 	if err != nil {
 		return err
 	}
@@ -385,14 +387,26 @@ func (cli *DockerCli) trustedPush(repoInfo *registry.RepositoryInfo, tag string,
 		}
 	}
 
-	err = jsonmessage.DisplayJSONMessagesStream(responseBody, cli.out, cli.outFd, cli.isTerminalOut, handleTarget)
-	if err != nil {
-		return err
+	var tag string
+	switch x := ref.(type) {
+	case reference.Canonical:
+		return errors.New("cannot push a digest reference")
+	case reference.NamedTagged:
+		tag = x.Tag()
 	}
 
 	if tag == "" {
+		err = jsonmessage.DisplayJSONMessagesStream(responseBody, cli.out, cli.outFd, cli.isTerminalOut, handleTarget)
+		if err != nil {
+			return err
+		}
 		fmt.Fprintf(cli.out, "No tag specified, skipping trust metadata push\n")
 		return nil
+	}
+
+	err = jsonmessage.DisplayJSONMessagesStream(responseBody, cli.out, cli.outFd, cli.isTerminalOut, handleTarget)
+	if err != nil {
+		return err
 	}
 	if len(targets) == 0 {
 		fmt.Fprintf(cli.out, "No targets found, skipping trust metadata push\n")

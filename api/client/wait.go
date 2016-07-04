@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
@@ -19,9 +21,11 @@ func (cli *DockerCli) Wait(args ...string) error {
 
 	cmd.ParseFlags(args, true)
 
+	ctx := context.Background()
+
 	var errs []string
 	for _, name := range cmd.Args() {
-		status, err := cli.client.ContainerWait(name)
+		status, err := cli.client.ContainerWait(ctx, name)
 		if err != nil {
 			errs = append(errs, err.Error())
 		} else {

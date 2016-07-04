@@ -4,6 +4,8 @@ import (
 	"errors"
 	"io"
 
+	"golang.org/x/net/context"
+
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
@@ -24,7 +26,7 @@ func (cli *DockerCli) Export(args ...string) error {
 		return errors.New("Cowardly refusing to save to a terminal. Use the -o flag or redirect.")
 	}
 
-	responseBody, err := cli.client.ContainerExport(cmd.Arg(0))
+	responseBody, err := cli.client.ContainerExport(context.Background(), cmd.Arg(0))
 	if err != nil {
 		return err
 	}

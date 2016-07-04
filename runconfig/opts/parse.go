@@ -95,6 +95,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		flShmSize           = cmd.String([]string{}, "", "Size of /dev/shm, default value is 64MB")
 		flInstanceType      = cmd.String([]string{"-size"}, "xs", "The type for each instance (e.g. xxs, xs, s, m, l, xl, xxl)")
 	)
+	_ = flIsolation
 
 	cmd.Var(&flAttach, []string{"a", "-attach"}, "Attach to STDIN, STDOUT or STDERR")
 	cmd.Var(&flBlkioWeightDevice, []string{}, "Block IO weight (relative device weight)")
@@ -229,15 +230,15 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 
 	var (
 		parsedArgs = cmd.Args()
-		runCmd     *strslice.StrSlice
-		entrypoint *strslice.StrSlice
+		runCmd     strslice.StrSlice
+		entrypoint strslice.StrSlice
 		image      = cmd.Arg(0)
 	)
 	if len(parsedArgs) > 1 {
-		runCmd = strslice.New(parsedArgs[1:]...)
+		runCmd = strslice.StrSlice(parsedArgs[1:])
 	}
 	if *flEntrypoint != "" {
-		entrypoint = strslice.New(*flEntrypoint)
+		entrypoint = strslice.StrSlice{*flEntrypoint}
 	}
 
 	var (
@@ -402,15 +403,14 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		IpcMode:        ipcMode,
 		PidMode:        pidMode,
 		UTSMode:        utsMode,
-		CapAdd:         strslice.New(flCapAdd.GetAll()...),
-		CapDrop:        strslice.New(flCapDrop.GetAll()...),
+		CapAdd:         strslice.StrSlice(flCapAdd.GetAll()),
+		CapDrop:        strslice.StrSlice(flCapDrop.GetAll()),
 		GroupAdd:       flGroupAdd.GetAll(),
 		RestartPolicy:  restartPolicy,
 		SecurityOpt:    securityOpts,
 		ReadonlyRootfs: *flReadonlyRootfs,
 		LogConfig:      container.LogConfig{Type: *flLoggingDriver, Config: loggingOpts},
 		VolumeDriver:   *flVolumeDriver,
-		Isolation:      container.IsolationLevel(*flIsolation),
 		ShmSize:        shmSize,
 		Resources:      resources,
 		Tmpfs:          tmpfs,
