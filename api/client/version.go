@@ -5,11 +5,13 @@ import (
 	"text/template"
 	"time"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/dockerversion"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/utils"
-	"github.com/docker/engine-api/types"
 )
 
 var versionTemplate = `Client:
@@ -42,6 +44,8 @@ func (cli *DockerCli) CmdVersion(args ...string) (err error) {
 
 	cmd.ParseFlags(args, true)
 
+	ctx := context.Background()
+
 	templateFormat := versionTemplate
 	if *tmplStr != "" {
 		templateFormat = *tmplStr
@@ -66,7 +70,7 @@ func (cli *DockerCli) CmdVersion(args ...string) (err error) {
 		},
 	}
 
-	serverVersion, err := cli.client.ServerVersion()
+	serverVersion, err := cli.client.ServerVersion(ctx)
 	if err == nil {
 		vd.Server = &serverVersion
 	}

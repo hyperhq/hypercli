@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/docker/engine-api/client"
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/pkg/jsonmessage"
@@ -58,30 +59,32 @@ func (cli *DockerCli) CmdPull(args ...string) error {
 		return err
 	}
 
-	authConfig := cli.resolveAuthConfig(cli.configFile.AuthConfigs, repoInfo.Index)
+	ctx := context.Background()
+
+	authConfig := cli.resolveAuthConfig(ctx, cli.configFile.AuthConfigs, repoInfo.Index)
 	requestPrivilege := cli.registryAuthenticationPrivilegedFunc(repoInfo.Index, "pull")
 
 	if isTrusted() && !ref.HasDigest() {
 		// Check if tag is digest
-		return cli.trustedPull(repoInfo, ref, authConfig, requestPrivilege)
+		return cli.trustedPull(ctx, repoInfo, ref, authConfig, requestPrivilege)
 	}
 
-	return cli.imagePullPrivileged(authConfig, distributionRef.String(), "", requestPrivilege)
+	return cli.imagePullPrivileged(ctx, authConfig, distributionRef.String(), requestPrivilege, *allTags)
 }
 
-func (cli *DockerCli) imagePullPrivileged(authConfig types.AuthConfig, imageID, tag string, requestPrivilege client.RequestPrivilegeFunc) error {
+func (cli *DockerCli) imagePullPrivileged(ctx context.Context, authConfig types.AuthConfig, ref string, requestPrivilege types.RequestPrivilegeFunc, all bool) error {
 
 	encodedAuth, err := encodeAuthToBase64(authConfig)
 	if err != nil {
 		return err
 	}
 	options := types.ImagePullOptions{
-		ImageID:      imageID,
-		Tag:          tag,
-		RegistryAuth: encodedAuth,
+		PrivilegeFunc: requestPrivilege,
+		RegistryAuth:  encodedAuth,
+		All:           all,
 	}
 
-	responseBody, err := cli.client.ImagePull(options, requestPrivilege)
+	responseBody, err := cli.client.ImagePull(context.Background(), ref, options)
 	if err != nil {
 		return err
 	}

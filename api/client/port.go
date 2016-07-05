@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/go-connections/nat"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/go-connections/nat"
 )
 
 // CmdPort lists port mappings for a container.
@@ -19,7 +21,9 @@ func (cli *DockerCli) CmdPort(args ...string) error {
 
 	cmd.ParseFlags(args, true)
 
-	c, err := cli.client.ContainerInspect(cmd.Arg(0))
+	ctx := context.Background()
+
+	c, err := cli.client.ContainerInspect(ctx, cmd.Arg(0))
 	if err != nil {
 		return err
 	}

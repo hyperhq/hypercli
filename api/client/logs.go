@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/stdcopy"
-	"github.com/docker/engine-api/types"
 )
 
 var validDrivers = map[string]bool{
@@ -30,7 +32,8 @@ func (cli *DockerCli) CmdLogs(args ...string) error {
 
 	name := cmd.Arg(0)
 
-	c, err := cli.client.ContainerInspect(name)
+	ctx := context.Background()
+	c, err := cli.client.ContainerInspect(ctx, name)
 	if err != nil {
 		return err
 	}
@@ -40,15 +43,14 @@ func (cli *DockerCli) CmdLogs(args ...string) error {
 	}
 
 	options := types.ContainerLogsOptions{
-		ContainerID: name,
-		ShowStdout:  true,
-		ShowStderr:  true,
-		Since:       *since,
-		Timestamps:  *times,
-		Follow:      *follow,
-		Tail:        *tail,
+		ShowStdout: true,
+		ShowStderr: true,
+		Since:      *since,
+		Timestamps: *times,
+		Follow:     *follow,
+		Tail:       *tail,
 	}
-	responseBody, err := cli.client.ContainerLogs(options)
+	responseBody, err := cli.client.ContainerLogs(ctx, name, options)
 	if err != nil {
 		return err
 	}

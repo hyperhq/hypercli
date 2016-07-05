@@ -7,11 +7,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/pkg/archive"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/system"
-	"github.com/docker/engine-api/types"
 )
 
 type copyDirection int
@@ -79,11 +81,13 @@ func (cli *DockerCli) Cp(args ...string) error {
 		followLink: *followLink,
 	}
 
+	ctx := context.Background()
+
 	switch direction {
 	case fromContainer:
-		return cli.copyFromContainer(srcContainer, srcPath, dstPath, cpParam)
+		return cli.copyFromContainer(ctx, srcContainer, srcPath, dstPath, cpParam)
 	case toContainer:
-		return cli.copyToContainer(srcPath, dstContainer, dstPath, cpParam)
+		return cli.copyToContainer(ctx, srcPath, dstContainer, dstPath, cpParam)
 	case acrossContainers:
 		// Copying between containers isn't supported.
 		return fmt.Errorf("copying between containers is not supported")
@@ -124,8 +128,8 @@ func splitCpArg(arg string) (container, path string) {
 	return parts[0], parts[1]
 }
 
-func (cli *DockerCli) statContainerPath(containerName, path string) (types.ContainerPathStat, error) {
-	return cli.client.ContainerStatPath(containerName, path)
+func (cli *DockerCli) statContainerPath(ctx context.Context, containerName, path string) (types.ContainerPathStat, error) {
+	return cli.client.ContainerStatPath(ctx, containerName, path)
 }
 
 func resolveLocalPath(localPath string) (absPath string, err error) {
@@ -136,7 +140,7 @@ func resolveLocalPath(localPath string) (absPath string, err error) {
 	return archive.PreserveTrailingDotOrSeparator(absPath, localPath), nil
 }
 
-func (cli *DockerCli) copyFromContainer(srcContainer, srcPath, dstPath string, cpParam *cpConfig) (err error) {
+func (cli *DockerCli) copyFromContainer(ctx context.Context, srcContainer, srcPath, dstPath string, cpParam *cpConfig) (err error) {
 	if dstPath != "-" {
 		// Get an absolute destination path.
 		dstPath, err = resolveLocalPath(dstPath)
@@ -148,7 +152,7 @@ func (cli *DockerCli) copyFromContainer(srcContainer, srcPath, dstPath string, c
 	// if client requests to follow symbol link, then must decide target file to be copied
 	var rebaseName string
 	if cpParam.followLink {
-		srcStat, err := cli.statContainerPath(srcContainer, srcPath)
+		srcStat, err := cli.statContainerPath(ctx, srcContainer, srcPath)
 
 		// If the destination is a symbolic link, we should follow it.
 		if err == nil && srcStat.Mode&os.ModeSymlink != 0 {
@@ -165,7 +169,7 @@ func (cli *DockerCli) copyFromContainer(srcContainer, srcPath, dstPath string, c
 
 	}
 
-	content, stat, err := cli.client.CopyFromContainer(srcContainer, srcPath)
+	content, stat, err := cli.client.CopyFromContainer(ctx, srcContainer, srcPath)
 	if err != nil {
 		return err
 	}
@@ -197,7 +201,7 @@ func (cli *DockerCli) copyFromContainer(srcContainer, srcPath, dstPath string, c
 	return archive.CopyTo(preArchive, srcInfo, dstPath)
 }
 
-func (cli *DockerCli) copyToContainer(srcPath, dstContainer, dstPath string, cpParam *cpConfig) (err error) {
+func (cli *DockerCli) copyToContainer(ctx context.Context, srcPath, dstContainer, dstPath string, cpParam *cpConfig) (err error) {
 	if srcPath != "-" {
 		// Get an absolute source path.
 		srcPath, err = resolveLocalPath(srcPath)
@@ -213,7 +217,7 @@ func (cli *DockerCli) copyToContainer(srcPath, dstContainer, dstPath string, cpP
 
 	// Prepare destination copy info by stat-ing the container path.
 	dstInfo := archive.CopyInfo{Path: dstPath}
-	dstStat, err := cli.statContainerPath(dstContainer, dstPath)
+	dstStat, err := cli.statContainerPath(ctx, dstContainer, dstPath)
 
 	// If the destination is a symbolic link, we should evaluate it.
 	if err == nil && dstStat.Mode&os.ModeSymlink != 0 {
@@ -225,7 +229,7 @@ func (cli *DockerCli) copyToContainer(srcPath, dstContainer, dstPath string, cpP
 		}
 
 		dstInfo.Path = linkTarget
-		dstStat, err = cli.statContainerPath(dstContainer, linkTarget)
+		dstStat, err = cli.statContainerPath(ctx, dstContainer, linkTarget)
 	}
 
 	// Ignore any error and assume that the parent directory of the destination
@@ -286,11 +290,8 @@ func (cli *DockerCli) copyToContainer(srcPath, dstContainer, dstPath string, cpP
 	}
 
 	options := types.CopyToContainerOptions{
-		ContainerID:               dstContainer,
-		Path:                      resolvedDstPath,
-		Content:                   content,
 		AllowOverwriteDirWithFile: false,
 	}
 
-	return cli.client.CopyToContainer(options)
+	return cli.client.CopyToContainer(ctx, dstContainer, resolvedDstPath, content, options)
 }

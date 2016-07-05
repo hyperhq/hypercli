@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
@@ -22,7 +24,7 @@ func (cli *DockerCli) CmdLogout(args ...string) error {
 	if len(cmd.Args()) > 0 {
 		serverAddress = cmd.Arg(0)
 	} else {
-		serverAddress = cli.electAuthServer()
+		serverAddress = cli.electAuthServer(context.Background())
 	}
 
 	if _, ok := cli.configFile.AuthConfigs[serverAddress]; !ok {

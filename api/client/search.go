@@ -7,6 +7,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types"
 	registrytypes "github.com/docker/engine-api/types/registry"
 	Cli "github.com/hyperhq/hypercli/cli"
@@ -40,7 +42,9 @@ func (cli *DockerCli) CmdSearch(args ...string) error {
 		return err
 	}
 
-	authConfig := cli.resolveAuthConfig(cli.configFile.AuthConfigs, indexInfo)
+	ctx := context.Background()
+
+	authConfig := cli.resolveAuthConfig(ctx, cli.configFile.AuthConfigs, indexInfo)
 	requestPrivilege := cli.registryAuthenticationPrivilegedFunc(indexInfo, "search")
 
 	encodedAuth, err := encodeAuthToBase64(authConfig)
@@ -49,11 +53,11 @@ func (cli *DockerCli) CmdSearch(args ...string) error {
 	}
 
 	options := types.ImageSearchOptions{
-		Term:         name,
-		RegistryAuth: encodedAuth,
+		RegistryAuth:  encodedAuth,
+		PrivilegeFunc: requestPrivilege,
 	}
 
-	unorderedResults, err := cli.client.ImageSearch(options, requestPrivilege)
+	unorderedResults, err := cli.client.ImageSearch(ctx, name, options)
 	if err != nil {
 		return err
 	}
@@ -78,7 +82,7 @@ func (cli *DockerCli) CmdSearch(args ...string) error {
 
 		}
 		fmt.Fprint(w, "\t")
-		if res.IsAutomated || res.IsTrusted {
+		if res.IsAutomated {
 			fmt.Fprint(w, "[OK]")
 		}
 		fmt.Fprint(w, "\n")
