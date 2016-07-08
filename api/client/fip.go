@@ -146,7 +146,7 @@ func fipUsage() string {
 	fipCommands := map[string]string{
 		"allocate":     "Allocate a or some IPs",
 		"associate":    "Associate floating IP to container",
-		"disassociate": "Disassociate floating IP from conainer",
+		"disassociate": "Disassociate floating IP from container",
 		"ls":           "List all floating IPs",
 		"release":      "Release a floating IP",
 	}
