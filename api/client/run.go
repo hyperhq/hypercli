@@ -118,7 +118,7 @@ func checkSourceType(source string) string {
 
 func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, initvols []*InitVolume) error {
 	const INIT_VOLUME_PATH = "/vol/"
-	const INIT_VOLUME_IMAGE = "hyperhq/volume_uploader:latest"
+	const INIT_VOLUME_IMAGE = "hyperhq/volume_uploader:v1"
 	const INIT_VOLUME_FILENAME = ".hyper_file_volume_data_do_not_create_on_your_own"
 	var (
 		initConfig     *container.Config
