@@ -116,6 +116,15 @@ func checkSourceType(source string) string {
 	}
 }
 
+func parseGitSource(source string) (string, string) {
+	idx := strings.LastIndex(source, ".git:")
+	if idx == -1 {
+		return source, "master"
+	}
+
+	return source[:idx+4], source[idx+5:]
+}
+
 func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, initvols []*InitVolume) error {
 	const INIT_VOLUME_PATH = "/vol/"
 	const INIT_VOLUME_IMAGE = "hyperhq/volume_uploader:v1"
@@ -175,7 +184,8 @@ func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *c
 		volType := checkSourceType(vol.Source)
 		switch volType {
 		case "git":
-			cmd = append(cmd, "git", "clone", vol.Source, INIT_VOLUME_PATH+vol.Destination)
+			source, branch := parseGitSource(vol.Source)
+			cmd = append(cmd, "git", "clone", source, "-b", branch, INIT_VOLUME_PATH+vol.Destination)
 		case "http":
 			isFile, err := fileSourceVolume(vol.Source)
 			if err != nil {
