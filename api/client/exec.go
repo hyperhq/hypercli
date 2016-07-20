@@ -198,7 +198,7 @@ func (cli *DockerCli) WaitExec(execID string) error {
 		case running:
 			time.Sleep(100 * time.Millisecond)
 		case status != 0:
-			err = fmt.Errorf("Failed to init volume: %d", status)
+			err = fmt.Errorf("Failed to exec cmd: %d", status)
 			return err
 		case status == 0:
 			return nil

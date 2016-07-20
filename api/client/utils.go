@@ -219,7 +219,7 @@ func (cli *DockerCli) resolveAuthConfig(authConfigs map[string]types.AuthConfig,
 }
 
 // uploadLocalResource upload a local file/directory to a container
-func (cli *DockerCli) uploadLocalResource(source, dest, serverIP, user, passwd string) error {
+func (cli *DockerCli) uploadLocalResource(source, dest, serverIP, user, passwd string, isFile bool) error {
 	if !strings.Contains(serverIP, ":") {
 		serverIP += ":21"
 	}
@@ -236,12 +236,25 @@ func (cli *DockerCli) uploadLocalResource(source, dest, serverIP, user, passwd s
 		return err
 	}
 
-	if err = ftp.Cwd(dest); err != nil {
-		return err
-	}
+	if isFile {
+		file, err := os.Open(source)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			file.Close()
+		}()
+		if err = ftp.Stor(dest, file); err != nil {
+			return err
+		}
+	} else {
+		if err = ftp.Cwd(dest); err != nil {
+			return err
+		}
 
-	if err = ftp.Upload(source); err != nil {
-		return err
+		if err = ftp.Upload(source); err != nil {
+			return err
+		}
 	}
 
 	return nil

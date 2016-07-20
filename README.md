@@ -8,5 +8,5 @@ $ mkdir $GOPATH/src/github.com/hyperhq/
 $ cd $GOPATH/src/github.com/hyperhq/
 $ git clone https://github.com/hyperhq/hypercli hypercli
 $ cd hypercli
-$ ./build-hyperserve-client.sh
+$ ./build.sh
 ```
