@@ -632,6 +632,7 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 
 	//init
 	req.URL.Host = strings.Split(os.Getenv("DOCKER_HOST"), "://")[1]
+
 	if ct != "" {
 		req.Header.Set("Content-Type", ct)
 	}
@@ -650,12 +651,12 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 			fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
 		}
 		fmt.Printf("  -X %v \\\n",  method )
-		if strings.Contains("POST|PUT",method) {
+		if req.Body != nil {
 			fmt.Printf("  -d '%v' \\\n", postData)
 		}
-		fmt.Printf("  https://%v/v1.23%v\n", strings.Split(os.Getenv("DOCKER_HOST"), "://")[1], debugEndpoint)
-		fmt.Println("--------------------------------------------------------------------------------------------")
 
+		fmt.Printf("  https://%v%v\n", req.URL.Host, req.URL.RequestURI())
+		fmt.Println("--------------------------------------------------------------------------------------------")
 		//clear debugEndpoint
 		debugEndpoint = ""
 	}
