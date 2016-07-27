@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/promise"
 	"github.com/hyperhq/hypercli/pkg/signal"
-	"github.com/docker/engine-api/types"
 )
 
 func (cli *DockerCli) forwardAllSignals(cid string) chan os.Signal {
@@ -49,10 +49,27 @@ func (cli *DockerCli) CmdStart(args ...string) error {
 	cmd := Cli.Subcmd("start", []string{"CONTAINER [CONTAINER...]"}, Cli.DockerCommands["start"].Description, true)
 	attach := cmd.Bool([]string{"a", "-attach"}, false, "Attach STDOUT/STDERR and forward signals")
 	openStdin := cmd.Bool([]string{"i", "-interactive"}, false, "Attach container's STDIN")
+	reload := cmd.Bool([]string{"r", "-reload"}, false, "Reload container's volumes that have a source")
 	detachKeys := cmd.String([]string{}, "", "Override the key sequence for detaching a container")
 	cmd.Require(flag.Min, 1)
 
 	cmd.ParseFlags(args, true)
+
+	containerID := cmd.Arg(0)
+	if *reload {
+		addTrustedFlags(cmd, true)
+		// We're going to reload all sourced volumes of a container
+		initvols, err := cli.containerFilterInitVolumes(containerID)
+		if err != nil {
+			return err
+		}
+		if len(initvols) > 0 {
+			err = cli.containerReloadInitVolumes(initvols)
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	if *attach || *openStdin {
 		// We're going to attach to a container.
@@ -62,7 +79,6 @@ func (cli *DockerCli) CmdStart(args ...string) error {
 		}
 
 		// 2. Attach to the container.
-		containerID := cmd.Arg(0)
 		c, err := cli.client.ContainerInspect(containerID)
 		if err != nil {
 			return err

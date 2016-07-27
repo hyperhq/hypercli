@@ -16,6 +16,8 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/container"
+	networktypes "github.com/docker/engine-api/types/network"
 	registrytypes "github.com/docker/engine-api/types/registry"
 	"github.com/dutchcoders/goftp"
 	"github.com/hyperhq/hypercli/pkg/signal"
@@ -255,6 +257,70 @@ func (cli *DockerCli) uploadLocalResource(source, dest, serverIP, user, passwd s
 		if err = ftp.Upload(source); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (cli *DockerCli) containerFilterInitVolumes(containerID string) ([]*InitVolume, error) {
+	_, raw, err := cli.client.ContainerInspectWithRaw(containerID, false)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to inspect container: %s", err.Error())
+	}
+
+	var contMap map[string]*json.RawMessage
+	err = json.Unmarshal(raw, &contMap)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal inspect result: %s", err.Error())
+	}
+
+	var hostMap map[string]*json.RawMessage
+	err = json.Unmarshal(*contMap["HostConfig"], &hostMap)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal inspected result: %s", err.Error())
+	}
+
+	binds := make([]string, 0)
+	err = json.Unmarshal(*hostMap["Binds"], &binds)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal binding result: %s", err.Error())
+	}
+
+	var initvols []*InitVolume
+	for _, bind := range binds {
+		part := strings.Split(bind, ":")
+		count := len(part)
+		if count != 2 {
+			continue
+		}
+		vol, err := cli.client.VolumeInspect(part[0])
+		if err != nil {
+			return nil, err
+		}
+		source, ok := vol.Labels["source"]
+		if ok {
+			initvols = append(initvols, &InitVolume{
+				Source:      source,
+				Destination: part[1],
+				Name:        vol.Name,
+			})
+		}
+	}
+
+	return initvols, nil
+}
+
+func (cli *DockerCli) containerReloadInitVolumes(initvols []*InitVolume) error {
+	var (
+		config           container.Config
+		hostConfig       container.HostConfig
+		networkingConfig networktypes.NetworkingConfig
+	)
+
+	config.StopSignal = "SIGTERM"
+	err := cli.initSpecialVolumes(&config, &hostConfig, &networkingConfig, initvols)
+	if err != nil {
+		return err
 	}
 
 	return nil
