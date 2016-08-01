@@ -1,6 +1,7 @@
 package project
 
 import (
+	"github.com/hyperhq/libcompose/config"
 	"github.com/hyperhq/libcompose/project/events"
 	"github.com/hyperhq/libcompose/project/options"
 	"golang.org/x/net/context"
@@ -31,4 +32,5 @@ type APIProject interface {
 	Up(options options.Up, services ...string) error
 
 	Parse() error
+	GetConfig() (*config.ServiceConfigs, map[string]*config.VolumeConfig, map[string]*config.NetworkConfig)
 }

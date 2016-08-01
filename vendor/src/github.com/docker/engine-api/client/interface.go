@@ -10,6 +10,7 @@ import (
 	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/registry"
+	"github.com/hyperhq/libcompose/config"
 )
 
 // APIClient is an interface that clients that talk with a docker server must implement.
@@ -88,6 +89,14 @@ type APIClient interface {
 	FipAssociate(ctx context.Context, ip, container string) error
 	FipDisassociate(ctx context.Context, container string) (string, error)
 	FipList(ctx context.Context, opts types.NetworkListOptions) ([]map[string]string, error)
+
+	ComposeUp(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, forcerecreate, norecreate bool) (io.ReadCloser, error)
+	ComposeDown(p string, services []string, rmi string, vol, rmorphans bool) (io.ReadCloser, error)
+	ComposeCreate(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, forcerecreate, norecreate bool) (io.ReadCloser, error)
+	ComposeRm(p string, services []string, rmVol bool) (io.ReadCloser, error)
+	ComposeStart(p string, services []string) (io.ReadCloser, error)
+	ComposeStop(p string, services []string, timeout int) (io.ReadCloser, error)
+	ComposeKill(p string, services []string, signal string) (io.ReadCloser, error)
 }
 
 // Ensure that Client always implements APIClient.

@@ -52,24 +52,24 @@ type ServiceConfigV1 struct {
 		ExtraHosts    []string          `yaml:"extra_hosts,omitempty"`
 		Ulimits       yaml.Ulimits      `yaml:"ulimits,omitempty"`
 	*/
-	Command       yaml.Command         `yaml:"command,flow,omitempty"`
-	ContainerName string               `yaml:"container_name,omitempty"`
-	DomainName    string               `yaml:"domainname,omitempty"`
-	Entrypoint    yaml.Command         `yaml:"entrypoint,flow,omitempty"`
-	EnvFile       yaml.Stringorslice   `yaml:"env_file,omitempty"`
-	Environment   yaml.MaporEqualSlice `yaml:"environment,omitempty"`
-	Hostname      string               `yaml:"hostname,omitempty"`
-	Image         string               `yaml:"image,omitempty"`
-	Labels        yaml.SliceorMap      `yaml:"labels,omitempty"`
-	Links         yaml.MaporColonSlice `yaml:"links,omitempty"`
-	Restart       string               `yaml:"restart,omitempty"`
-	StdinOpen     bool                 `yaml:"stdin_open,omitempty"`
-	Tty           bool                 `yaml:"tty,omitempty"`
-	Volumes       []string             `yaml:"volumes,omitempty"`
-	WorkingDir    string               `yaml:"working_dir,omitempty"`
-	ExternalLinks []string             `yaml:"external_links,omitempty"`
-	Size          string               `yaml:"size,omitempty"`
-	Fip           string               `yaml:"fip,omitempty"`
+	Command       yaml.Command         `yaml:"command,flow,omitempty" json:"command,omitempty"`
+	ContainerName string               `yaml:"container_name,omitempty" json:"container_name,omitempty"`
+	DomainName    string               `yaml:"domainname,omitempty" json:"domainname,omitempty"`
+	Entrypoint    yaml.Command         `yaml:"entrypoint,flow,omitempty" json:"entrypoint,omitempty"`
+	EnvFile       yaml.Stringorslice   `yaml:"env_file,omitempty" json:"env_file,omitempty"`
+	Environment   yaml.MaporEqualSlice `yaml:"environment,omitempty" json:"environment,omitempty"`
+	Hostname      string               `yaml:"hostname,omitempty" json:"hostname,omitempty"`
+	Image         string               `yaml:"image,omitempty" json:"image,omitempty"`
+	Labels        yaml.SliceorMap      `yaml:"labels,omitempty" json:"labels,omitempty"`
+	Links         yaml.MaporColonSlice `yaml:"links,omitempty" json:"links,omitempty"`
+	Restart       string               `yaml:"restart,omitempty" json:"restart,omitempty"`
+	StdinOpen     bool                 `yaml:"stdin_open,omitempty" json:"stdin_open,omitempty"`
+	Tty           bool                 `yaml:"tty,omitempty" json:"tty,omitempty"`
+	Volumes       []string             `yaml:"volumes,omitempty" json:"volumes,omitempty"`
+	WorkingDir    string               `yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
+	ExternalLinks []string             `yaml:"external_links,omitempty" json:"external_links,omitempty"`
+	Size          string               `yaml:"size,omitempty" json:"size,omitempty"`
+	Fip           string               `yaml:"fip,omitempty" json:"fip,omitempty"`
 }
 
 // Build holds v2 build information
@@ -118,27 +118,28 @@ type ServiceConfig struct {
 		User          string               `yaml:"user,omitempty"`
 		Ulimits       yaml.Ulimits         `yaml:"ulimits,omitempty"`
 	*/
-	Command       yaml.Command         `yaml:"command,flow,omitempty"`
-	ContainerName string               `yaml:"container_name,omitempty"`
-	DomainName    string               `yaml:"domainname,omitempty"`
-	DependsOn     []string             `yaml:"depends_on,omitempty"`
-	Entrypoint    yaml.Command         `yaml:"entrypoint,flow,omitempty"`
-	EnvFile       yaml.Stringorslice   `yaml:"env_file,omitempty"`
-	Environment   yaml.MaporEqualSlice `yaml:"environment,omitempty"`
-	Extends       yaml.MaporEqualSlice `yaml:"extends,omitempty"`
-	ExternalLinks []string             `yaml:"external_links,omitempty"`
-	ExtraHosts    []string             `yaml:"extra_hosts,omitempty"`
-	Image         string               `yaml:"image,omitempty"`
-	Hostname      string               `yaml:"hostname,omitempty"`
-	Labels        yaml.SliceorMap      `yaml:"labels,omitempty"`
-	Links         yaml.MaporColonSlice `yaml:"links,omitempty"`
-	Volumes       []string             `yaml:"volumes,omitempty"`
-	Restart       string               `yaml:"restart,omitempty"`
-	StdinOpen     bool                 `yaml:"stdin_open,omitempty"`
-	Tty           bool                 `yaml:"tty,omitempty"`
-	WorkingDir    string               `yaml:"working_dir,omitempty"`
-	Size          string               `yaml:"size,omitempty"`
-	Fip           string               `yaml:"fip,omitempty"`
+	Expose        []string             `yaml:"expose,omitempty" json:"expose,omitempty"`
+	Ports         []string             `yaml:"ports,omitempty" json:"ports,omitempty"`
+	Command       yaml.Command         `yaml:"command,flow,omitempty" json:"command,omitempty"`
+	ContainerName string               `yaml:"container_name,omitempty" json:"container_name,omitempty"`
+	DomainName    string               `yaml:"domainname,omitempty" json:"domainname,omitempty"`
+	DependsOn     []string             `yaml:"depends_on,omitempty" json:"depends_on,omitempty"`
+	Entrypoint    yaml.Command         `yaml:"entrypoint,flow,omitempty" json:"entrypoint,omitempty"`
+	EnvFile       yaml.Stringorslice   `yaml:"env_file,omitempty" json:"env_file,omitempty"`
+	Environment   yaml.MaporEqualSlice `yaml:"environment,omitempty" json:"environment,omitempty"`
+	Extends       yaml.MaporEqualSlice `yaml:"extends,omitempty" json:"extends,omitempty"`
+	ExternalLinks []string             `yaml:"external_links,omitempty" json:"external_links"`
+	Image         string               `yaml:"image,omitempty" json:"image,omitempty"`
+	Hostname      string               `yaml:"hostname,omitempty" json:"hostname,omitempty"`
+	Labels        yaml.SliceorMap      `yaml:"labels,omitempty" json:"labels,omitempty"`
+	Links         yaml.MaporColonSlice `yaml:"links,omitempty" json:"links,omitempty"`
+	Volumes       []string             `yaml:"volumes,omitempty" json:"volumes,omitempty"`
+	Restart       string               `yaml:"restart,omitempty" json:"restart,omitempty"`
+	StdinOpen     bool                 `yaml:"stdin_open,omitempty" json:"stdin_open,omitempty"`
+	Tty           bool                 `yaml:"tty,omitempty" json:"tty,omitempty"`
+	WorkingDir    string               `yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
+	Size          string               `yaml:"size,omitempty" json:"size,omitempty"`
+	Fip           string               `yaml:"fip,omitempty" json:"fip,omitempty"`
 }
 
 // VolumeConfig holds v2 volume configuration
@@ -173,13 +174,13 @@ type Config struct {
 // NewServiceConfigs initializes a new Configs struct
 func NewServiceConfigs() *ServiceConfigs {
 	return &ServiceConfigs{
-		m: make(map[string]*ServiceConfig),
+		M: make(map[string]*ServiceConfig),
 	}
 }
 
 // ServiceConfigs holds a concurrent safe map of ServiceConfig
 type ServiceConfigs struct {
-	m  map[string]*ServiceConfig
+	M  map[string]*ServiceConfig
 	mu sync.RWMutex
 }
 
@@ -187,7 +188,7 @@ type ServiceConfigs struct {
 func (c *ServiceConfigs) Has(name string) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	_, ok := c.m[name]
+	_, ok := c.M[name]
 	return ok
 }
 
@@ -195,14 +196,14 @@ func (c *ServiceConfigs) Has(name string) bool {
 func (c *ServiceConfigs) Get(name string) (*ServiceConfig, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	service, ok := c.m[name]
+	service, ok := c.M[name]
 	return service, ok
 }
 
 // Add add the specifed config with the specified name
 func (c *ServiceConfigs) Add(name string, service *ServiceConfig) {
 	c.mu.Lock()
-	c.m[name] = service
+	c.M[name] = service
 	c.mu.Unlock()
 }
 
@@ -210,7 +211,7 @@ func (c *ServiceConfigs) Add(name string, service *ServiceConfig) {
 func (c *ServiceConfigs) Len() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	return len(c.m)
+	return len(c.M)
 }
 
 // Keys returns the names of the config
@@ -218,7 +219,7 @@ func (c *ServiceConfigs) Keys() []string {
 	keys := []string{}
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	for name := range c.m {
+	for name := range c.M {
 		keys = append(keys, name)
 	}
 	return keys

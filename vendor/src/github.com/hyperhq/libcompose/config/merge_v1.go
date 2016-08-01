@@ -23,7 +23,6 @@ func MergeServicesV1(existingServices *ServiceConfigs, environmentLookup Environ
 	if err := validate(datas, "v1"); err != nil {
 		return nil, err
 	}
-	logrus.Infof("%#v", datas)
 
 	for name, data := range datas {
 		data, err := parseV1(resourceLookup, environmentLookup, file, data, datas)

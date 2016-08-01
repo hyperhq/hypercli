@@ -59,6 +59,10 @@ func NewProject(clientFactory ClientFactory, context *Context) *Project {
 	return p
 }
 
+func (p *Project) GetConfig() (*config.ServiceConfigs, map[string]*config.VolumeConfig, map[string]*config.NetworkConfig) {
+	return p.ServiceConfigs, p.VolumeConfigs, p.NetworkConfigs
+}
+
 // Parse populates project information based on its context. It sets up the name,
 // the composefile and the composebytes (the composefile content).
 func (p *Project) Parse() error {

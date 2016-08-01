@@ -5,15 +5,15 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/net/context"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/engine-api/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/hyperhq/libcompose/config"
 	"github.com/hyperhq/libcompose/labels"
 	"github.com/hyperhq/libcompose/project"
 	"github.com/hyperhq/libcompose/project/options"
 	"github.com/hyperhq/libcompose/utils"
+	"golang.org/x/net/context"
 )
 
 // Service is a project.Service implementations.
@@ -462,21 +462,19 @@ func (s *Service) Containers() ([]project.Container, error) {
 }
 
 func (s *Service) specificiesHostPort() bool {
-	/*
-		_, bindings, err := nat.ParsePortSpecs(s.Config().Ports)
+	_, bindings, err := nat.ParsePortSpecs(s.Config().Ports)
 
-		if err != nil {
-			fmt.Println(err)
-		}
+	if err != nil {
+		fmt.Println(err)
+	}
 
-		for _, portBindings := range bindings {
-			for _, portBinding := range portBindings {
-				if portBinding.HostPort != "" {
-					return true
-				}
+	for _, portBindings := range bindings {
+		for _, portBinding := range portBindings {
+			if portBinding.HostPort != "" {
+				return true
 			}
 		}
-	*/
+	}
 
 	return false
 }
