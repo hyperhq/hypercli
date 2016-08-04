@@ -19,7 +19,7 @@ import (
 // Usage: docker pull [OPTIONS] IMAGENAME[:TAG|@DIGEST]
 func (cli *DockerCli) CmdPull(args ...string) error {
 	cmd := Cli.Subcmd("pull", []string{"NAME[:TAG|@DIGEST]"}, Cli.DockerCommands["pull"].Description, true)
-	allTags := cmd.Bool([]string{"a", "-all-tags"}, false, "Download all tagged images in the repository")
+	allTags := cmd.Bool([]string{}, false, "Download all tagged images in the repository")
 	addTrustedFlags(cmd, true)
 	cmd.Require(flag.Exact, 1)
 
