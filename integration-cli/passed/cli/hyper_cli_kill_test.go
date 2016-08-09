@@ -3,13 +3,16 @@ package main
 import (
 	"strings"
 	"time"
+
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 func (s *DockerSuite) TestKillContainer(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 	cleanedContainerID := strings.TrimSpace(out)
 	c.Assert(waitRun(cleanedContainerID), check.IsNil)
@@ -22,8 +25,10 @@ func (s *DockerSuite) TestKillContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestKillofStoppedContainer(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 	cleanedContainerID := strings.TrimSpace(out)
 

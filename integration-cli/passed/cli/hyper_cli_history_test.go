@@ -67,6 +67,7 @@ func (s *DockerSuite) TestHistoryExistentImage(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "history", "busybox")
 }
 
@@ -102,6 +103,7 @@ func (s *DockerSuite) TestHistoryHumanOptionFalse(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "history", "--human=false", "busybox")
 	lines := strings.Split(out, "\n")
 	sizeColumnRegex, _ := regexp.Compile("SIZE +")
@@ -123,6 +125,7 @@ func (s *DockerSuite) TestHistoryHumanOptionTrue(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "history", "--human=true", "busybox")
 	lines := strings.Split(out, "\n")
 	sizeColumnRegex, _ := regexp.Compile("SIZE +")

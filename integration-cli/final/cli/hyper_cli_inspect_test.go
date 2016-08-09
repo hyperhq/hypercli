@@ -19,7 +19,8 @@ func checkValidGraphDriver(c *check.C, name string) {
 }
 
 func (s *DockerSuite) TestInspectImage(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	imageTest := "busybox"
 	ensureImageExist(c, imageTest)
@@ -29,14 +30,15 @@ func (s *DockerSuite) TestInspectImage(c *check.C) {
 	// fails, fix the difference in the image serialization instead of
 	// updating this hash.
 	// Warning: before test , make sure imageTest and imageTestId are match
-	imageTestID := "sha256:47bcc53f74dc94b1920f0b34f6036096526296767650f223433fe65c35f149eb"
+	imageTestID := "sha256:2b8fd9751c4c0f5dd266fcae00707e67a2545ef34f9a29354585f93dac906749"
 	id := inspectField(c, imageTest, "Id")
 
 	c.Assert(id, checker.Equals, imageTestID)
 }
 
 func (s *DockerSuite) TestInspectInt64(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
 	dockerCmd(c, "run", "-d", "--name", "inspect-test", "busybox", "true")
@@ -45,7 +47,8 @@ func (s *DockerSuite) TestInspectInt64(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectDefault(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	//Both the container and image are named busybox. docker inspect will fetch the container JSON.
 	//If the container JSON is not available, it will go for the image JSON.
@@ -58,8 +61,9 @@ func (s *DockerSuite) TestInspectDefault(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectStatus(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
-//	defer unpauseAllContainers()
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	//	defer unpauseAllContainers()
 	testRequires(c, DaemonIsLinux)
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 	out = getIDfromOutput(c, out)
@@ -74,7 +78,8 @@ func (s *DockerSuite) TestInspectStatus(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectTypeFlagContainer(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	//Both the container and image are named busybox. docker inspect will fetch container
 	//JSON State.Running field. If the field is true, it's a container.
@@ -87,7 +92,8 @@ func (s *DockerSuite) TestInspectTypeFlagContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectTypeFlagWithNoContainer(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	//Run this test on an image named busybox. docker inspect will try to fetch container
 	//JSON. Since there is no container named busybox and --type=container, docker inspect will
@@ -101,7 +107,8 @@ func (s *DockerSuite) TestInspectTypeFlagWithNoContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectTypeFlagWithImage(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	//Both the container and image are named busybox. docker inspect will fetch image
 	//JSON as --type=image. if there is no image with name busybox, docker inspect
@@ -114,7 +121,8 @@ func (s *DockerSuite) TestInspectTypeFlagWithImage(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectTypeFlagWithInvalidValue(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	//Both the container and image are named busybox. docker inspect will fail
 	//as --type=foobar is not a valid value for the flag.
@@ -128,7 +136,8 @@ func (s *DockerSuite) TestInspectTypeFlagWithInvalidValue(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectImageFilterInt(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	imageTest := "busybox"
 	ensureImageExist(c, imageTest)
@@ -146,7 +155,8 @@ func (s *DockerSuite) TestInspectImageFilterInt(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectContainerFilterInt(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 	id := getIDfromOutput(c, out)
@@ -165,7 +175,8 @@ func (s *DockerSuite) TestInspectContainerFilterInt(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectImageGraphDriver(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	imageTest := "busybox"
 	ensureImageExist(c, imageTest)
@@ -190,7 +201,8 @@ func (s *DockerSuite) TestInspectImageGraphDriver(c *check.C) {
 
 // #14947
 func (s *DockerSuite) TestInspectTimesAsRFC3339Nano(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "true")
 	id := getIDfromOutput(c, out)
@@ -214,7 +226,8 @@ func (s *DockerSuite) TestInspectTimesAsRFC3339Nano(c *check.C) {
 
 // #15633
 func (s *DockerSuite) TestInspectLogConfigNoType(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "create", "--name=test", "busybox")
 	var logConfig container.LogConfig
@@ -229,7 +242,8 @@ func (s *DockerSuite) TestInspectLogConfigNoType(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectNoSizeFlagContainer(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 
 	//Both the container and image are named busybox. docker inspect will fetch container
 	//JSON SizeRw and SizeRootFs field. If there is no flag --size/-s, there are no size fields.
@@ -242,7 +256,8 @@ func (s *DockerSuite) TestInspectNoSizeFlagContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectSizeFlagContainer(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	dockerCmd(c, "run", "--name=busybox", "-d", "busybox", "top")
 
 	formatStr := "--format='{{.SizeRw}},{{.SizeRootFs}}'"
@@ -254,7 +269,8 @@ func (s *DockerSuite) TestInspectSizeFlagContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectSizeFlagImage(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	dockerCmd(c, "run", "--name=busybox", "-d", "busybox", "top")
 
 	formatStr := "--format='{{.SizeRw}},{{.SizeRootFs}}'"
@@ -267,7 +283,8 @@ func (s *DockerSuite) TestInspectSizeFlagImage(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectTempateError(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	// Template parsing error for both the container and image.
 
 	dockerCmd(c, "run", "--name=container1", "-d", "busybox", "top")
@@ -282,7 +299,8 @@ func (s *DockerSuite) TestInspectTempateError(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectJSONFields(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	dockerCmd(c, "run", "--name=busybox", "-d", "busybox", "top")
 	out, _, err := dockerCmdWithError("inspect", "--type=container", "--format='{{.HostConfig.Dns}}'", "busybox")
 
@@ -291,7 +309,8 @@ func (s *DockerSuite) TestInspectJSONFields(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectByPrefix(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	imageTest := "busybox"
 	ensureImageExist(c, imageTest)
 	id := inspectField(c, imageTest, "Id")
@@ -305,7 +324,8 @@ func (s *DockerSuite) TestInspectByPrefix(c *check.C) {
 }
 
 func (s *DockerSuite) TestInspectStopWhenNotFound(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	dockerCmd(c, "run", "--name=busybox", "-d", "busybox", "top")
 	dockerCmd(c, "run", "--name=not-shown", "-d", "busybox", "top")
 	out, _, err := dockerCmdWithError("inspect", "--type=container", "--format='{{.Name}}'", "busybox", "missing", "not-shown")

@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,6 +74,7 @@ func (s *DockerSuite) TestExecAfterContainerRestart(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := runSleepingContainer(c, "-d")
 	cleanedContainerID := strings.TrimSpace(out)
 	c.Assert(waitRun(cleanedContainerID), check.IsNil)
@@ -146,6 +148,7 @@ func (s *DockerSuite) TestExecTTYWithoutStdin(c *check.C) {
 	defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "-ti", "busybox")
 	id := strings.TrimSpace(out)
 	c.Assert(waitRun(id), checker.IsNil)
@@ -287,6 +290,7 @@ func (s *DockerSuite) TestLinksPingLinkedContainersOnRename(c *check.C) {
 	defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	var out string
 	out, _ = dockerCmd(c, "run", "-d", "--name", "container1", "busybox", "top")
 	idA := strings.TrimSpace(out)
@@ -360,6 +364,7 @@ func (s *DockerSuite) TestRunMutableNetworkFiles(c *check.C) {
 	defer printTestDuration(time.Now())
 
 	testRequires(c, SameHostDaemon, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	for _, fn := range []string{"resolv.conf", "hosts"} {
 		deleteAllContainers()
 
@@ -416,6 +421,7 @@ func (s *DockerSuite) TestExecInspectID(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := runSleepingContainer(c, "-d")
 	id := strings.TrimSuffix(out, "\n")
 

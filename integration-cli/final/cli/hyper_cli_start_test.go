@@ -2,10 +2,12 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
+
 /*
 func (s *DockerSuite) TestStartRecordError(c *check.C) {
 	// TODO Windows CI: Requires further porting work. Should be possible.
@@ -30,11 +32,12 @@ func (s *DockerSuite) TestStartRecordError(c *check.C) {
 	stateErr = inspectField(c, "test2", "State.Error")
 	// Expected to not have state error but got one
 	c.Assert(stateErr, checker.Equals, "")
-}*/
-
+}
+*/
 
 func (s *DockerSuite) TestStartMultipleContainers(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	// Windows does not support --link
 	testRequires(c, DaemonIsLinux)
 	// run a container named 'parent' and create two container link to `parent`
@@ -71,7 +74,8 @@ func (s *DockerSuite) TestStartMultipleContainers(c *check.C) {
 }
 
 func (s *DockerSuite) TestStartAttachMultipleContainers(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	// run  multiple containers to test
 	for _, container := range []string{"test1", "test2", "test3"} {
 		dockerCmd(c, "run", "-d", "--name", container, "busybox", "top")

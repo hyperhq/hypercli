@@ -19,6 +19,7 @@ func (s *DockerSuite) TestPsListContainersBase(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := runSleepingContainer(c, "-d")
 	firstID := strings.TrimSpace(out)
 
@@ -186,6 +187,7 @@ func (s *DockerSuite) TestPsListContainersFilterStatus(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox")
 	firstID := strings.TrimSpace(out)
 
@@ -214,6 +216,7 @@ func (s *DockerSuite) TestPsListContainersFilterID(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox")
 	firstID := strings.TrimSpace(out)
 
@@ -232,6 +235,7 @@ func (s *DockerSuite) TestPsListContainersFilterName(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "--name=a-name-to-match", "busybox")
 	firstID := strings.TrimSpace(out)
 
@@ -274,6 +278,7 @@ func (s *DockerSuite) TestPsListContainersFilterLabel(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	// start container
 	out, _ := dockerCmd(c, "run", "-d", "-l", "match=me", "-l", "second=tag", "busybox")
 	firstID := strings.TrimSpace(out)
@@ -313,6 +318,7 @@ func (s *DockerSuite) TestPsListContainersFilterExited(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	runSleepingContainer(c, "--name=sleep")
 
 	dockerCmd(c, "run", "--name", "zero1", "busybox", "true")
@@ -391,6 +397,7 @@ func (s *DockerSuite) TestPsListContainersFilterCreated(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "create", "busybox")
 	cID := strings.TrimSpace(out)
 	shortCID := cID[:12]

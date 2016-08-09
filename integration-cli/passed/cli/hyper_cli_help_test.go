@@ -270,6 +270,7 @@ func (s *DockerSuite) TestHelpExitCodesHelpOutput(c *check.C) {
 
 	// docker inspect busybox: stdout=all, stderr=empty, rc=0
 	// Just making sure stderr is empty on valid cmd
+	pullImageIfNotExist("busybox")
 	out, _, err = dockerCmdWithError("inspect", "busybox")
 	c.Assert(err, checker.IsNil, check.Commentf(out))
 	// Be really pick
