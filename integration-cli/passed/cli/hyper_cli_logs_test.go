@@ -181,6 +181,7 @@ func (s *DockerSuite) TestLogsSince(c *check.C) {
 	defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	name := "testlogssince"
 	dockerCmd(c, "run", "--name="+name, "-d", "busybox", "/bin/sh", "-c", "for i in $(seq 1 30); do sleep 2; echo log$i; done")
 	//wait for container running
@@ -222,6 +223,7 @@ func (s *DockerSuite) TestLogsSinceFutureFollow(c *check.C) {
 	defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", `for i in $(seq 1 50); do date +%s; sleep 1; done`)
 	id := strings.TrimSpace(out)
 

@@ -5,10 +5,10 @@ package main
 import (
 	"bytes"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
-	"os"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
@@ -21,10 +21,11 @@ func (s *DockerSuite) TestExecInteractiveStdinClose(c *check.C) {
 	defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-itd", "busybox", "/bin/cat")
 	contID := strings.TrimSpace(out)
 
-	cmd := exec.Command(dockerBinary, "--host=" + os.Getenv("DOCKER_HOST"), "exec", "-i", contID, "echo", "-n", "hello")
+	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", "-i", contID, "echo", "-n", "hello")
 	p, err := pty.Start(cmd)
 	c.Assert(err, checker.IsNil)
 
@@ -51,7 +52,7 @@ func (s *DockerSuite) TestExecTTY(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "--name=test", "busybox", "sh", "-c", "echo hello > /foo && top")
 
-	cmd := exec.Command(dockerBinary, "--host=" + os.Getenv("DOCKER_HOST"), "exec", "-it", "test", "sh")
+	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", "-it", "test", "sh")
 	p, err := pty.Start(cmd)
 	c.Assert(err, checker.IsNil)
 	defer p.Close()

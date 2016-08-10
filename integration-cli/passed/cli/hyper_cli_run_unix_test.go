@@ -33,14 +33,14 @@ func (s *DockerSuite) TestRunRedirectStdout(c *check.C) {
 		}()
 
 		select {
-		case <-time.After(10 * time.Second):
+		case <-time.After(30 * time.Second):
 			c.Fatal("command timeout")
 		case err := <-ch:
 			c.Assert(err, checker.IsNil, check.Commentf("wait err"))
 		}
 	}
 
-	checkRedirect(dockerBinary + " -H " + os.Getenv("DOCKER_HOST") + " run -i busybox cat /etc/passwd | grep -q root")
+	checkRedirect(dockerBinary + " -H " + os.Getenv("DOCKER_HOST") + " run -it busybox cat /etc/passwd | grep -q root")
 	checkRedirect(dockerBinary + " -H " + os.Getenv("DOCKER_HOST") + " run busybox cat /etc/passwd | grep -q root")
 }
 
@@ -83,7 +83,7 @@ func (s *DockerSuite) TestRunAttachDetach(c *check.C) {
 
 	select {
 	case <-ch:
-	case <-time.After(10 * time.Second):
+	case <-time.After(30 * time.Second):
 		c.Fatal("timed out waiting for container to exit")
 	}
 

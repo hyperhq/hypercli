@@ -3,12 +3,15 @@ package main
 import (
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 func (s *DockerSuite) TestVolumeCliCreate(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	dockerCmd(c, "volume", "create")
 
 	_, err := runCommand(exec.Command(dockerBinary, "volume", "create", "-d", "nosuchdriver"))
@@ -19,8 +22,9 @@ func (s *DockerSuite) TestVolumeCliCreate(c *check.C) {
 	c.Assert(name, check.Equals, "test")
 }
 
-
 func (s *DockerSuite) TestVolumeCliInspect(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	c.Assert(
 		exec.Command(dockerBinary, "volume", "inspect", "doesntexist").Run(),
 		check.Not(check.IsNil),
@@ -38,6 +42,8 @@ func (s *DockerSuite) TestVolumeCliInspect(c *check.C) {
 }
 
 func (s *DockerSuite) TestVolumeCliInspectMulti(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	dockerCmd(c, "volume", "create", "--name", "test1")
 	dockerCmd(c, "volume", "create", "--name", "test2")
 	dockerCmd(c, "volume", "create", "--name", "not-shown")
@@ -54,6 +60,8 @@ func (s *DockerSuite) TestVolumeCliInspectMulti(c *check.C) {
 }
 
 func (s *DockerSuite) TestVolumeCliLs(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
 	out, _ := dockerCmd(c, "volume", "create")
 	id := strings.TrimSpace(out)
@@ -71,6 +79,8 @@ func (s *DockerSuite) TestVolumeCliLs(c *check.C) {
 }
 
 func (s *DockerSuite) TestVolumeCliLsFilterDangling(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
 	dockerCmd(c, "volume", "create", "--name", "testnotinuse1")
 	dockerCmd(c, "volume", "create", "--name", "testisinuse1")
@@ -115,8 +125,9 @@ func (s *DockerSuite) TestVolumeCliLsFilterDangling(c *check.C) {
 	c.Assert(out, checker.Contains, "testisinuse2", check.Commentf("expected volume 'testisinuse2' in output"))
 }
 
-
 func (s *DockerSuite) TestVolumeCliRm(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
 	out, _ := dockerCmd(c, "volume", "create")
 	id := strings.TrimSpace(out)
@@ -153,12 +164,16 @@ func (s *DockerSuite) TestVolumeCliRm(c *check.C) {
 }
 
 func (s *DockerSuite) TestVolumeCliLsWithIncorrectFilterValue(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	out, _, err := dockerCmdWithError("volume", "ls", "-f", "dangling=invalid")
 	c.Assert(err, check.NotNil)
 	c.Assert(out, checker.Contains, "Invalid filter")
 }
 
 func (s *DockerSuite) TestVolumeCliNoArgs(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "volume")
 	// no args should produce the cmd usage output
 	usage := "Usage:	hyper volume [OPTIONS] [COMMAND]"

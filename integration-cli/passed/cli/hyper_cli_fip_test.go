@@ -17,6 +17,7 @@ func (s *DockerSuite) TestAssociateUsedIP(c *check.C) {
 	fipList := []string{firstIP}
 	defer releaseFip(c, fipList)
 
+	pullImageIfNotExist("busybox")
 	out, _ = runSleepingContainer(c, "-d")
 	firstContainerID := strings.TrimSpace(out)
 
@@ -43,6 +44,7 @@ func (s *DockerSuite) TestAssociateConfedContainer(c *check.C) {
 	fipList = append(fipList, secondIP)
 	defer releaseFip(c, fipList)
 
+	pullImageIfNotExist("busybox")
 	out, _ = runSleepingContainer(c, "-d")
 	firstContainerID := strings.TrimSpace(out)
 
@@ -57,6 +59,7 @@ func (s *DockerSuite) TestDisassociateUnconfedContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
+	pullImageIfNotExist("busybox")
 	out, _ := runSleepingContainer(c, "-d")
 	firstContainerID := strings.TrimSpace(out)
 
@@ -73,6 +76,7 @@ func (s *DockerSuite) TestReleaseUsedIP(c *check.C) {
 	fipList := []string{firstIP}
 	defer releaseFip(c, fipList)
 
+	pullImageIfNotExist("busybox")
 	out, _ = runSleepingContainer(c, "-d")
 	firstContainerID := strings.TrimSpace(out)
 

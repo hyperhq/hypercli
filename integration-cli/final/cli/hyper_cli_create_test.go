@@ -8,22 +8,20 @@ import (
 	"strings"
 	"time"
 
-//	"os/exec"
-
-//	"io/ioutil"
-
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 // Make sure we can create a simple container with some args
 func (s *DockerSuite) TestCreateArgs(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	// TODO Windows. This requires further investigation for porting to
 	// Windows CI. Currently fails.
 	if daemonPlatform == "windows" {
 		c.Skip("Fails on Windows CI")
 	}
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "create", "busybox", "command", "arg1", "arg2", "arg with space")
 
 	cleanedContainerID := getIDfromOutput(c, out)
@@ -61,7 +59,9 @@ func (s *DockerSuite) TestCreateArgs(c *check.C) {
 
 // Make sure we can set hostconfig options too
 func (s *DockerSuite) TestCreateHostConfig(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "create", "busybox", "echo")
 
 	cleanedContainerID := getIDfromOutput(c, out)
@@ -85,18 +85,21 @@ func (s *DockerSuite) TestCreateHostConfig(c *check.C) {
 
 // "test123" should be printed by docker create + start
 func (s *DockerSuite) TestCreateEchoStdout(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "create", "busybox", "echo", "test123")
 
 	cleanedContainerID := getIDfromOutput(c, out)
 
 	out, _ = dockerCmd(c, "start", "-ai", cleanedContainerID)
-	time.Sleep( 5 * time.Second )
+	time.Sleep(5 * time.Second)
 	c.Assert(out, checker.Equals, "test123\n", check.Commentf("container should've printed 'test123', got %q", out))
 }
 
 func (s *DockerSuite) TestCreateVolumesCreated(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, SameHostDaemon)
 	prefix := "/"
 	if daemonPlatform == "windows" {
@@ -119,7 +122,8 @@ func (s *DockerSuite) TestCreateVolumesCreated(c *check.C) {
 }
 
 func (s *DockerSuite) TestCreateLabels(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	name := "test-create-labels"
 	expected := map[string]string{"k1": "v1", "k2": "v2", "sh.hyper.fip": "", "sh_hyper_instancetype": "xs"}
 	dockerCmd(c, "create", "--name", name, "-l", "k1=v1", "--label", "k2=v2", "busybox")
@@ -132,13 +136,14 @@ func (s *DockerSuite) TestCreateLabels(c *check.C) {
 	}
 }
 
-
 func (s *DockerSuite) TestCreateRM(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	// Test to make sure we can 'rm' a new container that is in
 	// "Created" state, and has ever been run. Test "rm -f" too.
 
 	// create a container
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "create", "busybox")
 	cID := getIDfromOutput(c, out)
 
@@ -152,11 +157,13 @@ func (s *DockerSuite) TestCreateRM(c *check.C) {
 }
 
 func (s *DockerSuite) TestCreateModeIpcContainer(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	// Uses Linux specific functionality (--ipc)
 	testRequires(c, DaemonIsLinux)
 	testRequires(c, SameHostDaemon, NotUserNamespace)
 
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "create", "busybox")
 	id := strings.TrimSpace(out)
 
@@ -299,7 +306,8 @@ func (s *DockerTrustSuite) TestTrustedCreateFromBadTrustServer(c *check.C) {
 */
 
 func (s *DockerSuite) TestCreateWithWorkdir(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	// TODO Windows. This requires further investigation for porting to
 	// Windows CI. Currently fails.
 	if daemonPlatform == "windows" {

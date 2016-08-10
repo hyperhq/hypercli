@@ -9,6 +9,7 @@ import (
 )
 
 func (s *DockerSuite) TestRenameStoppedContainer(c *check.C) {
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "--name", "first-name", "-d", "busybox", "sh")
 
 	cleanedContainerID := strings.TrimSpace(out)
@@ -24,6 +25,7 @@ func (s *DockerSuite) TestRenameStoppedContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestRenameRunningContainer(c *check.C) {
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "--name", "first-name", "-d", "busybox", "sh")
 
 	newName := "new-name" + stringid.GenerateNonCryptoID()
@@ -35,6 +37,7 @@ func (s *DockerSuite) TestRenameRunningContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestRenameRunningContainerAndReuse(c *check.C) {
+	pullImageIfNotExist("busybox")
 	out, _ := runSleepingContainer(c, "--name", "first-name")
 	c.Assert(waitRun("first-name"), check.IsNil)
 
@@ -55,7 +58,7 @@ func (s *DockerSuite) TestRenameRunningContainerAndReuse(c *check.C) {
 func (s *DockerSuite) TestRenameCheckNames(c *check.C) {
 	dockerCmd(c, "run", "--name", "first-name", "-d", "busybox", "sh")
 
-	newName := "new-name" + stringid.GenerateNonCryptoID()
+	newName := "new-name" + stringid.GenerateNonCryptoID()[:32]
 	dockerCmd(c, "rename", "first-name", newName)
 
 	name := inspectField(c, newName, "Name")
@@ -67,11 +70,12 @@ func (s *DockerSuite) TestRenameCheckNames(c *check.C) {
 }
 
 func (s *DockerSuite) TestRenameInvalidName(c *check.C) {
+	pullImageIfNotExist("busybox")
 	runSleepingContainer(c, "--name", "myname")
 
 	out, _, err := dockerCmdWithError("rename", "myname", "new:invalid")
 	c.Assert(err, checker.NotNil, check.Commentf("Renaming container to invalid name should have failed: %s", out))
-	c.Assert(out, checker.Contains, "Invalid container name", check.Commentf("%v", err))
+	c.Assert(out, checker.Contains, "new:invalid is invalid, should be", check.Commentf("%v", err))
 
 	out, _, err = dockerCmdWithError("rename", "myname", "")
 	c.Assert(err, checker.NotNil, check.Commentf("Renaming container to invalid name should have failed: %s", out))

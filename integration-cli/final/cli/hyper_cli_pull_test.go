@@ -14,7 +14,8 @@ import (
 // TestPullFromCentralRegistry pulls an image from the central registry and verifies that the client
 // prints all expected output.
 func (s *DockerHubPullSuite) TestPullFromCentralRegistry(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	out := s.Cmd(c, "pull", "hello-world")
 	defer deleteImages("hello-world")
@@ -39,7 +40,8 @@ func (s *DockerHubPullSuite) TestPullFromCentralRegistry(c *check.C) {
 // TestPullNonExistingImage pulls non-existing images from the central registry, with different
 // combinations of implicit tag and library prefix.
 func (s *DockerHubPullSuite) TestPullNonExistingImage(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	for _, e := range []struct {
 		Repo  string
@@ -75,7 +77,8 @@ func (s *DockerHubPullSuite) TestPullNonExistingImage(c *check.C) {
 // reference (tag, repository, central registry url, ...) doesn't trigger a new pull nor leads to
 // multiple images.
 func (s *DockerHubPullSuite) TestPullFromCentralRegistryImplicitRefParts(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	s.Cmd(c, "pull", "hello-world")
 	defer deleteImages("hello-world")
@@ -101,7 +104,8 @@ func (s *DockerHubPullSuite) TestPullFromCentralRegistryImplicitRefParts(c *chec
 
 // TestPullScratchNotAllowed verifies that pulling 'scratch' is rejected.
 func (s *DockerHubPullSuite) TestPullScratchNotAllowed(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	out, err := s.CmdWithError("pull", "scratch")
 	c.Assert(err, checker.NotNil, check.Commentf("expected pull of scratch to fail"))
@@ -109,6 +113,7 @@ func (s *DockerHubPullSuite) TestPullScratchNotAllowed(c *check.C) {
 	c.Assert(out, checker.Not(checker.Contains), "Pulling repository scratch")
 }
 
+/*
 // TestPullAllTagsFromCentralRegistry pulls using `all-tags` for a given image and verifies that it
 // results in more images than a naked pull.
 func (s *DockerHubPullSuite) TestPullAllTagsFromCentralRegistry(c *check.C) {
@@ -150,6 +155,7 @@ func (s *DockerHubPullSuite) TestPullAllTagsFromCentralRegistry(c *check.C) {
 
 	c.Assert(splitLatest, checker.DeepEquals, splitCurrent, check.Commentf("busybox:latest was changed after pulling all tags"))
 }
+*/
 
 /*
 // TestPullClientDisconnect kills the client during a pull operation and verifies that the operation
@@ -182,7 +188,8 @@ func (s *DockerHubPullSuite) TestPullClientDisconnect(c *check.C) {
 */
 
 func (s *DockerHubPullSuite) TestPullFromDaocloudRegistry(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
 	testRegistry := "daocloud.io"
@@ -193,7 +200,7 @@ func (s *DockerHubPullSuite) TestPullFromDaocloudRegistry(c *check.C) {
 	defer deleteImages(testImage)
 
 	c.Assert(out, checker.Contains, "Using default tag: latest", check.Commentf("expected the 'latest' tag to be automatically assumed"))
-	c.Assert(out, checker.Contains, "Pulling from " + testRepo, check.Commentf("expected the 'daocloud/' prefix to be automatically assumed"))
+	c.Assert(out, checker.Contains, "Pulling from "+testRepo, check.Commentf("expected the 'daocloud/' prefix to be automatically assumed"))
 
 	matches := regexp.MustCompile(`Digest: (.+)\n`).FindAllStringSubmatch(out, -1)
 	c.Assert(len(matches), checker.Equals, 1, check.Commentf("expected exactly one image digest in the output"))
