@@ -57,7 +57,7 @@ func (cli *Client) SnapshotCreate(ctx context.Context, options types.SnapshotCre
 	if options.Force {
 		v.Set("force", "true")
 	}
-	resp, err := cli.post(ctx, "/snapshots/create?"+v.Encode(), nil, options, nil)
+	resp, err := cli.post(ctx, "/snapshots/create", v, options, nil)
 	if err != nil {
 		return snapshot, err
 	}
