@@ -162,3 +162,39 @@ func fipUsage() string {
 	help += fmt.Sprintf("\nRun 'hyper fip COMMAND --help' for more information on a command.")
 	return help
 }
+
+// Allocate and associate a fip
+func (cli *DockerCli) associateNewFip(ctx context.Context, contID string) (string, error) {
+	fips, err := cli.client.FipAllocate(ctx, "1")
+	if err != nil {
+		return "", err
+	}
+
+	for _, ip := range fips {
+		err = cli.client.FipAssociate(ctx, ip, contID)
+		if err != nil {
+			go func() {
+				cli.client.FipRelease(ctx, ip)
+			}()
+			return "", err
+		}
+		return ip, nil
+	}
+
+	return "", fmt.Errorf("Server failed to create new fip")
+}
+
+// Release a fip
+func (cli *DockerCli) releaseFip(ctx context.Context, ip string) error {
+	return cli.client.FipRelease(ctx, ip)
+}
+
+// Disassociate and release a fip
+func (cli *DockerCli) releaseContainerFip(ctx context.Context, contID string) error {
+	ip, err := cli.client.FipDisassociate(ctx, contID)
+	if err != nil {
+		return err
+	}
+
+	return cli.client.FipRelease(ctx, ip)
+}

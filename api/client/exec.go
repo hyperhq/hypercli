@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 	"io"
+	"strings"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -163,4 +165,45 @@ func ParseExec(cmd *flag.FlagSet, args []string) (*types.ExecConfig, error) {
 	}
 
 	return execConfig, nil
+}
+
+func (cli *DockerCli) ExecCmd(ctx context.Context, user, contID string, cmd []string) (string, error) {
+	execConfig := &types.ExecConfig{
+		User:   user,
+		Detach: true,
+		Cmd:    cmd,
+	}
+	execCreateResponse, err := cli.client.ContainerExecCreate(ctx, contID, *execConfig)
+	if err != nil {
+		return "", err
+	}
+	execID := execCreateResponse.ID
+	if execID == "" {
+		err = fmt.Errorf("Failed to exec %s: Empty exec ID", strings.Join(cmd, " "))
+		return "", err
+	}
+	execStartCheck := types.ExecStartCheck{Detach: execConfig.Detach}
+	if err := cli.client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+		return "", err
+	}
+
+	return execID, nil
+}
+
+func (cli *DockerCli) WaitExec(ctx context.Context, execID string) error {
+	for {
+		running, status, err := getExecExitCode(ctx, cli, execID)
+		switch {
+		case err != nil:
+			return err
+		case running:
+			time.Sleep(100 * time.Millisecond)
+		case status != 0:
+			err = fmt.Errorf("Failed to exec cmd: %d", status)
+			return err
+		case status == 0:
+			return nil
+		}
+	}
+
 }
