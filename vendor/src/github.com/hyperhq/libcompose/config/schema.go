@@ -20,6 +20,9 @@ var schemaV1 = `{
       "type": "object",
 
       "properties": {
+        "cap_add": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "cap_drop": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "cgroup_parent": {"type": "string"},
         "command": {
           "oneOf": [
             {"type": "string"},
@@ -27,6 +30,11 @@ var schemaV1 = `{
           ]
         },
         "container_name": {"type": "string"},
+        "cpu_shares": {"type": ["number", "string"]},
+        "cpu_quota": {"type": ["number", "string"]},
+        "cpuset": {"type": "string"},
+        "dns": {"$ref": "#/definitions/string_or_list"},
+        "dns_search": {"$ref": "#/definitions/string_or_list"},
         "domainname": {"type": "string"},
         "entrypoint": {
           "oneOf": [
@@ -55,17 +63,37 @@ var schemaV1 = `{
           ]
         },
 
+        "expose": {
+          "type": "array",
+          "items": {
+            "type": ["string", "number"]
+          },
+          "uniqueItems": true
+        },
+
         "external_links": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "hostname": {"type": "string"},
         "image": {"type": "string"},
         "labels": {"$ref": "#/definitions/list_or_dict"},
         "links": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "mem_limit": {"type": ["number", "string"]},
+        "memswap_limit": {"type": ["number", "string"]},
 
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": ["string", "number"]
+          },
+          "uniqueItems": true
+        },
+
+        "stop_signal": {"type": "string"},
         "restart": {"type": "string"},
         "stdin_open": {"type": "boolean"},
         "tty": {"type": "boolean"},
         "volumes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "working_dir": {"type": "string"},
+        "user": {"type": "string"},
 
         "size": {"type": "string"},
         "fip": {"type": "string"}
@@ -136,6 +164,9 @@ var schemaV2 = `{
       "id": "#/definitions/service",
       "type": "object",
       "properties": {
+        "cap_add": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "cap_drop": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "cgroup_parent": {"type": "string"},
         "command": {
           "oneOf": [
             {"type": "string"},
@@ -143,7 +174,12 @@ var schemaV2 = `{
           ]
         },
         "container_name": {"type": "string"},
+        "cpu_shares": {"type": ["number", "string"]},
+        "cpu_quota": {"type": ["number", "string"]},
+        "cpuset": {"type": "string"},
         "depends_on": {"$ref": "#/definitions/list_of_strings"},
+        "dns": {"$ref": "#/definitions/string_or_list"},
+        "dns_search": {"$ref": "#/definitions/string_or_list"},
         "domainname": {"type": "string"},
         "entrypoint": {
           "oneOf": [
@@ -171,15 +207,62 @@ var schemaV2 = `{
           ]
         },
 
+        "expose": {
+          "type": "array",
+          "items": {
+            "type": ["string", "number"]
+          },
+          "uniqueItems": true
+        },
+
         "external_links": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "hostname": {"type": "string"},
         "image": {"type": "string"},
         "labels": {"$ref": "#/definitions/list_or_dict"},
         "links": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "mem_limit": {"type": ["number", "string"]},
+        "memswap_limit": {"type": ["number", "string"]},
+        "network_mode": {"type": "string"},
+
+        "networks": {
+          "oneOf": [
+            {"$ref": "#/definitions/list_of_strings"},
+            {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z0-9._-]+$": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "aliases": {"$ref": "#/definitions/list_of_strings"},
+                        "ipv4_address": {"type": "string"},
+                        "ipv6_address": {"type": "string"}
+                      },
+                      "additionalProperties": false
+                    },
+                    {"type": "null"}
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": ["string", "number"]
+          },
+          "uniqueItems": true
+        },
 
         "restart": {"type": "string"},
         "stdin_open": {"type": "boolean"},
+        "stop_signal": {"type": "string"},
         "tty": {"type": "boolean"},
+        "user": {"type": "string"},
         "volumes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "working_dir": {"type": "string"},
 
