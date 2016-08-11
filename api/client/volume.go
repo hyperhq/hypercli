@@ -1,7 +1,15 @@
 package client
 
 import (
+	"archive/tar"
+	"bytes"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
 	"text/tabwriter"
 
 	"golang.org/x/net/context"
@@ -23,6 +31,7 @@ func (cli *DockerCli) CmdVolume(args ...string) error {
 		{"create", "Create a volume"},
 		{"inspect", "Return low-level information on a volume"},
 		{"ls", "List volumes"},
+		{"init", "Initialize volumes"},
 		{"rm", "Remove a volume"},
 	}
 
@@ -180,4 +189,216 @@ func (cli *DockerCli) CmdVolumeRm(args ...string) error {
 		return Cli.StatusError{StatusCode: status}
 	}
 	return nil
+}
+
+func validateVolumeSource(source string) error {
+	switch {
+	case strings.HasPrefix(source, "git://"):
+		fallthrough
+	case strings.HasPrefix(source, "http://"):
+		fallthrough
+	case strings.HasPrefix(source, "https://"):
+		break
+	case strings.HasPrefix(source, "/"):
+		info, err := os.Stat(source)
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsDir() && !info.Mode().IsRegular() {
+			return fmt.Errorf("Unsupported local volume source(%s): %s", source, info.Mode().String())
+		}
+		break
+	default:
+		return fmt.Errorf("%s is not supported volume source", source)
+	}
+
+	return nil
+}
+
+func validateVolumeInitArgs(args []string, req *types.VolumesInitializeRequest) error {
+
+	for _, desc := range args {
+		idx := strings.LastIndexByte(desc, ':')
+		if idx == -1 || idx >= len(desc)-1 {
+			return fmt.Errorf("%s does not match format SOURCE:VOLUME", desc)
+		}
+		source := desc[:idx]
+		name := desc[idx+1:]
+		if err := validateVolumeSource(source); err != nil {
+			return err
+		}
+		req.Volume = append(req.Volume, types.VolumeInitDesc{
+			Name:   name,
+			Source: source,
+		})
+	}
+	return nil
+}
+
+// CmdVolumeInit Initializes one or more volumes.
+//
+// Usage: docker volume init SOURCE:VOLUME [SOURCE:VOLUME...]
+func (cli *DockerCli) CmdVolumeInit(args ...string) error {
+	cmd := Cli.Subcmd("volume init", []string{"SOURCE:VOLUME [SOURCE:VOLUME...]"}, "Initialize a volume", true)
+	cmd.Require(flag.Min, 1)
+	cmd.ParseFlags(args, true)
+
+	return cli.initVolumes(cmd.Args(), false)
+}
+
+func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
+	var req types.VolumesInitializeRequest
+	err := validateVolumeInitArgs(vols, &req)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	req.Reload = reload
+	resp, err := cli.client.VolumeInitialize(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	if len(resp.Session) == 0 {
+		return nil
+	}
+
+	// Upload local volumes
+	var wg sync.WaitGroup
+	var results []error
+	for _, desc := range req.Volume {
+		if url, ok := resp.Uploaders[desc.Name]; ok {
+			wg.Add(1)
+			go uploadLocalVolume(cli, desc.Source, url, resp.Cookie, results, &wg)
+		}
+	}
+
+	wg.Wait()
+	for _, err = range results {
+		fmt.Fprintf(cli.err, "Upload local volume failed: %s\n", err.Error())
+	}
+
+	finishErr := cli.client.VolumeUploadFinish(ctx, resp.Session)
+	if err == nil {
+		err = finishErr
+	}
+	return err
+}
+
+func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results []error, wg *sync.WaitGroup) {
+	var err error
+
+	fmt.Fprintf(cli.out, "uploading %s", source)
+	defer func() {
+		if err != nil {
+			results = append(results, err)
+		}
+		wg.Done()
+	}()
+
+	fullPath, err := filepath.Abs(source)
+	if err != nil {
+		return
+	}
+
+	bodyBuf := &bytes.Buffer{}
+	tarWriter := tar.NewWriter(bodyBuf)
+	defer tarWriter.Close()
+	walkFunc := func(path string, info os.FileInfo, err error) error {
+		var (
+			relPath, linkName string
+
+			r *os.File
+		)
+
+		if err != nil {
+			return err
+		}
+		switch {
+		case info.IsDir():
+		case info.Mode()&os.ModeSymlink == os.ModeSymlink:
+			linkName, err = os.Readlink(path)
+			if err != nil {
+				return err
+			}
+		case info.Mode().IsRegular():
+			r, err = os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer r.Close()
+		}
+
+		header, err := tar.FileInfoHeader(info, linkName)
+		if err != nil {
+			return err
+		}
+
+		if path == fullPath {
+			if info.IsDir() {
+				// "." as indicator that it is a dir volume
+				relPath = "."
+			} else {
+				relPath = filepath.Base(path)
+			}
+		} else {
+			relPath, err = filepath.Rel(fullPath, path)
+			if err != nil {
+				return err
+			}
+		}
+
+		header.Name = relPath
+
+		err = tarWriter.WriteHeader(header)
+		if err != nil {
+			return err
+		}
+
+		if r != nil {
+			_, err := io.Copy(tarWriter, r)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	err = filepath.Walk(fullPath, walkFunc)
+	if err != nil {
+		return
+	}
+
+	resp, err := sendTarball(url, cookie, bodyBuf)
+	if err != nil {
+		return
+	}
+
+	defer resp.Body.Close()
+	_, err = io.Copy(cli.out, resp.Body)
+}
+
+type VolumeUploadResponse struct {
+	Body io.ReadCloser
+	JSON bool
+}
+
+func sendTarball(uri, cookie string, input io.Reader) (VolumeUploadResponse, error) {
+	req, err := http.NewRequest("POST", uri+"?cookie="+cookie, input)
+	if err != nil {
+		return VolumeUploadResponse{}, err
+	}
+	req.Header.Set("Content-Type", "application/x-tar")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return VolumeUploadResponse{}, err
+	}
+	return VolumeUploadResponse{
+		Body: resp.Body,
+		JSON: resp.Header.Get("Content-Type") == "application/json",
+	}, nil
 }

@@ -432,6 +432,26 @@ type VolumeCreateRequest struct {
 	Labels     map[string]string // Labels holds meta data specific to the volume being created.
 }
 
+// VolumesInitializeResponse contains the response for the remote API:
+// POST "/volumes/initialize"
+type VolumesInitializeResponse struct {
+	Session   string            // Session identifies the current upload session. If empty, no session is established
+	Cookie    string            // Cookie is the cookie to use when uploading volume data
+	Uploaders map[string]string // Uploaders holds mappings from volume name to volume upload IDs
+}
+
+type VolumeInitDesc struct {
+	Name   string // Name of the volume to be initialized
+	Source string // Source of the volume
+}
+
+// VolumesInitializeRequest contains the request for the remote API:
+// POST "/volumes/initialize"
+type VolumesInitializeRequest struct {
+	Reload bool             // Reload original source set in previouse volume initialize operation
+	Volume []VolumeInitDesc // Volume init description
+}
+
 // NetworkResource is the body of the "get network" http response message
 type NetworkResource struct {
 	Name       string                      // Name is the requested name of the volume
