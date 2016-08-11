@@ -71,6 +71,7 @@ var dockerCommands = []Command{
 	{"snapshot", "Manage Hyper_ snapshots"},
 	{"fip", "Manage Hyper_ floating IPs"},
 	//{"wait", "Block until a container stops, then print its exit code"},
+	{"compose", "Define and run multi-container applications with Hyper_"},
 }
 
 // DockerCommands stores all the docker command

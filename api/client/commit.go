@@ -2,15 +2,15 @@ package client
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/container"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/hyperhq/hypercli/reference"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/container"
 )
 
 // CmdCommit creates a new image from a container's changes.
@@ -31,28 +31,9 @@ func (cli *DockerCli) Commit(args ...string) error {
 	cmd.ParseFlags(args, true)
 
 	var (
-		name             = cmd.Arg(0)
-		repositoryAndTag = cmd.Arg(1)
-		repositoryName   string
-		tag              string
+		name      = cmd.Arg(0)
+		reference = cmd.Arg(1)
 	)
-
-	//Check if the given image name can be resolved
-	if repositoryAndTag != "" {
-		ref, err := reference.ParseNamed(repositoryAndTag)
-		if err != nil {
-			return err
-		}
-
-		repositoryName = ref.Name()
-
-		switch x := ref.(type) {
-		case reference.Canonical:
-			return errors.New("cannot commit to digest reference")
-		case reference.NamedTagged:
-			tag = x.Tag()
-		}
-	}
 
 	var config *container.Config
 	if *flConfig != "" {
@@ -63,17 +44,15 @@ func (cli *DockerCli) Commit(args ...string) error {
 	}
 
 	options := types.ContainerCommitOptions{
-		ContainerID:    name,
-		RepositoryName: repositoryName,
-		Tag:            tag,
-		Comment:        *flComment,
-		Author:         *flAuthor,
-		Changes:        flChanges.GetAll(),
-		Pause:          *flPause,
-		Config:         config,
+		Reference: reference,
+		Comment:   *flComment,
+		Author:    *flAuthor,
+		Changes:   flChanges.GetAll(),
+		Pause:     *flPause,
+		Config:    config,
 	}
 
-	response, err := cli.client.ContainerCommit(options)
+	response, err := cli.client.ContainerCommit(context.Background(), name, options)
 	if err != nil {
 		return err
 	}

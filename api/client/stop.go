@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
@@ -20,9 +22,11 @@ func (cli *DockerCli) CmdStop(args ...string) error {
 
 	cmd.ParseFlags(args, true)
 
+	ctx := context.Background()
+
 	var errs []string
 	for _, name := range cmd.Args() {
-		if err := cli.client.ContainerStop(name, *nSeconds); err != nil {
+		if err := cli.client.ContainerStop(ctx, name, *nSeconds); err != nil {
 			errs = append(errs, err.Error())
 		} else {
 			fmt.Fprintf(cli.out, "%s\n", name)

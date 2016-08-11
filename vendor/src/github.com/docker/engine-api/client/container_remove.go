@@ -5,10 +5,11 @@ import (
 	"net/url"
 
 	"github.com/docker/engine-api/types"
+	"golang.org/x/net/context"
 )
 
 // ContainerRemove kills and removes a container from the docker host.
-func (cli *Client) ContainerRemove(options types.ContainerRemoveOptions) ([]string, error) {
+func (cli *Client) ContainerRemove(ctx context.Context, container string, options types.ContainerRemoveOptions) ([]string, error) {
 	var warnings []string
 	query := url.Values{}
 	if options.RemoveVolumes {
@@ -22,7 +23,7 @@ func (cli *Client) ContainerRemove(options types.ContainerRemoveOptions) ([]stri
 		query.Set("force", "1")
 	}
 
-	resp, err := cli.delete("/containers/"+options.ContainerID, query, nil)
+	resp, err := cli.delete(ctx, "/containers/"+container, query, nil)
 	if err == nil {
 		json.NewDecoder(resp.body).Decode(&warnings)
 	}

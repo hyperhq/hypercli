@@ -9,6 +9,7 @@ import (
 	"runtime"
 
 	"github.com/docker/engine-api/client"
+	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/hyperhq/hypercli/api"
 	"github.com/hyperhq/hypercli/cli"
@@ -143,7 +144,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 			verStr = tmpStr
 		}
 
-		clientTransport, err := newClientTransport(clientFlags.Common.TLSOptions)
+		httpClient, err := newHTTPClient(host, clientFlags.Common.TLSOptions)
 		if err != nil {
 			return err
 		}
@@ -157,7 +158,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 			fmt.Fprintf(cli.err, "WARNING: null cloud config\n")
 		}
 
-		client, err := client.NewClient(host, verStr, clientTransport, customHeaders, cloudConfig.AccessKey, cloudConfig.SecretKey)
+		client, err := client.NewClient(host, verStr, httpClient, customHeaders, cloudConfig.AccessKey, cloudConfig.SecretKey)
 		if err != nil {
 			return err
 		}
@@ -191,16 +192,27 @@ func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (host string, 
 	return
 }
 
-func newClientTransport(tlsOptions *tlsconfig.Options) (*http.Transport, error) {
+func newHTTPClient(host string, tlsOptions *tlsconfig.Options) (*http.Client, error) {
 	if tlsOptions == nil {
-		return &http.Transport{}, nil
+		// let the api client configure the default transport.
+		return nil, nil
 	}
 
 	config, err := tlsconfig.Client(*tlsOptions)
 	if err != nil {
 		return nil, err
 	}
-	return &http.Transport{
+	tr := &http.Transport{
 		TLSClientConfig: config,
+	}
+	proto, addr, _, err := client.ParseHost(host)
+	if err != nil {
+		return nil, err
+	}
+
+	sockets.ConfigureTransport(tr, proto, addr)
+
+	return &http.Client{
+		Transport: tr,
 	}, nil
 }

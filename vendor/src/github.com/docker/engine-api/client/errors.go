@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-// ErrConnectionFailed is a error raised when the connection between the client and the server failed.
-var ErrConnectionFailed = errors.New("Cannot connect to the server")
+// ErrConnectionFailed is an error raised when the connection between the client and the server failed.
+var ErrConnectionFailed = errors.New("Cannot connect to the Hyper_ server.")
 
 // imageNotFoundError implements an error returned when an image is not in the docker host.
 type imageNotFoundError struct {
@@ -30,7 +30,7 @@ type containerNotFoundError struct {
 	containerID string
 }
 
-// Error returns a string representation of an containerNotFoundError
+// Error returns a string representation of a containerNotFoundError
 func (e containerNotFoundError) Error() string {
 	return fmt.Sprintf("Error: No such container: %s", e.containerID)
 }
@@ -47,7 +47,7 @@ type networkNotFoundError struct {
 	networkID string
 }
 
-// Error returns a string representation of an networkNotFoundError
+// Error returns a string representation of a networkNotFoundError
 func (e networkNotFoundError) Error() string {
 	return fmt.Sprintf("Error: No such network: %s", e.networkID)
 }
@@ -74,7 +74,7 @@ type volumeNotFoundError struct {
 	volumeID string
 }
 
-// Error returns a string representation of an networkNotFoundError
+// Error returns a string representation of a networkNotFoundError
 func (e volumeNotFoundError) Error() string {
 	return fmt.Sprintf("Error: No such volume: %s", e.volumeID)
 }
@@ -82,7 +82,7 @@ func (e volumeNotFoundError) Error() string {
 // IsErrVolumeNotFound returns true if the error is caused
 // when a volume is not found in the docker host.
 func IsErrVolumeNotFound(err error) bool {
-	_, ok := err.(networkNotFoundError)
+	_, ok := err.(volumeNotFoundError)
 	return ok
 }
 
@@ -97,7 +97,7 @@ func (u unauthorizedError) Error() string {
 }
 
 // IsErrUnauthorized returns true if the error is caused
-// when an the remote registry authentication fails
+// when a remote registry authentication fails
 func IsErrUnauthorized(err error) bool {
 	_, ok := err.(unauthorizedError)
 	return ok

@@ -7,11 +7,13 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/go-units"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	"github.com/hyperhq/hypercli/pkg/stringutils"
-	"github.com/docker/go-units"
 )
 
 // CmdHistory shows the history of an image.
@@ -26,7 +28,7 @@ func (cli *DockerCli) CmdHistory(args ...string) error {
 
 	cmd.ParseFlags(args, true)
 
-	history, err := cli.client.ImageHistory(cmd.Arg(0))
+	history, err := cli.client.ImageHistory(context.Background(), cmd.Arg(0))
 	if err != nil {
 		return err
 	}
