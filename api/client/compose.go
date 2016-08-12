@@ -38,13 +38,16 @@ func (cli *DockerCli) CmdCompose(args ...string) error {
 func (cli *DockerCli) CmdComposeRun(args ...string) error {
 	cmd := Cli.Subcmd("compose run", []string{"SERVICE [COMMAND] [ARGS...]"}, "Run a one-off command on a service", false)
 	composeFile := cmd.String([]string{"f", "-file"}, "hyper-compose.yml", "Specify an alternate compose file")
-	projectName := cmd.String([]string{"p", "-project-name"}, "hyper-compose", "Specify an alternate project name")
+	projectName := cmd.String([]string{"p", "-project-name"}, "", "Specify an alternate project name")
 	rm := cmd.Bool([]string{"-rm"}, false, "Remove container after run, ignored in detached mode")
 
 	cmd.Require(flag.Min, 1)
 	err := cmd.ParseFlags(args, true)
 	if err != nil {
 		return err
+	}
+	if *projectName == "" {
+		*projectName = getBaseDir()
 	}
 	project, err := docker.NewProject(&docker.Context{
 		Context: project.Context{
@@ -362,12 +365,15 @@ func (cli *DockerCli) CmdComposeRm(args ...string) error {
 func (cli *DockerCli) CmdComposeScale(args ...string) error {
 	cmd := Cli.Subcmd("compose scale", []string{"[SERVICE=NUM...]"}, "Set number of containers to run for a service.", false)
 	composeFile := cmd.String([]string{"f", "-file"}, "hyper-compose.yml", "Specify an alternate compose file")
-	projectName := cmd.String([]string{"p", "-project-name"}, "hyper-compose", "Specify an alternate project name")
+	projectName := cmd.String([]string{"p", "-project-name"}, "", "Specify an alternate project name")
 	timeout := cmd.Int([]string{"t", "-timeout"}, 10, "Specify a shutdown timeout in seconds")
 	cmd.Require(flag.Min, 0)
 	err := cmd.ParseFlags(args, true)
 	if err != nil {
 		return err
+	}
+	if *projectName == "" {
+		*projectName = getBaseDir()
 	}
 	project, err := docker.NewProject(&docker.Context{
 		Context: project.Context{
