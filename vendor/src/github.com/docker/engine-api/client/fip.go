@@ -33,22 +33,22 @@ func (cli *Client) FipRelease(ctx context.Context, ip string) error {
 	return nil
 }
 
-func (cli *Client) FipAssociate(ctx context.Context, ip, container string) error {
+func (cli *Client) FipAttach(ctx context.Context, ip, container string) error {
 	var v = url.Values{}
 	v.Set("ip", ip)
 	v.Set("container", container)
-	_, err := cli.post(ctx, "/fips/associate", v, nil, nil)
+	_, err := cli.post(ctx, "/fips/attach", v, nil, nil)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (cli *Client) FipDisassociate(ctx context.Context, container string) (string, error) {
+func (cli *Client) FipDetach(ctx context.Context, container string) (string, error) {
 	var result string
 	var v = url.Values{}
 	v.Set("container", container)
-	resp, err := cli.post(ctx, "/fips/deassociate", v, nil, nil)
+	resp, err := cli.post(ctx, "/fips/detach", v, nil, nil)
 	if err != nil {
 		return "", err
 	}

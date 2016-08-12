@@ -88,8 +88,8 @@ type APIClient interface {
 	SnapshotRemove(ctx context.Context, id string) error
 	FipAllocate(ctx context.Context, count string) ([]string, error)
 	FipRelease(ctx context.Context, ip string) error
-	FipAssociate(ctx context.Context, ip, container string) error
-	FipDisassociate(ctx context.Context, container string) (string, error)
+	FipAttach(ctx context.Context, ip, container string) error
+	FipDetach(ctx context.Context, container string) (string, error)
 	FipList(ctx context.Context, opts types.NetworkListOptions) ([]map[string]string, error)
 
 	ComposeUp(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, forcerecreate, norecreate bool) (io.ReadCloser, error)
