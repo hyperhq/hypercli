@@ -14,15 +14,15 @@ import (
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/go-connections/nat"
+	"github.com/hyperhq/hypercli/pkg/promise"
+	"github.com/hyperhq/hypercli/pkg/stdcopy"
+	"github.com/hyperhq/hypercli/pkg/term"
 	"github.com/hyperhq/libcompose/config"
 	"github.com/hyperhq/libcompose/labels"
 	"github.com/hyperhq/libcompose/logger"
 	"github.com/hyperhq/libcompose/project"
 	"github.com/hyperhq/libcompose/project/events"
 	util "github.com/hyperhq/libcompose/utils"
-	"github.com/hyperhq/hypercli/pkg/promise"
-	"github.com/hyperhq/hypercli/pkg/stdcopy"
-	"github.com/hyperhq/hypercli/pkg/term"
 )
 
 // Container holds information about a docker container and the service it is tied on.
@@ -485,7 +485,7 @@ func (c *Container) createContainer(imageName, oldContainer string, configOverri
 	configWrapper.Config.Labels[labels.ONEOFF.Str()] = oneOffString
 	configWrapper.Config.Labels[labels.NUMBER.Str()] = fmt.Sprint(c.containerNumber)
 	configWrapper.Config.Labels[labels.VERSION.Str()] = ComposeVersion
-	size := "xs"
+	size := "s4"
 	if serviceConfig.Size != "" {
 		size = serviceConfig.Size
 	}
