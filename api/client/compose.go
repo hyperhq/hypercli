@@ -37,7 +37,7 @@ func (cli *DockerCli) CmdCompose(args ...string) error {
 // Usage: hyper compose run [OPTIONS] SERVICE [COMMAND] [ARGS...]
 func (cli *DockerCli) CmdComposeRun(args ...string) error {
 	cmd := Cli.Subcmd("compose run", []string{"SERVICE [COMMAND] [ARGS...]"}, "Run a one-off command on a service", false)
-	composeFile := cmd.String([]string{"f", "-file"}, "hyper-compose.yml", "Specify an alternate compose file")
+	composeFile := cmd.String([]string{"f", "-file"}, "docker-compose.yml", "Specify an alternate compose file")
 	projectName := cmd.String([]string{"p", "-project-name"}, "", "Specify an alternate project name")
 	rm := cmd.Bool([]string{"-rm"}, false, "Remove container after run, ignored in detached mode")
 
@@ -123,7 +123,7 @@ func (cli *DockerCli) CmdComposeUp(args ...string) error {
 		"flag.\n\n"+
 		"If you want to force Compose to stop and recreate all containers, use the\n"+
 		"`--force-recreate` flag.", false)
-	composeFile := cmd.String([]string{"f", "-file"}, "hyper-compose.yml", "Specify an alternate compose file")
+	composeFile := cmd.String([]string{"f", "-file"}, "docker-compose.yml", "Specify an alternate compose file")
 	projectName := cmd.String([]string{"p", "-project-name"}, "", "Specify an alternate project name")
 	detach := cmd.Bool([]string{"d", "-detach"}, false, "Detached mode: Run containers in the background,\nprint new container names.\nIncompatible with --abort-on-container-exit.")
 	forcerecreate := cmd.Bool([]string{"-force-recreate"}, false, "Recreate containers even if their configuration\nand image haven't changed.\nIncompatible with --no-recreate.")
@@ -239,7 +239,7 @@ func (cli *DockerCli) CmdComposeStop(args ...string) error {
 // Usage: hyper compose create [OPTIONS]
 func (cli *DockerCli) CmdComposeCreate(args ...string) error {
 	cmd := Cli.Subcmd("compose create", []string{"[SERVICE...]"}, "Creates containers for a service.", false)
-	composeFile := cmd.String([]string{"f", "-file"}, "hyper-compose.yml", "Specify an alternate compose file")
+	composeFile := cmd.String([]string{"f", "-file"}, "docker-compose.yml", "Specify an alternate compose file")
 	projectName := cmd.String([]string{"p", "-project-name"}, "", "Specify an alternate project name")
 	forcerecreate := cmd.Bool([]string{"-force-recreate"}, false, "Recreate containers even if their configuration\nand image haven't changed.\nIncompatible with --no-recreate.")
 	norecreate := cmd.Bool([]string{"-no-recreate"}, false, "If containers already exist, don't recreate them.\nIncompatible with --force-recreate.")
@@ -280,7 +280,7 @@ func (cli *DockerCli) CmdComposeCreate(args ...string) error {
 // Usage: hyper compose ps [OPTIONS]
 func (cli *DockerCli) CmdComposePs(args ...string) error {
 	cmd := Cli.Subcmd("compose ps", []string{"[SERVICE...]"}, "List containers.", false)
-	composeFile := cmd.String([]string{"f", "-file"}, "hyper-compose.yml", "Specify an alternate compose file")
+	composeFile := cmd.String([]string{"f", "-file"}, "docker-compose.yml", "Specify an alternate compose file")
 	projectName := cmd.String([]string{"p", "-project-name"}, "", "Specify an alternate project name")
 	quiet := cmd.Bool([]string{"q", "-quiet"}, false, "Only display IDs")
 	cmd.Require(flag.Min, 0)
@@ -364,7 +364,7 @@ func (cli *DockerCli) CmdComposeRm(args ...string) error {
 // Usage: hyper compose scale [OPTIONS] [SERVICE=NUM...]
 func (cli *DockerCli) CmdComposeScale(args ...string) error {
 	cmd := Cli.Subcmd("compose scale", []string{"[SERVICE=NUM...]"}, "Set number of containers to run for a service.", false)
-	composeFile := cmd.String([]string{"f", "-file"}, "hyper-compose.yml", "Specify an alternate compose file")
+	composeFile := cmd.String([]string{"f", "-file"}, "docker-compose.yml", "Specify an alternate compose file")
 	projectName := cmd.String([]string{"p", "-project-name"}, "", "Specify an alternate project name")
 	timeout := cmd.Int([]string{"t", "-timeout"}, 10, "Specify a shutdown timeout in seconds")
 	cmd.Require(flag.Min, 0)
