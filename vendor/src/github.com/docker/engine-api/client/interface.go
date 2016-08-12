@@ -79,6 +79,8 @@ type APIClient interface {
 	VolumeInspectWithRaw(ctx context.Context, volumeID string) (types.Volume, []byte, error)
 	VolumeList(ctx context.Context, filter filters.Args) (types.VolumesListResponse, error)
 	VolumeRemove(ctx context.Context, volumeID string) error
+	VolumeInitialize(ctx context.Context, options types.VolumesInitializeRequest) (types.VolumesInitializeResponse, error)
+	VolumeUploadFinish(ctx context.Context, session string) error
 
 	SnapshotCreate(ctx context.Context, options types.SnapshotCreateRequest) (types.Snapshot, error)
 	SnapshotInspect(ctx context.Context, volumeID string) (types.Snapshot, error)
