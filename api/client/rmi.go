@@ -5,9 +5,11 @@ import (
 	"net/url"
 	"strings"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/engine-api/types"
 )
 
 // CmdRmi removes all images with the specified name(s).
@@ -16,7 +18,7 @@ import (
 func (cli *DockerCli) CmdRmi(args ...string) error {
 	cmd := Cli.Subcmd("rmi", []string{"IMAGE [IMAGE...]"}, Cli.DockerCommands["rmi"].Description, true)
 	force := cmd.Bool([]string{"f", "-force"}, false, "Force removal of the image")
-	noprune := cmd.Bool([]string{"-no-prune"}, false, "Do not delete untagged parents")
+	noprune := cmd.Bool([]string{}, false, "Do not delete untagged parents")
 	cmd.Require(flag.Min, 1)
 
 	cmd.ParseFlags(args, true)
@@ -29,15 +31,16 @@ func (cli *DockerCli) CmdRmi(args ...string) error {
 		v.Set("noprune", "1")
 	}
 
+	ctx := context.Background()
+
 	var errs []string
 	for _, name := range cmd.Args() {
 		options := types.ImageRemoveOptions{
-			ImageID:       name,
 			Force:         *force,
 			PruneChildren: !*noprune,
 		}
 
-		dels, err := cli.client.ImageRemove(options)
+		dels, err := cli.client.ImageRemove(ctx, name, options)
 		if err != nil {
 			errs = append(errs, err.Error())
 		} else {

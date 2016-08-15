@@ -5,13 +5,10 @@ import (
 	"io"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/container"
-	networktypes "github.com/docker/engine-api/types/network"
 	"github.com/docker/libnetwork/resolvconf/dns"
 	Cli "github.com/hyperhq/hypercli/cli"
 	derr "github.com/hyperhq/hypercli/errors"
@@ -20,7 +17,7 @@ import (
 	"github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	runconfigopts "github.com/hyperhq/hypercli/runconfig/opts"
-	"github.com/satori/go.uuid"
+	"golang.org/x/net/context"
 )
 
 type InitVolume struct {
@@ -98,202 +95,6 @@ func parseProtoAndLocalBind(bind string) (string, string, bool) {
 	return bind[:pos], bind[pos+1:], true
 }
 
-func checkSourceType(source string) string {
-	part := strings.Split(source, ":")
-	count := len(part)
-	switch {
-	case strings.HasPrefix(source, "git://") || strings.HasSuffix(source, ".git") ||
-		(count >= 2 && strings.HasSuffix(part[count-2], ".git")):
-		return "git"
-	case strings.HasPrefix(source, "http://"):
-		fallthrough
-	case strings.HasPrefix(source, "https://"):
-		return "http"
-	case strings.HasPrefix(source, "/"):
-		return "local"
-	default:
-		return "unknown"
-	}
-}
-
-func (cli *DockerCli) initSpecialVolumes(config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, initvols []*InitVolume) error {
-	const INIT_VOLUME_PATH = "/vol/"
-	const INIT_VOLUME_IMAGE = "hyperhq/volume_uploader:v1"
-	const INIT_VOLUME_FILENAME = ".hyper_file_volume_data_do_not_create_on_your_own"
-	var (
-		initConfig     *container.Config
-		initHostConfig *container.HostConfig
-		errCh          chan error
-		execCount      uint32
-		fip            string
-	)
-
-	initConfig = &container.Config{
-		User:       config.User,
-		Image:      INIT_VOLUME_IMAGE,
-		StopSignal: config.StopSignal,
-	}
-
-	initHostConfig = &container.HostConfig{
-		Binds:      make([]string, 0),
-		DNS:        hostConfig.DNS,
-		DNSOptions: hostConfig.DNSOptions,
-		DNSSearch:  hostConfig.DNSSearch,
-		ExtraHosts: hostConfig.ExtraHosts,
-	}
-
-	for _, vol := range initvols {
-		initHostConfig.Binds = append(initHostConfig.Binds, vol.Name+":"+INIT_VOLUME_PATH+vol.Destination)
-	}
-	passwd := uuid.NewV1()
-	initConfig.Env = append(config.Env, "ROOTPASSWORD="+passwd.String(), "LOCALROOT="+INIT_VOLUME_PATH)
-
-	createResponse, err := cli.createContainer(initConfig, initHostConfig, networkingConfig, hostConfig.ContainerIDFile, "")
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			if _, rmErr := cli.removeContainer(createResponse.ID, true, false, true); rmErr != nil {
-				fmt.Fprintf(cli.err, "clean up init container failed: %s\n", rmErr.Error())
-			}
-		}
-		if fip != "" {
-			if rmErr := cli.releaseFip(fip); rmErr != nil {
-				fmt.Fprintf(cli.err, "failed to clean up container fip %s: %s\n", fip, rmErr.Error())
-			}
-		}
-	}()
-
-	if err = cli.client.ContainerStart(createResponse.ID); err != nil {
-		return err
-	}
-
-	errCh = make(chan error, len(initvols))
-	for _, vol := range initvols {
-		var cmd []string
-		volType := checkSourceType(vol.Source)
-		switch volType {
-		case "git":
-			cmd = append(cmd, "git", "clone", vol.Source, INIT_VOLUME_PATH+vol.Destination)
-		case "http":
-			isFile, err := fileSourceVolume(vol.Source)
-			if err != nil {
-				return err
-			}
-			parts := strings.Split(vol.Source, "/")
-			if isFile {
-				cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", vol.Source, "--output-document="+INIT_VOLUME_PATH+vol.Destination+"/"+INIT_VOLUME_FILENAME)
-			} else {
-				cmd = append(cmd, "wget", "--no-check-certificate", "--tries=5", "--mirror", "--no-host-directories", "--cut-dirs="+strconv.Itoa(len(parts)), vol.Source, "--directory-prefix="+INIT_VOLUME_PATH+vol.Destination)
-			}
-		case "local":
-			isFile, err := fileSourceVolume(vol.Source)
-			if err != nil {
-				return err
-			}
-			execCount++
-			if fip == "" {
-				fip, err = cli.associateNewFip(createResponse.ID)
-				if err != nil {
-					return err
-				}
-			}
-			go func(vol *InitVolume) {
-				dest := INIT_VOLUME_PATH + vol.Destination
-				if isFile {
-					dest = dest + "/" + INIT_VOLUME_FILENAME
-				}
-				err := cli.uploadLocalResource(vol.Source, dest, fip, "root", passwd.String(), isFile)
-				if err != nil {
-					err = fmt.Errorf("Failed to upload %s: %s", vol.Source, err.Error())
-				}
-				errCh <- err
-			}(vol)
-		default:
-			continue
-		}
-		if len(cmd) == 0 {
-			continue
-		}
-
-		execCount++
-		go func() {
-			execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, cmd)
-			if err != nil {
-				errCh <- err
-			} else {
-				errCh <- cli.WaitExec(execID)
-			}
-		}()
-	}
-
-	// wait results
-	for ; execCount > 0; execCount-- {
-		err = <-errCh
-		if err != nil {
-			return err
-		}
-	}
-
-	// release fip
-	if fip != "" {
-		if err = cli.releaseContainerFip(createResponse.ID); err != nil {
-			return err
-		}
-		fip = ""
-	}
-
-	// Need to sync before tearing down container because data might be still cached
-	syncCmd := []string{"sync"}
-	execID, err := cli.ExecCmd(initConfig.User, createResponse.ID, syncCmd)
-	if err != nil {
-		return err
-	}
-	if err = cli.WaitExec(execID); err != nil {
-		return err
-	}
-
-	_, err = cli.removeContainer(createResponse.ID, false, false, true)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func fileSourceVolume(source string) (bool, error) {
-	switch {
-	case strings.HasPrefix(source, "git://"):
-		return false, nil
-	case strings.HasPrefix(source, "http://"):
-		fallthrough
-	case strings.HasPrefix(source, "https://"):
-		part := strings.Split(source, ":")
-		count := len(part)
-		if strings.HasSuffix(source, "/") || strings.HasSuffix(source, ".git") ||
-			(count >= 3 && strings.HasSuffix(part[count-2], ".git")) {
-			return false, nil
-		} else {
-			return true, nil
-		}
-	case strings.HasPrefix(source, "/"):
-		info, err := os.Stat(source)
-		if err != nil {
-			return false, err
-		}
-		if info.IsDir() {
-			return false, nil
-		} else if info.Mode()&os.ModeType != 0 {
-			return false, fmt.Errorf("cannot init volume from special file: %s", source)
-		}
-		return true, nil
-	default:
-		return false, fmt.Errorf("unsupported volume source type: %s", source)
-	}
-
-}
-
 // CmdRun runs a command in a new container.
 //
 // Usage: docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
@@ -313,6 +114,8 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		ErrConflictAttachDetach               = fmt.Errorf("Conflicting options: -a and -d")
 		ErrConflictRestartPolicyAndAutoRemove = fmt.Errorf("Conflicting options: --restart and --rm")
 		ErrConflictDetachAutoRemove           = fmt.Errorf("Conflicting options: --rm and -d")
+
+		initvols, volumeList []string
 	)
 
 	config, hostConfig, networkingConfig, cmd, err := runconfigopts.Parse(cmd, args)
@@ -379,11 +182,12 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = cli.getTtySize()
 	}
 
+	ctx := context.Background()
+
 	// Check/create protocol and local volume
-	var initvols []*InitVolume
 	defer func() {
-		for _, vol := range initvols {
-			cli.client.VolumeRemove(vol.Name)
+		for _, vol := range volumeList {
+			cli.client.VolumeRemove(ctx, vol)
 		}
 	}()
 	for idx, bind := range hostConfig.Binds {
@@ -391,17 +195,14 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 			volReq := types.VolumeCreateRequest{
 				Driver: "hyper",
 				Labels: map[string]string{
-					"source": source,
+					"autoremove": "true",
 				}}
-			if vol, err := cli.client.VolumeCreate(volReq); err != nil {
+			if vol, err := cli.client.VolumeCreate(ctx, volReq); err != nil {
 				cmd.ReportError(err.Error(), true)
 				return runStartContainerErr(err)
 			} else {
-				initvols = append(initvols, &InitVolume{
-					Source:      source,
-					Destination: dest,
-					Name:        vol.Name,
-				})
+				initvols = append(initvols, source+":"+vol.Name)
+				volumeList = append(volumeList, vol.Name)
 				hostConfig.Binds[idx] = vol.Name + ":" + dest
 			}
 		}
@@ -409,22 +210,22 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 	// initialize special volumes
 	if len(initvols) > 0 {
-		err := cli.initSpecialVolumes(config, hostConfig, networkingConfig, initvols)
+		err := cli.initVolumes(initvols, false)
 		if err != nil {
 			cmd.ReportError(err.Error(), true)
 			return runStartContainerErr(err)
 		}
 	}
 
-	createResponse, err := cli.createContainer(config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
+	createResponse, err := cli.createContainer(ctx, config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
 	if err != nil {
 		cmd.ReportError(err.Error(), true)
 		return runStartContainerErr(err)
 	}
-	initvols = nil
+	volumeList = nil
 
 	if sigProxy {
-		sigc := cli.forwardAllSignals(createResponse.ID)
+		sigc := cli.forwardAllSignals(ctx, createResponse.ID)
 		defer signal.StopCatch(sigc)
 	}
 	var (
@@ -467,15 +268,14 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		}
 
 		options := types.ContainerAttachOptions{
-			ContainerID: createResponse.ID,
-			Stream:      true,
-			Stdin:       config.AttachStdin,
-			Stdout:      config.AttachStdout,
-			Stderr:      config.AttachStderr,
-			DetachKeys:  cli.configFile.DetachKeys,
+			Stream:     true,
+			Stdin:      config.AttachStdin,
+			Stdout:     config.AttachStdout,
+			Stderr:     config.AttachStderr,
+			DetachKeys: cli.configFile.DetachKeys,
 		}
 
-		resp, err := cli.client.ContainerAttach(options)
+		resp, err := cli.client.ContainerAttach(ctx, createResponse.ID, options)
 		if err != nil {
 			return err
 		}
@@ -492,20 +292,20 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 	if *flAutoRemove {
 		defer func() {
-			if _, err := cli.removeContainer(createResponse.ID, true, false, false); err != nil {
+			if _, err := cli.removeContainer(ctx, createResponse.ID, true, false, false); err != nil {
 				fmt.Fprintf(cli.err, "%v\n", err)
 			}
 		}()
 	}
 
 	//start the container
-	if err := cli.client.ContainerStart(createResponse.ID); err != nil {
+	if err := cli.client.ContainerStart(ctx, createResponse.ID, ""); err != nil {
 		cmd.ReportError(err.Error(), false)
 		return runStartContainerErr(err)
 	}
 
 	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && cli.isTerminalOut {
-		if err := cli.monitorTtySize(createResponse.ID, false); err != nil {
+		if err := cli.monitorTtySize(ctx, createResponse.ID, false); err != nil {
 			fmt.Fprintf(cli.err, "Error monitoring TTY size: %s\n", err)
 		}
 	}
@@ -529,7 +329,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 	// Attached mode
 	if *flAutoRemove {
 		// Warn user if they detached us
-		js, err := cli.client.ContainerInspect(createResponse.ID)
+		js, err := cli.client.ContainerInspect(ctx, createResponse.ID)
 		if err != nil {
 			return runStartContainerErr(err)
 		}
@@ -540,23 +340,23 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 		// Autoremove: wait for the container to finish, retrieve
 		// the exit code and remove the container
-		if status, err = cli.client.ContainerWait(createResponse.ID); err != nil {
+		if status, err = cli.client.ContainerWait(ctx, createResponse.ID); err != nil {
 			return runStartContainerErr(err)
 		}
-		if _, status, err = getExitCode(cli, createResponse.ID); err != nil {
+		if _, status, err = getExitCode(ctx, cli, createResponse.ID); err != nil {
 			return err
 		}
 	} else {
 		// No Autoremove: Simply retrieve the exit code
 		if !config.Tty {
 			// In non-TTY mode, we can't detach, so we must wait for container exit
-			if status, err = cli.client.ContainerWait(createResponse.ID); err != nil {
+			if status, err = cli.client.ContainerWait(ctx, createResponse.ID); err != nil {
 				return err
 			}
 		} else {
 			// In TTY mode, there is a race: if the process dies too slowly, the state could
 			// be updated after the getExitCode call and result in the wrong exit code being reported
-			if _, status, err = getExitCode(cli, createResponse.ID); err != nil {
+			if _, status, err = getExitCode(ctx, cli, createResponse.ID); err != nil {
 				return err
 			}
 		}

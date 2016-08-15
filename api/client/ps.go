@@ -1,12 +1,13 @@
 package client
 
 import (
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/filters"
 	"github.com/hyperhq/hypercli/api/client/formatter"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
+	"golang.org/x/net/context"
 )
 
 // CmdPs outputs a list of Docker containers.
@@ -56,7 +57,7 @@ func (cli *DockerCli) CmdPs(args ...string) error {
 		Filter: psFilterArgs,
 	}
 
-	containers, err := cli.client.ContainerList(options)
+	containers, err := cli.client.ContainerList(context.Background(), options)
 	if err != nil {
 		return err
 	}

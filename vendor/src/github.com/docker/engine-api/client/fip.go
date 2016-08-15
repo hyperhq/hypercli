@@ -6,13 +6,14 @@ import (
 
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
+	"golang.org/x/net/context"
 )
 
-func (cli *Client) FipAllocate(count string) ([]string, error) {
+func (cli *Client) FipAllocate(ctx context.Context, count string) ([]string, error) {
 	var result []string
 	var v = url.Values{}
 	v.Set("count", count)
-	serverResp, err := cli.post("/fips/allocate?"+v.Encode(), nil, nil, nil)
+	serverResp, err := cli.post(ctx, "/fips/allocate", v, nil, nil)
 	if err != nil {
 		return result, err
 	}
@@ -22,32 +23,32 @@ func (cli *Client) FipAllocate(count string) ([]string, error) {
 	return result, err
 }
 
-func (cli *Client) FipRelease(ip string) error {
+func (cli *Client) FipRelease(ctx context.Context, ip string) error {
 	var v = url.Values{}
 	v.Set("ip", ip)
-	_, err := cli.post("/fips/release?"+v.Encode(), nil, nil, nil)
+	_, err := cli.post(ctx, "/fips/release", v, nil, nil)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (cli *Client) FipAssociate(ip, container string) error {
+func (cli *Client) FipAttach(ctx context.Context, ip, container string) error {
 	var v = url.Values{}
 	v.Set("ip", ip)
 	v.Set("container", container)
-	_, err := cli.post("/fips/associate?"+v.Encode(), nil, nil, nil)
+	_, err := cli.post(ctx, "/fips/attach", v, nil, nil)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (cli *Client) FipDisassociate(container string) (string, error) {
+func (cli *Client) FipDetach(ctx context.Context, container string) (string, error) {
 	var result string
 	var v = url.Values{}
 	v.Set("container", container)
-	resp, err := cli.post("/fips/deassociate?"+v.Encode(), nil, nil, nil)
+	resp, err := cli.post(ctx, "/fips/detach", v, nil, nil)
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +57,7 @@ func (cli *Client) FipDisassociate(container string) (string, error) {
 	return result, nil
 }
 
-func (cli *Client) FipList(options types.NetworkListOptions) ([]map[string]string, error) {
+func (cli *Client) FipList(ctx context.Context, options types.NetworkListOptions) ([]map[string]string, error) {
 	query := url.Values{}
 	if options.Filters.Len() > 0 {
 		filterJSON, err := filters.ToParam(options.Filters)
@@ -67,7 +68,7 @@ func (cli *Client) FipList(options types.NetworkListOptions) ([]map[string]strin
 		query.Set("filters", filterJSON)
 	}
 	var fips []map[string]string
-	resp, err := cli.get("/fips", query, nil)
+	resp, err := cli.get(ctx, "/fips", query, nil)
 	if err != nil {
 		return fips, err
 	}

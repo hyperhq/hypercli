@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
@@ -20,7 +22,7 @@ func (cli *DockerCli) CmdRm(args ...string) error {
 	cmd.Require(flag.Min, 1)
 
 	cmd.ParseFlags(args, true)
-
+	ctx := context.Background()
 	var errs []string
 	for _, name := range cmd.Args() {
 		if name == "" {
@@ -28,7 +30,7 @@ func (cli *DockerCli) CmdRm(args ...string) error {
 		}
 		name = strings.Trim(name, "/")
 
-		warnings, err := cli.removeContainer(name, *v, *link, *force)
+		warnings, err := cli.removeContainer(ctx, name, *v, *link, *force)
 		if err != nil {
 			errs = append(errs, err.Error())
 		} else {
@@ -45,14 +47,13 @@ func (cli *DockerCli) CmdRm(args ...string) error {
 	return nil
 }
 
-func (cli *DockerCli) removeContainer(containerID string, removeVolumes, removeLinks, force bool) ([]string, error) {
+func (cli *DockerCli) removeContainer(ctx context.Context, containerID string, removeVolumes, removeLinks, force bool) ([]string, error) {
 	options := types.ContainerRemoveOptions{
-		ContainerID:   containerID,
 		RemoveVolumes: removeVolumes,
 		RemoveLinks:   removeLinks,
 		Force:         force,
 	}
-	warnings, err := cli.client.ContainerRemove(options)
+	warnings, err := cli.client.ContainerRemove(ctx, containerID, options)
 	if err != nil {
 		return nil, err
 	}

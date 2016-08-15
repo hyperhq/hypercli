@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"text/tabwriter"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/filters"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
 )
 
 // CmdSnapshot is the parent subcommand for all snapshot commands
@@ -58,7 +60,7 @@ func (cli *DockerCli) CmdSnapshotLs(args ...string) error {
 		}
 	}
 
-	snapshots, err := cli.client.SnapshotList(volFilterArgs)
+	snapshots, err := cli.client.SnapshotList(context.Background(), volFilterArgs)
 	if err != nil {
 		return err
 	}
@@ -98,7 +100,7 @@ func (cli *DockerCli) CmdSnapshotInspect(args ...string) error {
 	}
 
 	inspectSearcher := func(name string) (interface{}, []byte, error) {
-		i, err := cli.client.SnapshotInspect(name)
+		i, err := cli.client.SnapshotInspect(context.Background(), name)
 		return i, nil, err
 	}
 
@@ -123,7 +125,7 @@ func (cli *DockerCli) CmdSnapshotCreate(args ...string) error {
 		Force:  *flForce,
 	}
 
-	vol, err := cli.client.SnapshotCreate(volReq)
+	vol, err := cli.client.SnapshotCreate(context.Background(), volReq)
 	if err != nil {
 		return err
 	}
@@ -143,7 +145,7 @@ func (cli *DockerCli) CmdSnapshotRm(args ...string) error {
 	var status = 0
 
 	for _, name := range cmd.Args() {
-		if err := cli.client.SnapshotRemove(name); err != nil {
+		if err := cli.client.SnapshotRemove(context.Background(), name); err != nil {
 			fmt.Fprintf(cli.err, "%s\n", err)
 			status = 1
 			continue

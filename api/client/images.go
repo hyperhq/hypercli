@@ -1,12 +1,13 @@
 package client
 
 import (
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/filters"
 	"github.com/hyperhq/hypercli/api/client/formatter"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
+	"golang.org/x/net/context"
 )
 
 // CmdImages lists the images in a specified repository, or all top-level images if no repository is specified.
@@ -48,7 +49,7 @@ func (cli *DockerCli) CmdImages(args ...string) error {
 		Filters:   imageFilterArgs,
 	}
 
-	images, err := cli.client.ImageList(options)
+	images, err := cli.client.ImageList(context.Background(), options)
 	if err != nil {
 		return err
 	}

@@ -39,3 +39,4 @@ pyenv
 vendor/pkg/
 .idea
 integration-cli/util.conf
+*.yml

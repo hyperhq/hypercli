@@ -5,13 +5,14 @@ import (
 	"io"
 	"os"
 
+	"golang.org/x/net/context"
+
+	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	"github.com/hyperhq/hypercli/pkg/jsonmessage"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/urlutil"
-	"github.com/hyperhq/hypercli/reference"
-	"github.com/docker/engine-api/types"
 )
 
 // CmdImport creates an empty filesystem image, imports the contents of the tarball into the image, and optionally tags the image.
@@ -29,24 +30,17 @@ func (cli *DockerCli) Import(args ...string) error {
 	cmd.ParseFlags(args, true)
 
 	var (
-		in         io.Reader
-		tag        string
-		src        = cmd.Arg(0)
-		srcName    = src
-		repository = cmd.Arg(1)
-		changes    = flChanges.GetAll()
+		in      io.Reader
+		tag     string
+		src     = cmd.Arg(0)
+		srcName = src
+		ref     = cmd.Arg(1)
+		changes = flChanges.GetAll()
 	)
 
 	if cmd.NArg() == 3 {
 		fmt.Fprintf(cli.err, "[DEPRECATED] The format 'file|URL|- [REPOSITORY [TAG]]' has been deprecated. Please use file|URL|- [REPOSITORY[:TAG]]\n")
 		tag = cmd.Arg(2)
-	}
-
-	if repository != "" {
-		//Check if the given image name can be resolved
-		if _, err := reference.ParseNamed(repository); err != nil {
-			return err
-		}
 	}
 
 	if src == "-" {
@@ -60,17 +54,18 @@ func (cli *DockerCli) Import(args ...string) error {
 		defer file.Close()
 		in = file
 	}
-
-	options := types.ImageImportOptions{
-		Source:         in,
-		SourceName:     srcName,
-		RepositoryName: repository,
-		Message:        *message,
-		Tag:            tag,
-		Changes:        changes,
+	source := types.ImageImportSource{
+		Source:     in,
+		SourceName: srcName,
 	}
 
-	responseBody, err := cli.client.ImageImport(options)
+	options := types.ImageImportOptions{
+		Message: *message,
+		Tag:     tag,
+		Changes: changes,
+	}
+
+	responseBody, err := cli.client.ImageImport(context.Background(), source, ref, options)
 	if err != nil {
 		return err
 	}

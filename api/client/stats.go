@@ -10,6 +10,8 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types"
 	"github.com/docker/go-units"
 	Cli "github.com/hyperhq/hypercli/cli"
@@ -34,8 +36,8 @@ type stats struct {
 	cs []*containerStats
 }
 
-func (s *containerStats) Collect(cli *DockerCli, streamStats bool) {
-	responseBody, err := cli.client.ContainerStats(s.Name, streamStats)
+func (s *containerStats) Collect(cli *DockerCli, ctx context.Context, streamStats bool) {
+	responseBody, err := cli.client.ContainerStats(ctx, s.Name, streamStats)
 	if err != nil {
 		s.mu.Lock()
 		s.err = err
@@ -146,11 +148,13 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 	names := cmd.Args()
 	showAll := len(names) == 0
 
+	ctx := context.Background()
+
 	if showAll {
 		options := types.ContainerListOptions{
 			All: *all,
 		}
-		cs, err := cli.client.ContainerList(options)
+		cs, err := cli.client.ContainerList(ctx, options)
 		if err != nil {
 			return err
 		}
@@ -178,7 +182,7 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 		s := &containerStats{Name: n}
 		// no need to lock here since only the main goroutine is running here
 		cStats.cs = append(cStats.cs, s)
-		go s.Collect(cli, !*noStream)
+		go s.Collect(cli, ctx, !*noStream)
 	}
 	// do a quick pause so that any failed connections for containers that do not exist are able to be
 	// evicted before we display the initial or default values.
@@ -222,16 +226,7 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 }
 
 func calculateCPUPercent(previousCPU, previousSystem uint64, v *types.StatsJSON) float64 {
-	var (
-		cpuPercent = 0.0
-		// calculate the change for the cpu usage of the container in between readings
-		cpuDelta = float64(v.CPUStats.CPUUsage.TotalUsage)
-	)
-
-	if cpuDelta > 0.0 {
-		cpuPercent = 100.0 * cpuDelta / float64(len(v.CPUStats.CPUUsage.PercpuUsage)*1000000000.0)
-	}
-	return cpuPercent
+	return float64(v.CPUStats.CPUUsage.TotalUsage) / 100.0
 }
 
 func calculateBlockIO(blkio types.BlkioStats) (blkRead uint64, blkWrite uint64) {

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"text/tabwriter"
 
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
 	Cli "github.com/hyperhq/hypercli/cli"
@@ -34,7 +36,7 @@ func (cli *DockerCli) CmdFipAllocate(args ...string) error {
 		return err
 	}
 
-	fips, err := cli.client.FipAllocate(cmd.Arg(0))
+	fips, err := cli.client.FipAllocate(context.Background(), cmd.Arg(0))
 	if err != nil {
 		return err
 	}
@@ -56,7 +58,7 @@ func (cli *DockerCli) CmdFipRelease(args ...string) error {
 
 	status := 0
 	for _, ip := range cmd.Args() {
-		if err := cli.client.FipRelease(ip); err != nil {
+		if err := cli.client.FipRelease(context.Background(), ip); err != nil {
 			fmt.Fprintf(cli.err, "%s\n", err)
 			status = 1
 			continue
@@ -68,30 +70,30 @@ func (cli *DockerCli) CmdFipRelease(args ...string) error {
 	return nil
 }
 
-// CmdFipAssociate connects a container to a floating IP
+// CmdFipAttach connects a container to a floating IP
 //
-// Usage: docker fip associate [OPTIONS] <FIP> <CONTAINER>
-func (cli *DockerCli) CmdFipAssociate(args ...string) error {
-	cmd := Cli.Subcmd("fip associate", []string{"FIP CONTAINER"}, "Connects a container to a floating IP", false)
+// Usage: docker fip attach [OPTIONS] <FIP> <CONTAINER>
+func (cli *DockerCli) CmdFipAttach(args ...string) error {
+	cmd := Cli.Subcmd("fip attach", []string{"FIP CONTAINER"}, "Connects a container to a floating IP", false)
 	cmd.Require(flag.Min, 2)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return err
 	}
-	return cli.client.FipAssociate(cmd.Arg(0), cmd.Arg(1))
+	return cli.client.FipAttach(context.Background(), cmd.Arg(0), cmd.Arg(1))
 }
 
-// CmdFipDisassociate disconnects a container from a floating IP
+// CmdFipDetach disconnects a container from a floating IP
 //
-// Usage: docker fip disassociate <CONTAINER>
-func (cli *DockerCli) CmdFipDisassociate(args ...string) error {
-	cmd := Cli.Subcmd("fip disassociate", []string{"CONTAINER"}, "Disconnects container from a floating IP", false)
+// Usage: docker fip detach <CONTAINER>
+func (cli *DockerCli) CmdFipDetach(args ...string) error {
+	cmd := Cli.Subcmd("fip detach", []string{"CONTAINER"}, "Disconnects container from a floating IP", false)
 	//force := cmd.Bool([]string{"f", "-force"}, false, "Force the container to disconnect from a floating IP")
 	cmd.Require(flag.Exact, 1)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return err
 	}
 
-	ip, err := cli.client.FipDisassociate(cmd.Arg(0))
+	ip, err := cli.client.FipDetach(context.Background(), cmd.Arg(0))
 	if err != nil {
 		return err
 	}
@@ -127,7 +129,7 @@ func (cli *DockerCli) CmdFipLs(args ...string) error {
 		Filters: fipFilterArgs,
 	}
 
-	fips, err := cli.client.FipList(options)
+	fips, err := cli.client.FipList(context.Background(), options)
 	if err != nil {
 		return err
 	}
@@ -143,36 +145,36 @@ func (cli *DockerCli) CmdFipLs(args ...string) error {
 }
 
 func fipUsage() string {
-	fipCommands := map[string]string{
-		"allocate":     "Allocate a or some IPs",
-		"associate":    "Associate floating IP to container",
-		"disassociate": "Disassociate floating IP from container",
-		"ls":           "List all floating IPs",
-		"release":      "Release a floating IP",
+	fipCommands := [][]string{
+		{"allocate", "Allocate a or some IPs"},
+		{"attach", "Attach floating IP to container"},
+		{"detach", "Detach floating IP from conainer"},
+		{"ls", "List all floating IPs"},
+		{"release", "Release a floating IP"},
 	}
 
 	help := "Commands:\n"
 
-	for cmd, description := range fipCommands {
-		help += fmt.Sprintf("  %-25.25s%s\n", cmd, description)
+	for _, cmd := range fipCommands {
+		help += fmt.Sprintf("  %-25.25s%s\n", cmd[0], cmd[1])
 	}
 
 	help += fmt.Sprintf("\nRun 'hyper fip COMMAND --help' for more information on a command.")
 	return help
 }
 
-// Allocate and associate a fip
-func (cli *DockerCli) associateNewFip(contID string) (string, error) {
-	fips, err := cli.client.FipAllocate("1")
+// Allocate and attach a fip
+func (cli *DockerCli) associateNewFip(ctx context.Context, contID string) (string, error) {
+	fips, err := cli.client.FipAllocate(ctx, "1")
 	if err != nil {
 		return "", err
 	}
 
 	for _, ip := range fips {
-		err = cli.client.FipAssociate(ip, contID)
+		err = cli.client.FipAttach(ctx, ip, contID)
 		if err != nil {
 			go func() {
-				cli.client.FipRelease(ip)
+				cli.client.FipRelease(ctx, ip)
 			}()
 			return "", err
 		}
@@ -183,16 +185,16 @@ func (cli *DockerCli) associateNewFip(contID string) (string, error) {
 }
 
 // Release a fip
-func (cli *DockerCli) releaseFip(ip string) error {
-	return cli.client.FipRelease(ip)
+func (cli *DockerCli) releaseFip(ctx context.Context, ip string) error {
+	return cli.client.FipRelease(ctx, ip)
 }
 
-// Disassociate and release a fip
-func (cli *DockerCli) releaseContainerFip(contID string) error {
-	ip, err := cli.client.FipDisassociate(contID)
+// Detach and release a fip
+func (cli *DockerCli) releaseContainerFip(ctx context.Context, contID string) error {
+	ip, err := cli.client.FipDetach(ctx, contID)
 	if err != nil {
 		return err
 	}
 
-	return cli.client.FipRelease(ip)
+	return cli.client.FipRelease(ctx, ip)
 }
