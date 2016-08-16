@@ -270,7 +270,7 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	for _, desc := range req.Volume {
 		if url, ok := resp.Uploaders[desc.Name]; ok {
 			wg.Add(1)
-			go uploadLocalVolume(cli, desc.Source, url, resp.Cookie, results, &wg)
+			go uploadLocalVolume(cli, desc.Source, url, resp.Cookie, &results, &wg)
 		}
 	}
 
@@ -286,13 +286,13 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	return err
 }
 
-func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results []error, wg *sync.WaitGroup) {
+func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]error, wg *sync.WaitGroup) {
 	var err error
 
-	fmt.Fprintf(cli.out, "uploading %s", source)
+	fmt.Fprintf(cli.out, "uploading %s ", source)
 	defer func() {
 		if err != nil {
-			results = append(results, err)
+			*results = append(*results, err)
 		}
 		wg.Done()
 	}()
@@ -376,29 +376,33 @@ func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results []err
 		return
 	}
 
-	defer resp.Body.Close()
-	_, err = io.Copy(cli.out, resp.Body)
+	defer resp.Close()
+	_, err = io.Copy(cli.out, resp)
 }
 
-type VolumeUploadResponse struct {
-	Body io.ReadCloser
-	JSON bool
-}
-
-func sendTarball(uri, cookie string, input io.Reader) (VolumeUploadResponse, error) {
+func sendTarball(uri, cookie string, input io.Reader) (io.ReadCloser, error) {
 	req, err := http.NewRequest("POST", uri+"?cookie="+cookie, input)
 	if err != nil {
-		return VolumeUploadResponse{}, err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-tar")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return VolumeUploadResponse{}, err
+		return nil, err
 	}
-	return VolumeUploadResponse{
-		Body: resp.Body,
-		JSON: resp.Header.Get("Content-Type") == "application/json",
-	}, nil
+
+	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
+		if buf.Len() > 0 {
+			err = fmt.Errorf("%s: %s", http.StatusText(resp.StatusCode), buf.String())
+		} else {
+			err = fmt.Errorf("%s", http.StatusText(resp.StatusCode))
+		}
+		return nil, err
+	}
+	return resp.Body, nil
 }
