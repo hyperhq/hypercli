@@ -45,6 +45,7 @@ func (s *DockerSuite) TestLinksPingLinkedContainers(c *check.C) {
 
 	// test ping by alias, ping by name, and ping by hostname
 	// 1. Ping by alias
+	time.Sleep(2 * time.Second)
 	dockerCmd(c, append(runArgs, fmt.Sprintf(pingCmd, "alias1", "alias2"))...)
 	// 2. Ping by container name
 	/* FIXME https://github.com/hyperhq/hypercli/issues/78

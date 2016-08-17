@@ -81,6 +81,7 @@ func (s *DockerSuite) TestExecAfterContainerRestart(c *check.C) {
 	dockerCmd(c, "restart", cleanedContainerID)
 	c.Assert(waitRun(cleanedContainerID), check.IsNil)
 
+	time.Sleep(2 * time.Second)
 	out, _ = dockerCmd(c, "exec", cleanedContainerID, "echo", "hello")
 	outStr := strings.TrimSpace(out)
 	c.Assert(outStr, checker.Equals, "hello")
@@ -299,8 +300,10 @@ func (s *DockerSuite) TestLinksPingLinkedContainersOnRename(c *check.C) {
 	idB := strings.TrimSpace(out)
 	c.Assert(idB, checker.Not(checker.Equals), "", check.Commentf("%s, id should not be nil", out))
 
+	time.Sleep(2 * time.Second)
 	dockerCmd(c, "exec", "container2", "ping", "-c", "1", "alias1", "-W", "1")
 	dockerCmd(c, "rename", "container1", "container-new")
+	time.Sleep(2 * time.Second)
 	dockerCmd(c, "exec", "container2", "ping", "-c", "1", "alias1", "-W", "1")
 }
 

@@ -47,6 +47,7 @@ func (s *DockerSuite) TestRmContainerRunning(c *check.C) {
 	deleteAllContainers()
 	createRunningContainer(c, "foo")
 
+	time.Sleep(2 * time.Second)
 	_, _, err := dockerCmdWithError("rm", "foo")
 	c.Assert(err, checker.NotNil, check.Commentf("Expected error, can't rm a running container"))
 }
