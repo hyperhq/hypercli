@@ -4,7 +4,7 @@ VERSION=$(< ./VERSION)
 if command -v git &> /dev/null && git rev-parse &> /dev/null; then
 	GITCOMMIT=$(git rev-parse --short HEAD)
 	if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
-		GITCOMMIT="$GITCOMMIT-beta"
+		GITCOMMIT="$GITCOMMIT"
 	fi
 	BUILDTIME=$(date -u)
 elif [ "$HYPER_GITCOMMIT" ]; then
