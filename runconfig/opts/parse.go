@@ -726,6 +726,15 @@ func volumeSplitN(raw string, n int) []string {
 					numberOfParts++
 				}
 				// else, `C:` is considered as a drive letter and not as a delimiter, so we continue parsing.
+			} else if right != len(raw)-1 {
+				// check next to see if this is a windows partition
+				next := raw[right+1]
+				if next != '\\' {
+					// C: is a single character volume name
+					array = append(array, raw[left:right])
+					left = right + 1
+					numberOfParts++
+				}
 			}
 			// if right == 1, then `C:` is the beginning of the raw string, therefore `:` is again not considered a delimiter and we continue parsing.
 		} else {
