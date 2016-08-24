@@ -51,7 +51,7 @@ func (cli *Client) ComposeDown(project string, services []string, rmi string, vo
 		query.Set("rmi", rmi)
 	}
 	if vol {
-		query.Set("vol", "true")
+		query.Set("rmvol", "true")
 	}
 	if rmorphans {
 		query.Set("rmorphans", "true")
