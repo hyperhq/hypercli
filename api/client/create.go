@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -72,14 +73,73 @@ func newCIDFile(path string) (*cidFile, error) {
 	return &cidFile{path: path, file: f}, nil
 }
 
+func parseProtoAndLocalBind(bind string) (string, string, bool) {
+	switch {
+	case strings.HasPrefix(bind, "git://"):
+		fallthrough
+	case strings.HasPrefix(bind, "http://"):
+		fallthrough
+	case strings.HasPrefix(bind, "https://"):
+		if strings.Count(bind, ":") < 2 {
+			return "", "", false
+		}
+	case strings.HasPrefix(bind, "/"):
+		if strings.Count(bind, ":") < 1 {
+			return "", "", false
+		}
+	default:
+		return "", "", false
+	}
+
+	pos := strings.LastIndex(bind, ":")
+	if pos < 0 || pos >= len(bind)-1 {
+		return "", "", false
+	}
+
+	return bind[:pos], bind[pos+1:], true
+}
+
 func (cli *DockerCli) createContainer(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *networktypes.NetworkingConfig, cidfile, name string) (*types.ContainerCreateResponse, error) {
 	var containerIDFile *cidFile
+	var initvols, volumeList []string
+
 	if cidfile != "" {
 		var err error
 		if containerIDFile, err = newCIDFile(cidfile); err != nil {
 			return nil, err
 		}
 		defer containerIDFile.Close()
+	}
+
+	// Check/create protocol and local volume
+	defer func() {
+		for _, vol := range volumeList {
+			cli.client.VolumeRemove(ctx, vol)
+		}
+	}()
+	for idx, bind := range hostConfig.Binds {
+		if source, dest, ok := parseProtoAndLocalBind(bind); ok {
+			volReq := types.VolumeCreateRequest{
+				Driver: "hyper",
+				Labels: map[string]string{
+					"autoremove": "true",
+				}}
+			if vol, err := cli.client.VolumeCreate(ctx, volReq); err != nil {
+				return nil, err
+			} else {
+				initvols = append(initvols, source+":"+vol.Name)
+				volumeList = append(volumeList, vol.Name)
+				hostConfig.Binds[idx] = vol.Name + ":" + dest
+			}
+		}
+	}
+
+	// initialize special volumes
+	if len(initvols) > 0 {
+		err := cli.initVolumes(initvols, false)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ref, err := reference.ParseNamed(config.Image)
@@ -126,6 +186,7 @@ func (cli *DockerCli) createContainer(ctx context.Context, config *container.Con
 			return nil, err
 		}
 	}
+	volumeList = nil
 
 	for _, warning := range response.Warnings {
 		fmt.Fprintf(cli.err, "WARNING: %s\n", warning)
