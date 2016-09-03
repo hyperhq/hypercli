@@ -18,6 +18,7 @@ import (
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
 	"github.com/hyperhq/hypercli/opts"
+	"github.com/sethgrid/multibar"
 	"golang.org/x/net/context"
 )
 
@@ -266,12 +267,14 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	// Upload local volumes
 	var wg sync.WaitGroup
 	var results []error
+	bars, _ := multibar.New()
 	for _, desc := range req.Volume {
 		if url, ok := resp.Uploaders[desc.Name]; ok {
 			wg.Add(1)
-			go uploadLocalVolume(cli, desc.Source, url, resp.Cookie, &results, &wg)
+			go uploadLocalVolume(cli, desc.Source, url, resp.Cookie, &results, &wg, bars)
 		}
 	}
+	go bars.Listen()
 
 	wg.Wait()
 	for _, err = range results {
@@ -285,7 +288,7 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	return err
 }
 
-func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]error, wg *sync.WaitGroup) {
+func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]error, wg *sync.WaitGroup, bars *multibar.BarContainer) {
 	var (
 		resp     io.ReadCloser
 		tar      *TarFile
@@ -293,7 +296,6 @@ func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]er
 		err      error
 	)
 
-	fmt.Fprintf(cli.out, "uploading %s ", source)
 	defer func() {
 		if err != nil {
 			*results = append(*results, err)
@@ -306,7 +308,7 @@ func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]er
 		return
 	}
 
-	tar = NewTarFile(cli, 512)
+	tar = NewTarFile(source, 512)
 	walkFunc := func(path string, info os.FileInfo, err error) error {
 		var relPath, linkName string
 
@@ -341,14 +343,13 @@ func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]er
 	if err != nil {
 		return
 	}
+	tar.AllocBar(bars)
 
 	resp, err = sendTarball(url, cookie, tar)
 	if err != nil {
 		return
 	}
-
 	defer resp.Close()
-	_, err = io.Copy(cli.out, resp)
 }
 
 func sendTarball(uri, cookie string, input io.ReadCloser) (io.ReadCloser, error) {

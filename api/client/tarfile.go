@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+
+	"github.com/sethgrid/multibar"
 )
 
 const (
@@ -29,12 +32,15 @@ type tarInfo struct {
 }
 
 type TarFile struct {
-	cli       *DockerCli
 	fileList  []*tarInfo
 	blockSize int
 	endPad    int
 	padding   []byte
 	closed    bool
+
+	source   string
+	sendPos  int
+	progress multibar.ProgressFunc
 }
 
 func (t *TarFile) writeHeader(p []byte, info *tarInfo) (int, error) {
@@ -72,19 +78,16 @@ func (t *TarFile) writeFile(p []byte, info *tarInfo) (int, error) {
 	var err error
 
 	if f, err = os.Open(info.path); err != nil {
-		fmt.Fprintf(t.cli.err, "open failed with %s\n", err.Error())
 		return 0, err
 	}
 	defer f.Close()
 	// resuming
 	if info.pos != 0 {
 		if _, err = f.Seek(info.pos, os.SEEK_SET); err != nil {
-			fmt.Fprintf(t.cli.err, "seek failed with %s\n", err.Error())
 			return 0, err
 		}
 	}
 	if ret, err := f.Read(p); err != nil && err != io.EOF {
-		fmt.Fprintf(t.cli.err, "read failed with %s\n", err.Error())
 		return 0, err
 	} else {
 		return ret, nil
@@ -114,6 +117,10 @@ func (t *TarFile) writeClose(p []byte) (n int, err error) {
 		return size, io.EOF
 	}
 	return size - t.endPad, nil
+}
+
+func (t *TarFile) AllocBar(bars *multibar.BarContainer) {
+	t.progress = bars.MakeBar(len(t.fileList), fmt.Sprintf("Sending %s", t.source))
 }
 
 func (t *TarFile) AddFile(info os.FileInfo, relPath, linkName, path string) {
@@ -169,7 +176,6 @@ func (t *TarFile) Read(p []byte) (n int, err error) {
 				n += ret
 				p = p[n:]
 				if file.headerBuf.Len() == 0 {
-					fmt.Fprintf(t.cli.out, ".")
 					if file.info.Mode().IsRegular() {
 						file.state = TARINFO_FILE
 					} else {
@@ -204,6 +210,8 @@ func (t *TarFile) Read(p []byte) (n int, err error) {
 			}
 		case TARINFO_UPLOADED:
 			file.state = TARINFO_FINISHED
+			t.sendPos++
+			t.progress(t.sendPos)
 			if idx == len(t.fileList)-1 {
 				return n, io.EOF
 			}
@@ -213,11 +221,11 @@ func (t *TarFile) Read(p []byte) (n int, err error) {
 	return n, nil
 }
 
-func NewTarFile(cli *DockerCli, blockSize int) *TarFile {
+func NewTarFile(path string, blockSize int) *TarFile {
 	return &TarFile{
-		cli:       cli,
 		blockSize: blockSize,
 		endPad:    blockSize * 2,
+		source:    filepath.Base(path),
 		padding:   make([]byte, blockSize),
 	}
 }
