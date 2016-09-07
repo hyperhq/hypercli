@@ -28,6 +28,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		// FIXME: use utils.ListOpts for attach and volumes?
 		flAttach            = opts.NewListOpts(ValidateAttach)
 		flVolumes           = opts.NewListOpts(nil)
+		flSecurityGroups    = opts.NewListOpts(nil)
 		flTmpfs             = opts.NewListOpts(nil)
 		flBlkioWeightDevice = NewWeightdeviceOpt(ValidateWeightDevice)
 		flDeviceReadBps     = NewThrottledeviceOpt(ValidateThrottleBpsDevice)
@@ -125,6 +126,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 	cmd.Var(&flSecurityOpt, []string{}, "Security Options")
 	cmd.Var(flUlimits, []string{}, "Ulimit options")
 	cmd.Var(&flLoggingOpts, []string{}, "Log driver options")
+	cmd.Var(&flSecurityGroups, []string{"-sg"}, "Security group for each container")
 
 	cmd.Require(flag.Min, 1)
 
@@ -302,6 +304,12 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		return nil, nil, nil, cmd, err
 	}
 	labels = append(labels, fmt.Sprintf("sh_hyper_instancetype=%s", *flInstanceType))
+	for _, sg := range flSecurityGroups.GetAll() {
+		if sg == "" {
+			continue
+		}
+		labels = append(labels, fmt.Sprintf("sh_hyper_sg_%s=yes", sg))
+	}
 
 	ipcMode := container.IpcMode(*flIpcMode)
 	if !ipcMode.Valid() {

@@ -514,3 +514,52 @@ type NetworkDisconnect struct {
 type Checkpoint struct {
 	Name string // Name is the name of the checkpoint
 }
+
+type Rule struct {
+	// The unique ID. If Neutron is installed, this ID will be
+	// represented as a string UUID; if Neutron is not installed, it will be a
+	// numeric ID. For the sake of consistency, we always cast it to a string.
+	ID string `json:"-" yaml:",omitempty"`
+
+	// The direction in which the security group rule is applied. The only values
+	// allowed are "ingress" or "egress". For a compute instance, an ingress
+	// security group rule is applied to incoming (ingress) traffic for that
+	// instance. An egress rule is applied to traffic leaving the instance.
+	Direction string
+
+	// Must be IPv4 or IPv6, and addresses represented in CIDR must match the
+	// ingress or egress rules.
+	EtherType string `json:"-" yaml:",omitempty"`
+
+	// The security group ID to associate with this security group rule.
+	SecGroupID string `json:"security_group_id" yaml:",omitempty"`
+
+	// The minimum port number in the range that is matched by the security group
+	// rule. If the protocol is TCP or UDP, this value must be less than or equal
+	// to the value of the PortRangeMax attribute. If the protocol is ICMP, this
+	// value must be an ICMP type.
+	PortRangeMin int `json:"port_range_min" yaml:"port_range_min"`
+
+	// The maximum port number in the range that is matched by the security group
+	// rule. The PortRangeMin attribute constrains the PortRangeMax attribute. If
+	// the protocol is ICMP, this value must be an ICMP type.
+	PortRangeMax int `json:"port_range_max" yaml:"port_range_max"`
+
+	// The protocol that is matched by the security group rule. Valid values are
+	// "tcp", "udp", "icmp" or an empty string.
+	Protocol string
+
+	// The remote IP prefix to be associated with this security group rule. You
+	// can specify either RemoteGroupID or RemoteIPPrefix . This attribute
+	// matches the specified IP prefix as the source IP address of the IP packet.
+	RemoteIPPrefix string `json:"remote_ip_prefix" yaml:"remote_ip_prefix"`
+}
+
+type SecurityGroup struct {
+	GroupName string `json:"name" yaml:"name"`
+	GroupType string `json:"type" yaml:"type"`
+	// The human-readable description of the group
+	Description string `json:"description" yaml:"description"`
+	// The rules which determine how this security group operates.
+	Rules []Rule `json:"rules" yaml:"rules"`
+}
