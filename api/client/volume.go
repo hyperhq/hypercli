@@ -1,7 +1,6 @@
 package client
 
 import (
-	"archive/tar"
 	"bytes"
 	"fmt"
 	"io"
@@ -12,14 +11,15 @@ import (
 	"sync"
 	"text/tabwriter"
 
-	"golang.org/x/net/context"
+	Cli "github.com/hyperhq/hypercli/cli"
+	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
-	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
-	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/hyperhq/hypercli/pkg/stringid"
+	"github.com/sethgrid/multibar"
+	"golang.org/x/net/context"
 )
 
 // CmdVolume is the parent subcommand for all volume commands
@@ -267,12 +267,14 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	// Upload local volumes
 	var wg sync.WaitGroup
 	var results []error
+	bars, _ := multibar.New()
 	for _, desc := range req.Volume {
 		if url, ok := resp.Uploaders[desc.Name]; ok {
 			wg.Add(1)
-			go uploadLocalVolume(cli, desc.Source, url, resp.Cookie, &results, &wg)
+			go uploadLocalVolume(cli, desc.Source, url, resp.Cookie, &results, &wg, bars)
 		}
 	}
+	go bars.Listen()
 
 	wg.Wait()
 	for _, err = range results {
@@ -286,10 +288,14 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	return err
 }
 
-func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]error, wg *sync.WaitGroup) {
-	var err error
+func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]error, wg *sync.WaitGroup, bars *multibar.BarContainer) {
+	var (
+		resp     io.ReadCloser
+		tar      *TarFile
+		fullPath string
+		err      error
+	)
 
-	fmt.Fprintf(cli.out, "uploading %s ", source)
 	defer func() {
 		if err != nil {
 			*results = append(*results, err)
@@ -297,42 +303,23 @@ func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]er
 		wg.Done()
 	}()
 
-	fullPath, err := filepath.Abs(source)
+	fullPath, err = filepath.Abs(source)
 	if err != nil {
 		return
 	}
 
-	bodyBuf := &bytes.Buffer{}
-	tarWriter := tar.NewWriter(bodyBuf)
-	defer tarWriter.Close()
+	tar = NewTarFile(source, 512)
 	walkFunc := func(path string, info os.FileInfo, err error) error {
-		var (
-			relPath, linkName string
-
-			r *os.File
-		)
+		var relPath, linkName string
 
 		if err != nil {
 			return err
 		}
-		switch {
-		case info.IsDir():
-		case info.Mode()&os.ModeSymlink == os.ModeSymlink:
+		if info.Mode()&os.ModeSymlink == os.ModeSymlink {
 			linkName, err = os.Readlink(path)
 			if err != nil {
 				return err
 			}
-		case info.Mode().IsRegular():
-			r, err = os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer r.Close()
-		}
-
-		header, err := tar.FileInfoHeader(info, linkName)
-		if err != nil {
-			return err
 		}
 
 		if path == fullPath {
@@ -348,21 +335,7 @@ func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]er
 				return err
 			}
 		}
-
-		header.Name = relPath
-
-		err = tarWriter.WriteHeader(header)
-		if err != nil {
-			return err
-		}
-
-		if r != nil {
-			_, err := io.Copy(tarWriter, r)
-			if err != nil {
-				return err
-			}
-		}
-
+		tar.AddFile(info, relPath, linkName, path)
 		return nil
 	}
 
@@ -370,17 +343,16 @@ func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]er
 	if err != nil {
 		return
 	}
+	tar.AllocBar(bars)
 
-	resp, err := sendTarball(url, cookie, bodyBuf)
+	resp, err = sendTarball(url, cookie, tar)
 	if err != nil {
 		return
 	}
-
 	defer resp.Close()
-	_, err = io.Copy(cli.out, resp)
 }
 
-func sendTarball(uri, cookie string, input io.Reader) (io.ReadCloser, error) {
+func sendTarball(uri, cookie string, input io.ReadCloser) (io.ReadCloser, error) {
 	req, err := http.NewRequest("POST", uri+"?cookie="+cookie, input)
 	if err != nil {
 		return nil, err
