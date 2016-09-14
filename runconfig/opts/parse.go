@@ -94,6 +94,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		flIsolation         = cmd.String([]string{}, "", "Container isolation level")
 		flShmSize           = cmd.String([]string{}, "", "Size of /dev/shm, default value is 64MB")
 		flInstanceType      = cmd.String([]string{"-size"}, "s4", "The type for each instance (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flNoAutoVolume      = cmd.Bool([]string{"-noauto-volume"}, false, "Do not create volumes specified in image")
 	)
 	_ = flIsolation
 
@@ -331,6 +332,9 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 	securityOpts, err := parseSecurityOpts(flSecurityOpt.GetAll())
 	if err != nil {
 		return nil, nil, nil, cmd, err
+	}
+	if *flNoAutoVolume {
+		labels = append(labels, "sh_hyper_noauto_volume=true")
 	}
 
 	resources := container.Resources{
