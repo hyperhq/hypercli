@@ -16,8 +16,10 @@ import (
 // Usage: hyper update [OPTIONS] CONTAINER [CONTAINER...]
 func (cli *DockerCli) CmdUpdate(args ...string) error {
 	cmd := Cli.Subcmd("update", []string{"CONTAINER [CONTAINER...]"}, Cli.DockerCommands["update"].Description, true)
-	flSecurityGroups := opts.NewListOpts(nil)
-	cmd.Var(&flSecurityGroups, []string{"-sg"}, "Security group for each container")
+	flAddSecurityGroups := opts.NewListOpts(nil)
+	flRmSecurityGroups := opts.NewListOpts(nil)
+	cmd.Var(&flAddSecurityGroups, []string{"-sg-add"}, "Add a new security group for each container")
+	cmd.Var(&flRmSecurityGroups, []string{"-sg-rm"}, "Remove a new security group for each container")
 
 	cmd.Require(flag.Min, 1)
 	cmd.ParseFlags(args, true)
@@ -29,27 +31,26 @@ func (cli *DockerCli) CmdUpdate(args ...string) error {
 	names := cmd.Args()
 	var errs []string
 	for _, name := range names {
-		res, err := cli.client.ContainerInspect(ctx, name)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
+		var updateConfig struct {
+			AddSecurityGroups    map[string]string
+			RemoveSecurityGroups map[string]string
 		}
-		labels := map[string]string{}
-		for label, val := range res.Config.Labels {
-			if !strings.HasPrefix(label, "sh_hyper_sg_") {
-				labels[label] = val
-			}
-		}
-		for _, label := range flSecurityGroups.GetAll() {
+		sgs := map[string]string{}
+		for _, label := range flAddSecurityGroups.GetAll() {
 			if label == "" {
 				continue
 			}
-			labels["sh_hyper_sg_"+label] = "yes"
+			sgs[label] = "yes"
 		}
-		var updateConfig struct {
-			Labels map[string]string
+		updateConfig.AddSecurityGroups = sgs
+		sgs = map[string]string{}
+		for _, label := range flRmSecurityGroups.GetAll() {
+			if label == "" {
+				continue
+			}
+			sgs[label] = "yes"
 		}
-		updateConfig.Labels = labels
+		updateConfig.RemoveSecurityGroups = sgs
 		if err := cli.client.ContainerUpdate(ctx, name, updateConfig); err != nil {
 			errs = append(errs, err.Error())
 		} else {

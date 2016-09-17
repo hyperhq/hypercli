@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -13,7 +14,7 @@ import (
 
 // CmdSg is the parent subcommand for all sg commands
 //
-// Usage: docker sg <COMMAND> [OPTIONS]
+// Usage: hyper sg <COMMAND> [OPTIONS]
 func (cli *DockerCli) CmdSg(args ...string) error {
 	cmd := Cli.Subcmd("sg", []string{"COMMAND [OPTIONS]"}, sgUsage(), false)
 	cmd.Require(flag.Min, 1)
@@ -26,7 +27,7 @@ func (cli *DockerCli) CmdSg(args ...string) error {
 //
 // Usage: hyper sg create [OPTIONS] NAME
 func (cli *DockerCli) CmdSgCreate(args ...string) error {
-	cmd := Cli.Subcmd("sg create", []string{"NAME"}, "Creates some new security groups by the user", false)
+	cmd := Cli.Subcmd("sg create", []string{"NAME"}, "Create a new security group", false)
 	file := cmd.String([]string{"f", "-file"}, "", "Yaml file to create security group")
 
 	cmd.Require(flag.Exact, 1)
@@ -50,7 +51,7 @@ func (cli *DockerCli) CmdSgCreate(args ...string) error {
 //
 // Usage: hyper sg rm [OPTIONS] NAME
 func (cli *DockerCli) CmdSgRm(args ...string) error {
-	cmd := Cli.Subcmd("sg rm", []string{"NAME"}, "Removes some security groups by the user", false)
+	cmd := Cli.Subcmd("sg rm", []string{"NAME"}, "Remove a security group", false)
 
 	cmd.Require(flag.Exact, 1)
 	err := cmd.ParseFlags(args, true)
@@ -69,7 +70,7 @@ func (cli *DockerCli) CmdSgRm(args ...string) error {
 //
 // Usage: hyper sg ls [OPTIONS]
 func (cli *DockerCli) CmdSgLs(args ...string) error {
-	cmd := Cli.Subcmd("sg ls", []string{}, "List security groups by the user", false)
+	cmd := Cli.Subcmd("sg ls", []string{}, "List security groups", false)
 
 	cmd.Require(flag.Exact, 0)
 	err := cmd.ParseFlags(args, true)
@@ -96,7 +97,8 @@ func (cli *DockerCli) CmdSgLs(args ...string) error {
 //
 // Usage: hyper sg inspect [OPTIONS] NAME
 func (cli *DockerCli) CmdSgInspect(args ...string) error {
-	cmd := Cli.Subcmd("sg inspect", []string{"NAME"}, "Inspect the security group by the user", false)
+	cmd := Cli.Subcmd("sg inspect", []string{"NAME"}, "Inspect the security group", false)
+	output := cmd.String([]string{"o", "-output"}, "json", "Output format with inspect operation")
 
 	cmd.Require(flag.Exact, 1)
 	err := cmd.ParseFlags(args, true)
@@ -108,11 +110,16 @@ func (cli *DockerCli) CmdSgInspect(args ...string) error {
 	if err != nil {
 		return err
 	}
-	output, err := yaml.Marshal(sg)
+	var data []byte
+	if *output == "json" {
+		data, err = json.Marshal(sg)
+	} else {
+		data, err = yaml.Marshal(sg)
+	}
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", string(output))
+	fmt.Printf("%s\n", string(data))
 	return nil
 }
 
@@ -120,7 +127,7 @@ func (cli *DockerCli) CmdSgInspect(args ...string) error {
 //
 // Usage: hyper sg update [OPTIONS] NAME
 func (cli *DockerCli) CmdSgUpdate(args ...string) error {
-	cmd := Cli.Subcmd("sg update", []string{"NAME"}, "Update the security group by the user", false)
+	cmd := Cli.Subcmd("sg update", []string{"NAME"}, "Update the security group", false)
 	file := cmd.String([]string{"f", "-file"}, "", "Yaml file to update security group")
 
 	cmd.Require(flag.Exact, 1)
@@ -142,11 +149,11 @@ func (cli *DockerCli) CmdSgUpdate(args ...string) error {
 
 func sgUsage() string {
 	sgCommands := [][]string{
-		{"create", "Create security group"},
+		{"create", "Create a new security group"},
 		{"ls", "List all security groups"},
-		{"rm", "Remove security group"},
+		{"rm", "Remove a security group"},
 		{"inspect", "Inspect the security group"},
-		{"update", "Update the security group config"},
+		{"update", "Update the security group"},
 	}
 
 	help := "Commands:\n"

@@ -516,23 +516,15 @@ type Checkpoint struct {
 }
 
 type Rule struct {
-	// The unique ID. If Neutron is installed, this ID will be
-	// represented as a string UUID; if Neutron is not installed, it will be a
-	// numeric ID. For the sake of consistency, we always cast it to a string.
-	ID string `json:"-" yaml:",omitempty"`
-
 	// The direction in which the security group rule is applied. The only values
 	// allowed are "ingress" or "egress". For a compute instance, an ingress
 	// security group rule is applied to incoming (ingress) traffic for that
 	// instance. An egress rule is applied to traffic leaving the instance.
-	Direction string
+	Direction string `json:"direction" yaml:"direction"`
 
 	// Must be IPv4 or IPv6, and addresses represented in CIDR must match the
 	// ingress or egress rules.
 	EtherType string `json:"-" yaml:",omitempty"`
-
-	// The security group ID to associate with this security group rule.
-	SecGroupID string `json:"security_group_id" yaml:",omitempty"`
 
 	// The minimum port number in the range that is matched by the security group
 	// rule. If the protocol is TCP or UDP, this value must be less than or equal
@@ -547,12 +539,16 @@ type Rule struct {
 
 	// The protocol that is matched by the security group rule. Valid values are
 	// "tcp", "udp", "icmp" or an empty string.
-	Protocol string
+	Protocol string `json:"protocol" yaml:"protocol"`
 
 	// The remote IP prefix to be associated with this security group rule. You
 	// can specify either RemoteGroupID or RemoteIPPrefix . This attribute
 	// matches the specified IP prefix as the source IP address of the IP packet.
 	RemoteIPPrefix string `json:"remote_ip_prefix" yaml:"remote_ip_prefix"`
+
+	// Optional. The remote group ID to be associated with this security group
+	// rule. You can specify either RemoteGroupID or RemoteIPPrefix.
+	RemoteGroupName string `json:"remote_group_name" yaml:"remote_group_name"`
 }
 
 type SecurityGroup struct {
