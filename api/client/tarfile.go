@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sethgrid/multibar"
+	"github.com/cheggaaa/pb"
 )
 
 const (
@@ -39,8 +39,7 @@ type TarFile struct {
 	closed    bool
 
 	source   string
-	sendPos  int
-	progress multibar.ProgressFunc
+	progress *pb.ProgressBar
 }
 
 func (t *TarFile) writeHeader(p []byte, info *tarInfo) (int, error) {
@@ -113,14 +112,19 @@ func (t *TarFile) writeClose(p []byte) (n int, err error) {
 		t.endPad -= ret
 	}
 	if t.endPad <= 0 {
+		t.progress.Finish()
 		t.closed = true
 		return size, io.EOF
 	}
 	return size - t.endPad, nil
 }
 
-func (t *TarFile) AllocBar(bars *multibar.BarContainer) {
-	t.progress = bars.MakeBar(len(t.fileList), fmt.Sprintf("Sending %s", t.source))
+func (t *TarFile) AllocBar(pool *pb.Pool) *pb.ProgressBar {
+	if t.progress == nil {
+		t.progress = pb.New(len(t.fileList)).Prefix(fmt.Sprintf("Sending %s", t.source))
+		pool.Add(t.progress)
+	}
+	return t.progress
 }
 
 func (t *TarFile) AddFile(info os.FileInfo, relPath, linkName, path string) {
@@ -134,6 +138,9 @@ func (t *TarFile) AddFile(info os.FileInfo, relPath, linkName, path string) {
 }
 
 func (t *TarFile) Close() error {
+	if !t.closed {
+		t.progress.Finish()
+	}
 	t.closed = true
 	return nil
 }
@@ -162,6 +169,12 @@ func (t *TarFile) Read(p []byte) (n int, err error) {
 			break
 		}
 	}
+
+	defer func() {
+		if err != nil && err != io.EOF {
+			t.Close()
+		}
+	}()
 
 	if file == nil {
 		return t.writeClose(p)
@@ -210,11 +223,7 @@ func (t *TarFile) Read(p []byte) (n int, err error) {
 			}
 		case TARINFO_UPLOADED:
 			file.state = TARINFO_FINISHED
-			t.sendPos++
-			t.progress(t.sendPos)
-			if idx == len(t.fileList)-1 {
-				return n, io.EOF
-			}
+			t.progress.Increment()
 		}
 	}
 

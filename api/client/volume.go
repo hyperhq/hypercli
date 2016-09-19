@@ -15,10 +15,10 @@ import (
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 
+	"github.com/cheggaaa/pb"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
 	"github.com/hyperhq/hypercli/opts"
-	"github.com/sethgrid/multibar"
 	"golang.org/x/net/context"
 )
 
@@ -267,16 +267,19 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	// Upload local volumes
 	var wg sync.WaitGroup
 	var results []error
-	bars, _ := multibar.New()
+	pool, err := pb.StartPool()
+	if err != nil {
+		return err
+	}
 	for _, desc := range req.Volume {
 		if url, ok := resp.Uploaders[desc.Name]; ok {
 			wg.Add(1)
-			go uploadLocalVolume(cli, desc.Source, url, resp.Cookie, &results, &wg, bars)
+			go uploadLocalVolume(desc.Source, url, resp.Cookie, &results, &wg, pool)
 		}
 	}
-	go bars.Listen()
 
 	wg.Wait()
+	pool.Stop()
 	for _, err = range results {
 		fmt.Fprintf(cli.err, "Upload local volume failed: %s\n", err.Error())
 	}
@@ -288,7 +291,7 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	return err
 }
 
-func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]error, wg *sync.WaitGroup, bars *multibar.BarContainer) {
+func uploadLocalVolume(source, url, cookie string, results *[]error, wg *sync.WaitGroup, pool *pb.Pool) {
 	var (
 		resp     io.ReadCloser
 		tar      *TarFile
@@ -343,7 +346,7 @@ func uploadLocalVolume(cli *DockerCli, source, url, cookie string, results *[]er
 	if err != nil {
 		return
 	}
-	tar.AllocBar(bars)
+	tar.AllocBar(pool)
 
 	resp, err = sendTarball(url, cookie, tar)
 	if err != nil {
