@@ -98,7 +98,7 @@ func (cli *DockerCli) CmdSgLs(args ...string) error {
 // Usage: hyper sg inspect [OPTIONS] NAME
 func (cli *DockerCli) CmdSgInspect(args ...string) error {
 	cmd := Cli.Subcmd("sg inspect", []string{"NAME"}, "Inspect the security group", false)
-	output := cmd.String([]string{"o", "-output"}, "json", "Output format with inspect operation")
+	output := cmd.String([]string{"o", "-output"}, "json", "Output format with inspect operation (e.g. yaml or json)")
 
 	cmd.Require(flag.Exact, 1)
 	err := cmd.ParseFlags(args, true)
