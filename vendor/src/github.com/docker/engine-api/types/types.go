@@ -553,7 +553,6 @@ type Rule struct {
 
 type SecurityGroup struct {
 	GroupName string `json:"name" yaml:"name"`
-	GroupType string `json:"type" yaml:"type"`
 	// The human-readable description of the group
 	Description string `json:"description" yaml:"description"`
 	// The rules which determine how this security group operates.
