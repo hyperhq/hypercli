@@ -3,13 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/hyperhq/hypercli/api/client"
 	"github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/dockerversion"
+	"github.com/hyperhq/hypercli/pkg/homedir"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/reexec"
+	"github.com/hyperhq/hypercli/pkg/selfupdate"
 	"github.com/hyperhq/hypercli/pkg/term"
 	"github.com/hyperhq/hypercli/utils"
 )
@@ -56,6 +60,24 @@ func main() {
 		flag.Usage()
 		return
 	}
+	var errChan = make(chan error, 1)
+	var update bool = false
+	var updater = &selfupdate.Updater{
+		CurrentVersion: dockerversion.Version,
+		ApiURL:         "https://hyper-update.s3.amazonaws.com/",
+		BinURL:         "https://hyper-update.s3.amazonaws.com/",
+		DiffURL:        "https://hyper-update.s3.amazonaws.com/",
+		Dir:            filepath.Join(homedir.Get(), ".hyper"),
+		CmdName:        "hyper", // app name
+	}
+
+	if updater != nil {
+		if update = updater.WantUpdate(); update {
+			go func() {
+				errChan <- updater.BackgroundRun(update)
+			}()
+		}
+	}
 
 	clientCli := client.NewDockerCli(stdin, stdout, stderr, clientFlags)
 
@@ -70,6 +92,16 @@ func main() {
 		}
 		fmt.Fprintln(stderr, err)
 		os.Exit(1)
+	}
+
+	if updater != nil && update {
+		fmt.Fprintln(os.Stdout, "Found a newer version, downloading...")
+		select {
+		case <-time.After(20 * time.Second):
+			break
+		case <-errChan:
+			break
+		}
 	}
 }
 
