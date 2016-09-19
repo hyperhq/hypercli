@@ -112,7 +112,7 @@ func (cli *DockerCli) CmdSgInspect(args ...string) error {
 	}
 	var data []byte
 	if *output == "json" {
-		data, err = json.Marshal(sg)
+		data, err = json.MarshalIndent(sg, "", "\t")
 	} else {
 		data, err = yaml.Marshal(sg)
 	}
