@@ -34,7 +34,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -100,11 +99,11 @@ func (u *Updater) getExecRelativeDir(dir string) string {
 }
 
 // BackgroundRun starts the update check and apply cycle.
-func (u *Updater) BackgroundRun() error {
+func (u *Updater) BackgroundRun(update bool) error {
 	if _, err := os.Stat(u.Dir); err != nil && os.IsNotExist(err) {
 		os.MkdirAll(u.Dir, 0700)
 	}
-	if u.wantUpdate() {
+	if update {
 		if err := up.CanUpdate(); err != nil {
 			// fail
 			return err
@@ -122,14 +121,24 @@ func (u *Updater) BackgroundRun() error {
 	return nil
 }
 
-func (u *Updater) wantUpdate() bool {
+func (u *Updater) WantUpdate() bool {
 	path := filepath.Join(u.Dir, upcktimePath)
 	if u.CurrentVersion == "dev" || (!u.ForceCheck && readTime(path).After(time.Now())) {
-		log.Println("not update")
+		//log.Println("not update")
 		return false
 	}
-	wait := 24*time.Hour + randDuration(24*time.Hour)
-	return writeTime(path, time.Now().Add(wait))
+	defer func() {
+		wait := 24*time.Hour + randDuration(24*time.Hour)
+		writeTime(path, time.Now().Add(wait))
+	}()
+	if u.fetchInfo() != nil {
+		return false
+	}
+	if u.Info.Version == u.CurrentVersion {
+		return false
+	}
+
+	return true
 }
 
 func (u *Updater) update() error {
@@ -143,13 +152,15 @@ func (u *Updater) update() error {
 	}
 	defer old.Close()
 
-	err = u.fetchInfo()
-	if err != nil {
-		return err
-	}
-	if u.Info.Version == u.CurrentVersion {
-		return nil
-	}
+	/*
+		err = u.fetchInfo()
+		if err != nil {
+			return err
+		}
+		if u.Info.Version == u.CurrentVersion {
+			return nil
+		}
+	*/
 	bin, err := u.fetchAndVerifyPatch(old)
 	if err != nil {
 		if err == ErrHashMismatch {
@@ -281,7 +292,7 @@ func readTime(path string) time.Time {
 		return time.Time{}
 	}
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return time.Now().Add(1000 * time.Hour)
 	}
 	var update updateTimeRecord
@@ -304,7 +315,7 @@ func writeTime(path string, t time.Time) bool {
 	}
 	err = ioutil.WriteFile(path, data, 0600)
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return false
 	}
 	return true

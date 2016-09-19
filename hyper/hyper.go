@@ -61,19 +61,22 @@ func main() {
 		return
 	}
 	var errChan = make(chan error, 1)
+	var update bool = false
 	var updater = &selfupdate.Updater{
 		CurrentVersion: dockerversion.Version,
-		ApiURL:         "https://hyper-upload.s3.amazonaws.com/",
-		BinURL:         "https://hyper-upload.s3.amazonaws.com/",
-		DiffURL:        "https://hyper-upload.s3.amazonaws.com/",
+		ApiURL:         "https://hyper-update.s3.amazonaws.com/",
+		BinURL:         "https://hyper-update.s3.amazonaws.com/",
+		DiffURL:        "https://hyper-update.s3.amazonaws.com/",
 		Dir:            filepath.Join(homedir.Get(), ".hyper"),
 		CmdName:        "hyper", // app name
 	}
 
 	if updater != nil {
-		go func() {
-			errChan <- updater.BackgroundRun()
-		}()
+		if update = updater.WantUpdate(); update {
+			go func() {
+				errChan <- updater.BackgroundRun(update)
+			}()
+		}
 	}
 
 	clientCli := client.NewDockerCli(stdin, stdout, stderr, clientFlags)
@@ -91,11 +94,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	select {
-	case <-time.After(20 * time.Second):
-		break
-	case <-errChan:
-		break
+	if updater != nil && update {
+		fmt.Fprintln(os.Stdout, "Found a newer version, downloading...")
+		select {
+		case <-time.After(20 * time.Second):
+			break
+		case <-errChan:
+			break
+		}
 	}
 }
 
