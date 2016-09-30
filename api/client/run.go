@@ -88,6 +88,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		ErrConflictAttachDetach               = fmt.Errorf("Conflicting options: -a and -d")
 		ErrConflictRestartPolicyAndAutoRemove = fmt.Errorf("Conflicting options: --restart and --rm")
 		ErrConflictDetachAutoRemove           = fmt.Errorf("Conflicting options: --rm and -d")
+		ErrConflictProtectionAutoRemove       = fmt.Errorf("Conflicting options: --rm and --protection")
 	)
 
 	config, hostConfig, networkingConfig, cmd, err := runconfigopts.Parse(cmd, args)
@@ -178,8 +179,13 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 			fmt.Fprintf(cli.out, "%s\n", createResponse.ID)
 		}()
 	}
-	if *flAutoRemove && (hostConfig.RestartPolicy.IsAlways() || hostConfig.RestartPolicy.IsOnFailure()) {
-		return ErrConflictRestartPolicyAndAutoRemove
+	if *flAutoRemove {
+		if hostConfig.RestartPolicy.IsAlways() || hostConfig.RestartPolicy.IsOnFailure() {
+			return ErrConflictRestartPolicyAndAutoRemove
+		}
+		if _, ok := config.Labels["sh_hyper_container_protection"]; ok {
+			return ErrConflictProtectionAutoRemove
+		}
 	}
 
 	if config.AttachStdin || config.AttachStdout || config.AttachStderr {
