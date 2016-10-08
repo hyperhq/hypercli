@@ -152,12 +152,15 @@ func (cli *DockerCli) CmdComposeUp(args ...string) error {
 	if *projectName == "" {
 		*projectName = getBaseDir()
 	}
-	body, err := cli.client.ComposeUp(*projectName, services, c, vc, nc, *forcerecreate, *norecreate)
+	body, err := cli.client.ComposeUp(*projectName, services, c, vc, nc, cli.configFile.AuthConfigs, *forcerecreate, *norecreate)
 	if err != nil {
 		return err
 	}
 	defer body.Close()
-	jsonmessage.DisplayJSONMessagesStream(body, cli.out, cli.outFd, cli.isTerminalOut, nil)
+	err = jsonmessage.DisplayJSONMessagesStream(body, cli.out, cli.outFd, cli.isTerminalOut, nil)
+	if err != nil {
+		return err
+	}
 	if !*detach {
 		signalChan := make(chan os.Signal, 1)
 		cleanupDone := make(chan bool)
@@ -266,7 +269,7 @@ func (cli *DockerCli) CmdComposeCreate(args ...string) error {
 	if *projectName == "" {
 		*projectName = getBaseDir()
 	}
-	body, err := cli.client.ComposeCreate(*projectName, services, c, vc, nc, *forcerecreate, *norecreate)
+	body, err := cli.client.ComposeCreate(*projectName, services, c, vc, nc, cli.configFile.AuthConfigs, *forcerecreate, *norecreate)
 	if err != nil {
 		return err
 	}

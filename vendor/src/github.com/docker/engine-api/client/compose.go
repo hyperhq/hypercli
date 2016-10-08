@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/docker/engine-api/types"
 	"github.com/hyperhq/libcompose/config"
-
 	"golang.org/x/net/context"
 )
 
@@ -15,9 +15,10 @@ type composeConfigWrapper struct {
 	ServiceConfigs *config.ServiceConfigs           `json:"ServiceConfigs"`
 	VolumeConfigs  map[string]*config.VolumeConfig  `json:"VolumeConfigs"`
 	NetworkConfigs map[string]*config.NetworkConfig `json:"NetworkConfigs"`
+	AuthConfigs    map[string]types.AuthConfig      `json:"auths"`
 }
 
-func (cli *Client) ComposeUp(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, forcerecreate, norecreate bool) (io.ReadCloser, error) {
+func (cli *Client) ComposeUp(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, auth map[string]types.AuthConfig, forcerecreate, norecreate bool) (io.ReadCloser, error) {
 	query := url.Values{}
 	query.Set("project", project)
 	if forcerecreate {
@@ -33,6 +34,7 @@ func (cli *Client) ComposeUp(project string, services []string, c *config.Servic
 		ServiceConfigs: c,
 		VolumeConfigs:  vc,
 		NetworkConfigs: nc,
+		AuthConfigs:    auth,
 	}
 	resp, err := cli.post(context.Background(), "/compose/up", query, body, nil)
 	if err != nil {
@@ -49,7 +51,7 @@ func (cli *Client) ComposeDown(project string, services []string, rmi string, vo
 		query.Set("rmi", rmi)
 	}
 	if vol {
-		query.Set("vol", "true")
+		query.Set("rmvol", "true")
 	}
 	if rmorphans {
 		query.Set("rmorphans", "true")
@@ -64,7 +66,7 @@ func (cli *Client) ComposeDown(project string, services []string, rmi string, vo
 	return resp.body, nil
 }
 
-func (cli *Client) ComposeCreate(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, forcerecreate, norecreate bool) (io.ReadCloser, error) {
+func (cli *Client) ComposeCreate(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, auth map[string]types.AuthConfig, forcerecreate, norecreate bool) (io.ReadCloser, error) {
 	query := url.Values{}
 	query.Set("project", project)
 	if forcerecreate {
@@ -80,6 +82,7 @@ func (cli *Client) ComposeCreate(project string, services []string, c *config.Se
 		ServiceConfigs: c,
 		VolumeConfigs:  vc,
 		NetworkConfigs: nc,
+		AuthConfigs:    auth,
 	}
 	resp, err := cli.post(context.Background(), "/compose/create", query, body, nil)
 	if err != nil {

@@ -69,32 +69,6 @@ func runStartContainerErr(err error) error {
 	return statusError
 }
 
-func parseProtoAndLocalBind(bind string) (string, string, bool) {
-	switch {
-	case strings.HasPrefix(bind, "git://"):
-		fallthrough
-	case strings.HasPrefix(bind, "http://"):
-		fallthrough
-	case strings.HasPrefix(bind, "https://"):
-		if strings.Count(bind, ":") < 2 {
-			return "", "", false
-		}
-	case strings.HasPrefix(bind, "/"):
-		if strings.Count(bind, ":") < 1 {
-			return "", "", false
-		}
-	default:
-		return "", "", false
-	}
-
-	pos := strings.LastIndex(bind, ":")
-	if pos < 0 || pos >= len(bind)-1 {
-		return "", "", false
-	}
-
-	return bind[:pos], bind[pos+1:], true
-}
-
 // CmdRun runs a command in a new container.
 //
 // Usage: docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
@@ -114,8 +88,6 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		ErrConflictAttachDetach               = fmt.Errorf("Conflicting options: -a and -d")
 		ErrConflictRestartPolicyAndAutoRemove = fmt.Errorf("Conflicting options: --restart and --rm")
 		ErrConflictDetachAutoRemove           = fmt.Errorf("Conflicting options: --rm and -d")
-
-		initvols, volumeList []string
 	)
 
 	config, hostConfig, networkingConfig, cmd, err := runconfigopts.Parse(cmd, args)
@@ -184,45 +156,11 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 
 	ctx := context.Background()
 
-	// Check/create protocol and local volume
-	defer func() {
-		for _, vol := range volumeList {
-			cli.client.VolumeRemove(ctx, vol)
-		}
-	}()
-	for idx, bind := range hostConfig.Binds {
-		if source, dest, ok := parseProtoAndLocalBind(bind); ok {
-			volReq := types.VolumeCreateRequest{
-				Driver: "hyper",
-				Labels: map[string]string{
-					"autoremove": "true",
-				}}
-			if vol, err := cli.client.VolumeCreate(ctx, volReq); err != nil {
-				cmd.ReportError(err.Error(), true)
-				return runStartContainerErr(err)
-			} else {
-				initvols = append(initvols, source+":"+vol.Name)
-				volumeList = append(volumeList, vol.Name)
-				hostConfig.Binds[idx] = vol.Name + ":" + dest
-			}
-		}
-	}
-
-	// initialize special volumes
-	if len(initvols) > 0 {
-		err := cli.initVolumes(initvols, false)
-		if err != nil {
-			cmd.ReportError(err.Error(), true)
-			return runStartContainerErr(err)
-		}
-	}
-
 	createResponse, err := cli.createContainer(ctx, config, hostConfig, networkingConfig, hostConfig.ContainerIDFile, *flName)
 	if err != nil {
 		cmd.ReportError(err.Error(), true)
 		return runStartContainerErr(err)
 	}
-	volumeList = nil
 
 	if sigProxy {
 		sigc := cli.forwardAllSignals(ctx, createResponse.ID)

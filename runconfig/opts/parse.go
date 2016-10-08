@@ -28,6 +28,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		// FIXME: use utils.ListOpts for attach and volumes?
 		flAttach            = opts.NewListOpts(ValidateAttach)
 		flVolumes           = opts.NewListOpts(nil)
+		flSecurityGroups    = opts.NewListOpts(nil)
 		flTmpfs             = opts.NewListOpts(nil)
 		flBlkioWeightDevice = NewWeightdeviceOpt(ValidateWeightDevice)
 		flDeviceReadBps     = NewThrottledeviceOpt(ValidateThrottleBpsDevice)
@@ -94,6 +95,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		flIsolation         = cmd.String([]string{}, "", "Container isolation level")
 		flShmSize           = cmd.String([]string{}, "", "Size of /dev/shm, default value is 64MB")
 		flInstanceType      = cmd.String([]string{"-size"}, "s4", "The type for each instance (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flNoAutoVolume      = cmd.Bool([]string{"-noauto-volume"}, false, "Do not create volumes specified in image")
 	)
 	_ = flIsolation
 
@@ -125,6 +127,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 	cmd.Var(&flSecurityOpt, []string{}, "Security Options")
 	cmd.Var(flUlimits, []string{}, "Ulimit options")
 	cmd.Var(&flLoggingOpts, []string{}, "Log driver options")
+	cmd.Var(&flSecurityGroups, []string{"-sg"}, "Security group for each container")
 
 	cmd.Require(flag.Min, 1)
 
@@ -302,6 +305,12 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 		return nil, nil, nil, cmd, err
 	}
 	labels = append(labels, fmt.Sprintf("sh_hyper_instancetype=%s", *flInstanceType))
+	for _, sg := range flSecurityGroups.GetAll() {
+		if sg == "" {
+			continue
+		}
+		labels = append(labels, fmt.Sprintf("sh_hyper_sg_%s=yes", sg))
+	}
 
 	ipcMode := container.IpcMode(*flIpcMode)
 	if !ipcMode.Valid() {
@@ -331,6 +340,9 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 	securityOpts, err := parseSecurityOpts(flSecurityOpt.GetAll())
 	if err != nil {
 		return nil, nil, nil, cmd, err
+	}
+	if *flNoAutoVolume {
+		labels = append(labels, "sh_hyper_noauto_volume=true")
 	}
 
 	resources := container.Resources{
@@ -726,6 +738,15 @@ func volumeSplitN(raw string, n int) []string {
 					numberOfParts++
 				}
 				// else, `C:` is considered as a drive letter and not as a delimiter, so we continue parsing.
+			} else if right != len(raw)-1 {
+				// check next to see if this is a windows partition
+				next := raw[right+1]
+				if next != '\\' {
+					// C: is a single character volume name
+					array = append(array, raw[left:right])
+					left = right + 1
+					numberOfParts++
+				}
 			}
 			// if right == 1, then `C:` is the beginning of the raw string, therefore `:` is again not considered a delimiter and we continue parsing.
 		} else {

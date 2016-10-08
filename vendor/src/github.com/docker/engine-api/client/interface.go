@@ -45,7 +45,7 @@ type APIClient interface {
 	ContainerStop(ctx context.Context, container string, timeout int) error
 	ContainerTop(ctx context.Context, container string, arguments []string) (types.ContainerProcessList, error)
 	ContainerUnpause(ctx context.Context, container string) error
-	ContainerUpdate(ctx context.Context, container string, updateConfig container.UpdateConfig) error
+	ContainerUpdate(ctx context.Context, container string, updateConfig interface{}) error
 	ContainerWait(ctx context.Context, container string) (int, error)
 	CopyFromContainer(ctx context.Context, container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
 	CopyToContainer(ctx context.Context, container, path string, content io.Reader, options types.CopyToContainerOptions) error
@@ -92,9 +92,15 @@ type APIClient interface {
 	FipDetach(ctx context.Context, container string) (string, error)
 	FipList(ctx context.Context, opts types.NetworkListOptions) ([]map[string]string, error)
 
-	ComposeUp(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, forcerecreate, norecreate bool) (io.ReadCloser, error)
+	SgCreate(ctx context.Context, name string, data io.Reader) error
+	SgRm(ctx context.Context, name string) error
+	SgUpdate(ctx context.Context, name string, data io.Reader) error
+	SgInspect(ctx context.Context, name string) (*types.SecurityGroup, error)
+	SgLs(ctx context.Context) ([]types.SecurityGroup, error)
+
+	ComposeUp(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, au map[string]types.AuthConfig, forcerecreate, norecreate bool) (io.ReadCloser, error)
 	ComposeDown(p string, services []string, rmi string, vol, rmorphans bool) (io.ReadCloser, error)
-	ComposeCreate(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, forcerecreate, norecreate bool) (io.ReadCloser, error)
+	ComposeCreate(project string, services []string, c *config.ServiceConfigs, vc map[string]*config.VolumeConfig, nc map[string]*config.NetworkConfig, au map[string]types.AuthConfig, forcerecreate, norecreate bool) (io.ReadCloser, error)
 	ComposeRm(p string, services []string, rmVol bool) (io.ReadCloser, error)
 	ComposeStart(p string, services []string) (io.ReadCloser, error)
 	ComposeStop(p string, services []string, timeout int) (io.ReadCloser, error)
