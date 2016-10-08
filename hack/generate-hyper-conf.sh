@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$@" != "./build-hyperserve-client.sh" ];then
+if [ "$@" != "./build.sh" ];then
     #ensure config for hyper cli
     mkdir -p ~/.hyper
     cat > ~/.hyper/config.json <<EOF
@@ -42,7 +42,7 @@ fi
 #execute command
 if [ $# -ne 0 ];then
     eval $@
-    if [ "$@" == "./build-hyperserve-client.sh" ];then
+    if [ "$@" == "./build.sh" ];then
     #show make result
         if [ $? -eq 0 ];then
             echo "OK:)"

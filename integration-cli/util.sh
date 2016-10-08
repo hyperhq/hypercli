@@ -80,9 +80,10 @@ case $1 in
     docker build -t hyperhq/hypercli -f Dockerfile.centos .
     ;;
   make)
+    echo "Start compile hyper client, please wait..."
     docker run -it --rm \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
-        hyperhq/hypercli ./build-hyperserve-client.sh
+        hyperhq/hypercli ./build.sh
     ;;
   enter)
     docker run -it --rm \
