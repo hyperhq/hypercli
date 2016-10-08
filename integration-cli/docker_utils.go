@@ -23,8 +23,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/integration"
+	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/stringutils"
 	HyperCli "github.com/docker/engine-api/client"
@@ -32,10 +36,6 @@ import (
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/go-check/check"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/docker/docker/pkg/integration/checker"
 )
 
 var flag_host = ""
@@ -64,8 +64,10 @@ func init() {
 	// intelligent decisions about how to configure themselves, and validate
 	// that the target platform is valid.
 	res, _, err := sockRequestRaw("GET", "/version", nil, "application/json")
-	if err != nil || res == nil || (res != nil && res.StatusCode != http.StatusOK) {
-		panic(fmt.Errorf("Init failed to get version: %s. Res=%v", err.Error(), res))
+	if err != nil {
+		panic(fmt.Errorf("Init failed to get version: %s.", err.Error()))
+	} else if res == nil || (res != nil && res.StatusCode != http.StatusOK) {
+		panic(fmt.Errorf("Init failed to get version: Res=%v", res))
 	}
 	var version types.Version
 	err = json.NewDecoder(res.Body).Decode(&version)
@@ -622,7 +624,7 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 	client := httputil.NewClientConn(c, nil)
 
 	//save to postData
-	postData := fmt.Sprintf("%v",data)
+	postData := fmt.Sprintf("%v", data)
 
 	req, err := http.NewRequest(method, fmt.Sprintf("/v1.23%s", endpoint), data)
 	if err != nil {
@@ -644,13 +646,13 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 	if endpoint == debugEndpoint {
 		//output curl command line
 		fmt.Println("\n--------------------------------------------------------------------------------------------")
-		fmt.Printf("debugEndpoint: %v (expired after 5min)\n",debugEndpoint)
+		fmt.Printf("debugEndpoint: %v (expired after 5min)\n", debugEndpoint)
 		fmt.Println("--------------------------------------------------------------------------------------------")
 		fmt.Println("curl -v -k \\")
 		for k, v := range req.Header {
 			fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
 		}
-		fmt.Printf("  -X %v \\\n",  method )
+		fmt.Printf("  -X %v \\\n", method)
 		if req.Body != nil {
 			fmt.Printf("  -d '%v' \\\n", postData)
 		}
@@ -777,7 +779,6 @@ func getAllSnapshots() ([]*types.Snapshot, error) {
 	}
 	return snapshots.Snapshots, nil
 }
-
 
 func deleteAllVolumes() error {
 	volumes, err := getAllVolumes()
@@ -1881,7 +1882,7 @@ func printTestDuration(start time.Time) {
 	fmt.Printf(" - %.6f sec\n", duration)
 }
 
-func generateS3PreSignedURL(region,s3bucket,s3key string) (string, error) {
+func generateS3PreSignedURL(region, s3bucket, s3key string) (string, error) {
 
 	accessKey := os.Getenv("AWS_ACCESS_KEY")
 	secretKey := os.Getenv("AWS_SECRET_KEY")
@@ -1892,7 +1893,7 @@ func generateS3PreSignedURL(region,s3bucket,s3key string) (string, error) {
 
 	s3cli := s3.New(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-		Region: &region,
+		Region:      &region,
 	})
 
 	r, _ := s3cli.GetObjectRequest(&s3.GetObjectInput{
@@ -1917,10 +1918,10 @@ func getImageInspect(c *check.C, imageName string) *types.ImageInspect {
 	return &image
 }
 
-func ensureImageExist(c *check.C, imageName string){
+func ensureImageExist(c *check.C, imageName string) {
 	for i := 0; i < 3; i++ {
 		if _err := pullImageIfNotExist(imageName); _err != nil {
-			c.Logf("couldn't find the %s image locally and failed to pull it, try againt\n",imageName)
+			c.Logf("couldn't find the %s image locally and failed to pull it, try againt\n", imageName)
 		} else {
 			break
 		}
@@ -1928,13 +1929,12 @@ func ensureImageExist(c *check.C, imageName string){
 }
 
 //get containerId or imageId from hyper command output
-func getIDfromOutput(c *check.C, output string)(string){
+func getIDfromOutput(c *check.C, output string) string {
 	outAry := strings.Split(output, "\n")
-	c.Assert(len(outAry), checker.GreaterOrEqualThan,2)
+	c.Assert(len(outAry), checker.GreaterOrEqualThan, 2)
 	id := outAry[len(outAry)-2]
 	return strings.TrimSpace(id)
 }
-
 
 func checkImage(c *check.C, shouldExist bool, imageName string) {
 	images, _ := dockerCmd(c, "images", imageName)
