@@ -68,8 +68,11 @@ type ServiceConfigV1 struct {
 	Volumes       []string             `yaml:"volumes,omitempty" json:"volumes,omitempty"`
 	WorkingDir    string               `yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
 	ExternalLinks []string             `yaml:"external_links,omitempty" json:"external_links,omitempty"`
-	Size          string               `yaml:"size,omitempty" json:"size,omitempty"`
-	Fip           string               `yaml:"fip,omitempty" json:"fip,omitempty"`
+
+	Size           string   `yaml:"size,omitempty" json:"size,omitempty"`
+	Fip            string   `yaml:"fip,omitempty" json:"fip,omitempty"`
+	SecurityGroups []string `yaml:"security_groups,omitempty" json:"security_groups,omitempty"`
+	NoAutoVolume   bool     `yaml:"noauto_volume,omitempty" json:"noauto_volume,omitempty"`
 }
 
 // Build holds v2 build information
@@ -138,8 +141,11 @@ type ServiceConfig struct {
 	StdinOpen     bool                 `yaml:"stdin_open,omitempty" json:"stdin_open,omitempty"`
 	Tty           bool                 `yaml:"tty,omitempty" json:"tty,omitempty"`
 	WorkingDir    string               `yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
-	Size          string               `yaml:"size,omitempty" json:"size,omitempty"`
-	Fip           string               `yaml:"fip,omitempty" json:"fip,omitempty"`
+
+	Size           string   `yaml:"size,omitempty" json:"size,omitempty"`
+	Fip            string   `yaml:"fip,omitempty" json:"fip,omitempty"`
+	SecurityGroups []string `yaml:"security_groups,omitempty" json:"security_groups,omitempty"`
+	NoAutoVolume   bool     `yaml:"noauto_volume,omitempty" json:"noauto_volume,omitempty"`
 }
 
 // VolumeConfig holds v2 volume configuration
