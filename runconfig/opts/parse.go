@@ -470,6 +470,10 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 }
 
 // reads a file of line terminated key=value pairs and override that with override parameter
+func ReadKVStrings(files []string, override []string) ([]string, error) {
+	return readKVStrings(files, override)
+}
+
 func readKVStrings(files []string, override []string) ([]string, error) {
 	envVariables := []string{}
 	for _, ef := range files {
@@ -707,6 +711,10 @@ func validatePath(val string, validator func(string) bool) (string, error) {
 // volumeSplitN splits raw into a maximum of n parts, separated by a separator colon.
 // A separator colon is the last `:` character in the regex `[/:\\]?[a-zA-Z]:` (note `\\` is `\` escaped).
 // This allows to correctly split strings such as `C:\foo:D:\:rw`.
+func VolumeSplitN(raw string, n int) []string {
+	return volumeSplitN(raw, n)
+}
+
 func volumeSplitN(raw string, n int) []string {
 	var array []string
 	if len(raw) == 0 || raw[0] == ':' {
