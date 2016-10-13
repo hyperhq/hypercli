@@ -409,12 +409,41 @@ func (cli *DockerCli) CmdComposeScale(args ...string) error {
 	return nil
 }
 
+// CmdComposePull
+//
+// Usage: hyper compose pull [OPTIONS]
+func (cli *DockerCli) CmdComposePull(args ...string) error {
+	cmd := Cli.Subcmd("compose pull", []string{"[SERVICE...]"}, "Pull images of services.", false)
+	composeFile := cmd.String([]string{"f", "-file"}, "docker-compose.yml", "Specify an alternate compose file")
+	cmd.Require(flag.Min, 0)
+	err := cmd.ParseFlags(args, true)
+	if err != nil {
+		return err
+	}
+	project, err := docker.NewProject(&docker.Context{
+		Context: project.Context{
+			ComposeFiles: []string{*composeFile},
+		},
+		ClientFactory: cli,
+	})
+
+	if err != nil {
+		return err
+	}
+	err = project.Pull(cmd.Args()...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func composeUsage() string {
 	composeCommands := [][]string{
 		{"create", "Creates containers for a service"},
 		{"down", "Stop and remove containers, images, and volumes"},
 		{"kill", "Force stop service containers"},
 		{"ps", "List containers"},
+		{"pull", "Pull images of services"},
 		{"rm", "Remove stopped service containers"},
 		{"run", "Run a one-off command"},
 		{"scale", "Set number of containers for a service"},
