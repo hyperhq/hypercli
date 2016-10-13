@@ -42,7 +42,7 @@ var schemaV1 = `{
             {"type": "array", "items": {"type": "string"}}
           ]
         },
-        "env_file": {"$ref": "#/definitions/string_or_list"},
+        "env_file": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "environment": {"$ref": "#/definitions/list_or_dict"},
 
         "extends": {
@@ -187,7 +187,7 @@ var schemaV2 = `{
             {"type": "array", "items": {"type": "string"}}
           ]
         },
-        "env_file": {"$ref": "#/definitions/string_or_list"},
+        "env_file": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "environment": {"$ref": "#/definitions/list_or_dict"},
         "extends": {
           "oneOf": [
