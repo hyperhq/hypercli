@@ -1,7 +1,11 @@
 package client
 
 import (
+	"bufio"
 	"fmt"
+	"log"
+	"os"
+	"strings"
 	"text/tabwriter"
 
 	"golang.org/x/net/context"
@@ -12,6 +16,8 @@ import (
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
+
+var warnMessage = "Please note that Floating IP (FIP) is billed monthly. The billing begins when a new IP is allocated, ends when it is released. Partial month is treated as a entire month. Do you want to continue?"
 
 // CmdFip is the parent subcommand for all fip commands
 //
@@ -29,11 +35,17 @@ func (cli *DockerCli) CmdFip(args ...string) error {
 // Usage: docker fip create [OPTIONS] COUNT
 func (cli *DockerCli) CmdFipAllocate(args ...string) error {
 	cmd := Cli.Subcmd("fip allocate", []string{"COUNT"}, "Creates some new floating IPs by the user", false)
+	flForce := cmd.Bool([]string{"y", "-yes"}, false, "Agree to allocate floating IP, will not show prompt")
 
 	cmd.Require(flag.Exact, 1)
 	err := cmd.ParseFlags(args, true)
 	if err != nil {
 		return err
+	}
+	if *flForce == false {
+		if askForConfirmation(warnMessage) == false {
+			return nil
+		}
 	}
 
 	fips, err := cli.client.FipAllocate(context.Background(), cmd.Arg(0))
@@ -197,4 +209,29 @@ func (cli *DockerCli) releaseContainerFip(ctx context.Context, contID string) er
 	}
 
 	return cli.client.FipRelease(ctx, ip)
+}
+
+// askForConfirmation asks the user for confirmation. A user must type in "yes" or "no" and
+// then press enter. It has fuzzy matching, so "y", "Y", "yes", "YES", and "Yes" all count as
+// confirmations. If the input is not recognized, it will ask again. The function does not return
+// until it gets a valid response from the user.
+func askForConfirmation(s string) bool {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Printf("%s [y/n]: ", s)
+
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+
+		if response == "y" || response == "yes" {
+			return true
+		} else if response == "n" || response == "no" {
+			return false
+		}
+	}
 }
