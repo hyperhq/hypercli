@@ -146,10 +146,9 @@ func (cli *DockerCli) CmdFipLs(args ...string) error {
 		return err
 	}
 	w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
-	fmt.Fprintf(w, "Floating IP\tContainer")
-	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "Floating IP\tContainer\tService\n")
 	for _, fip := range fips {
-		fmt.Fprintf(w, "%s\t%s\n", fip["fip"], fip["container"])
+		fmt.Fprintf(w, "%s\t%s\t%s\n", fip["fip"], fip["container"], fip["service"])
 	}
 
 	w.Flush()

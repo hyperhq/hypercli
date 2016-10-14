@@ -86,6 +86,23 @@ func IsErrVolumeNotFound(err error) bool {
 	return ok
 }
 
+// serviceNotFoundError implements an error returned when a service is not in the docker host.
+type serviceNotFoundError struct {
+	serviceID string
+}
+
+// Error returns a string representation of a networkNotFoundError
+func (e serviceNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such service: %s", e.serviceID)
+}
+
+// IsErrVolumeNotFound returns true if the error is caused
+// when a volume is not found in the docker host.
+func IsErrServiceNotFound(err error) bool {
+	_, ok := err.(serviceNotFoundError)
+	return ok
+}
+
 // unauthorizedError represents an authorization error in a remote registry.
 type unauthorizedError struct {
 	cause error
