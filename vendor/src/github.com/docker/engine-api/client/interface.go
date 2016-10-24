@@ -106,7 +106,7 @@ type APIClient interface {
 	ComposeStop(p string, services []string, timeout int) (io.ReadCloser, error)
 	ComposeKill(p string, services []string, signal string) (io.ReadCloser, error)
 
-	ServiceCreate(ctx context.Context, sv types.Service) (types.Service, error)
+	ServiceCreate(ctx context.Context, sv types.Service, auth string) (types.Service, error)
 	ServiceUpdate(ctx context.Context, name string, sv types.ServiceUpdate) (types.Service, error)
 	ServiceDelete(ctx context.Context, id string, keep bool) error
 	ServiceList(ctx context.Context, opts types.ServiceListOptions) ([]types.Service, error)
