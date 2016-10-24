@@ -7,6 +7,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"golang.org/x/net/context"
+
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/engine-api/types/strslice"
@@ -14,8 +16,9 @@ import (
 	ropts "github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/pkg/signal"
+	"github.com/hyperhq/hypercli/reference"
+	"github.com/hyperhq/hypercli/registry"
 	"github.com/hyperhq/hypercli/runconfig/opts"
-	"golang.org/x/net/context"
 )
 
 // CmdService is the parent subcommand for all service commands
@@ -29,7 +32,38 @@ func (cli *DockerCli) CmdService(args ...string) error {
 	return err
 }
 
-// CmdNetworkCreate creates a new service with a given name
+func (cli *DockerCli) getImageAuth(image string) (string, error) {
+	distributionRef, err := reference.ParseNamed(image)
+	if err != nil {
+		return "", err
+	}
+
+	if err = cli.checkCloudConfig(); err != nil {
+		return "", err
+	}
+
+	if reference.IsNameOnly(distributionRef) {
+		distributionRef = reference.WithDefaultTag(distributionRef)
+		fmt.Fprintf(cli.out, "Using default tag: %s\n", reference.DefaultTag)
+	}
+
+	// Resolve the Repository name from fqn to RepositoryInfo
+	repoInfo, err := registry.ParseRepositoryInfo(distributionRef)
+	if err != nil {
+		return "", err
+	}
+
+	ctx := context.Background()
+	authConfig := cli.resolveAuthConfig(ctx, cli.configFile.AuthConfigs, repoInfo.Index)
+	encodedAuth, err := encodeAuthToBase64(authConfig)
+	if err != nil {
+		return "", err
+	}
+
+	return encodedAuth, nil
+}
+
+// CmdServiceCreate creates a new service with a given name
 //
 // Usage: hyper service create [OPTIONS] COUNT
 func (cli *DockerCli) CmdServiceCreate(args ...string) error {
@@ -89,6 +123,12 @@ func (cli *DockerCli) CmdServiceCreate(args ...string) error {
 		entrypoint strslice.StrSlice
 		image      = cmd.Arg(0)
 	)
+
+	auth, err := cli.getImageAuth(image)
+	if err != nil {
+		return err
+	}
+
 	if len(parsedArgs) > 1 {
 		runCmd = strslice.StrSlice(parsedArgs[1:])
 	}
@@ -143,7 +183,7 @@ func (cli *DockerCli) CmdServiceCreate(args ...string) error {
 		SSLCert:             string(sslData),
 	}
 
-	service, err := cli.client.ServiceCreate(context.Background(), sv)
+	service, err := cli.client.ServiceCreate(context.Background(), sv, auth)
 	if err != nil {
 		return err
 	}

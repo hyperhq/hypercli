@@ -13,9 +13,10 @@ import (
 )
 
 // ServiceCreate creates a service in the Hyper_.
-func (cli *Client) ServiceCreate(ctx context.Context, sv types.Service) (types.Service, error) {
+func (cli *Client) ServiceCreate(ctx context.Context, sv types.Service, auth string) (types.Service, error) {
 	var service types.Service
-	resp, err := cli.post(ctx, "/services/create", nil, sv, nil)
+	headers := map[string][]string{"X-Registry-Auth": {auth}}
+	resp, err := cli.post(ctx, "/services/create", nil, sv, headers)
 	if err != nil {
 		return service, err
 	}
