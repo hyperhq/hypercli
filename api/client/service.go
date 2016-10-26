@@ -29,7 +29,7 @@ func (cli *DockerCli) CmdService(args ...string) error {
 	return err
 }
 
-// CmdNetworkCreate creates a new service with a given name
+// CmdServiceCreate creates a new service with a given name
 //
 // Usage: hyper service create [OPTIONS] COUNT
 func (cli *DockerCli) CmdServiceCreate(args ...string) error {
@@ -89,6 +89,11 @@ func (cli *DockerCli) CmdServiceCreate(args ...string) error {
 		entrypoint strslice.StrSlice
 		image      = cmd.Arg(0)
 	)
+
+	if err := cli.pullImage(context.Background(), image); err != nil {
+		return err
+	}
+
 	if len(parsedArgs) > 1 {
 		runCmd = strslice.StrSlice(parsedArgs[1:])
 	}
@@ -147,7 +152,7 @@ func (cli *DockerCli) CmdServiceCreate(args ...string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(cli.out, "%s\n", service.Name)
+	fmt.Fprintf(cli.out, "Service %s is created.\n", service.Name)
 	return nil
 }
 
@@ -307,7 +312,14 @@ func (cli *DockerCli) CmdServiceRolling_update(args ...string) error {
 		return nil
 	}
 
+	if len(*flImage) == 0 {
+		return fmt.Errorf("image is required for rolling-update")
+	}
+
 	ctx := context.Background()
+	if err := cli.pullImage(ctx, *flImage); err != nil {
+		return err
+	}
 
 	for _, sr := range cmd.Args() {
 		sv := types.ServiceUpdate{
@@ -318,7 +330,7 @@ func (cli *DockerCli) CmdServiceRolling_update(args ...string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(cli.out, "%s\n", service.Name)
+		fmt.Fprintf(cli.out, "Rolling-update is requested for service %s.\n", service.Name)
 	}
 	return nil
 }
