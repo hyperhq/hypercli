@@ -66,14 +66,15 @@ var dockerCommands = []Command{
 	//{"top", "Display the running processes of a container"},
 	//{"unpause", "Unpause all processes within a container"},
 	{"update", "Update resources of one or more containers"},
-	{"version", "Show the Hyper_ version information"},
-	{"volume", "Manage Hyper_ volumes"},
-	{"snapshot", "Manage Hyper_ snapshots"},
-	{"fip", "Manage Hyper_ floating IPs"},
+	{"version", "Show the Hyper.sh version information"},
+	{"volume", "Manage Hyper.sh volumes"},
+	{"snapshot", "Manage Hyper.sh snapshots"},
+	{"fip", "Manage Hyper.sh floating IPs"},
 	//{"wait", "Block until a container stops, then print its exit code"},
-	{"compose", "Define and run multi-container applications with Hyper_"},
-	{"sg", "Manage security group of Hyper_"},
-	{"service", "Manage service of Hyper_"},
+	{"compose", "Define and run multi-container applications with Hyper.sh"},
+	{"sg", "Manage security group of Hyper.sh"},
+	{"service", "Manage service of Hyper.sh"},
+	{"cron", "Manage cron service of Hyper.sh"},
 }
 
 // DockerCommands stores all the docker command
