@@ -46,7 +46,7 @@ func NewProject(context *Context) (project.APIProject, error) {
 	}
 
 	if context.ClientFactory == nil {
-		return nil, fmt.Errorf("please provide the client to operate the Hyper_")
+		return nil, fmt.Errorf("please provide the client to operate the Hyper.sh")
 	}
 
 	// FIXME(vdemeester) Remove the context duplication ?
