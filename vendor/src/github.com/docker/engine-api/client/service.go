@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-// ServiceCreate creates a service in the Hyper_.
+// ServiceCreate creates a service in the Hyper.sh.
 func (cli *Client) ServiceCreate(ctx context.Context, sv types.Service) (types.Service, error) {
 	var service types.Service
 	resp, err := cli.post(ctx, "/services/create", nil, sv, nil)
@@ -24,7 +24,7 @@ func (cli *Client) ServiceCreate(ctx context.Context, sv types.Service) (types.S
 	return service, err
 }
 
-// ServiceUpdate updates a service in the Hyper_.
+// ServiceUpdate updates a service in the Hyper.sh.
 func (cli *Client) ServiceUpdate(ctx context.Context, name string, opts types.ServiceUpdate) (types.Service, error) {
 	var service types.Service
 	resp, err := cli.post(ctx, "/services/"+name+"/update", nil, opts, nil)
@@ -36,7 +36,7 @@ func (cli *Client) ServiceUpdate(ctx context.Context, name string, opts types.Se
 	return service, err
 }
 
-// ServiceDelete removes a service from the Hyper_.
+// ServiceDelete removes a service from the Hyper.sh.
 func (cli *Client) ServiceDelete(ctx context.Context, id string, keep bool) error {
 	v := url.Values{}
 	v.Set("keey", "yes")

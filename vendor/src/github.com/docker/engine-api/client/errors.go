@@ -6,7 +6,7 @@ import (
 )
 
 // ErrConnectionFailed is an error raised when the connection between the client and the server failed.
-var ErrConnectionFailed = errors.New("Cannot connect to the Hyper_ server.")
+var ErrConnectionFailed = errors.New("Cannot connect to the Hyper.sh server.")
 
 // imageNotFoundError implements an error returned when an image is not in the docker host.
 type imageNotFoundError struct {
