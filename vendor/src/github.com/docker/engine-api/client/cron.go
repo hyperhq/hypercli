@@ -82,3 +82,19 @@ func (cli *Client) CronInspectWithRaw(ctx context.Context, cronID string) (types
 	err = json.NewDecoder(rdr).Decode(&cron)
 	return cron, body, err
 }
+
+// CronHistory
+func (cli *Client) CronHistory(ctx context.Context, id string) ([]types.Event, error) {
+	var (
+		es = []types.Event{}
+		v  = url.Values{}
+	)
+	resp, err := cli.get(ctx, "/crons/"+id+"/history", v, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer ensureReaderClosed(resp)
+
+	err = json.NewDecoder(resp.body).Decode(&es)
+	return es, err
+}

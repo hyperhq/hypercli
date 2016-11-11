@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
@@ -22,7 +23,7 @@ import (
 
 // CmdCron is the parent subcommand for all cron commands
 //
-// Usage: docker cron <COMMAND> [OPTIONS]
+// Usage: hyper cron <COMMAND> [OPTIONS]
 func (cli *DockerCli) CmdCron(args ...string) error {
 	cmd := Cli.Subcmd("cron", []string{"COMMAND [OPTIONS]"}, cronUsage(), false)
 	cmd.Require(flag.Min, 1)
@@ -288,9 +289,9 @@ func (cli *DockerCli) CmdCronLs(args ...string) error {
 		return err
 	}
 	w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
-	fmt.Fprintf(w, "Name\tSchedule\tContainers\tStatus\n")
+	fmt.Fprintf(w, "Name\tSchedule\tImage\tCommand\n")
 	for _, cron := range crons {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%d/%d\n", cron.Name, cron.Schedule, cron.ContainerName, cron.SuccessCount, cron.ErrorCount)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", cron.Name, cron.Schedule, cron.Config.Image, strings.Join([]string(cron.Config.Cmd), " "))
 	}
 
 	w.Flush()
@@ -299,7 +300,7 @@ func (cli *DockerCli) CmdCronLs(args ...string) error {
 
 // CmdCronInspect
 //
-// Usage: docker cron inspect [OPTIONS] CRON [CRON...]
+// Usage: hyper cron inspect [OPTIONS] CRON [CRON...]
 func (cli *DockerCli) CmdCronInspect(args ...string) error {
 	cmd := Cli.Subcmd("cron inspect", []string{"cron [cron...]"}, "Display detailed information on the given cron", true)
 	tmplStr := cmd.String([]string{"f", "-format"}, "", "Format the output using the given go template")
@@ -308,7 +309,7 @@ func (cli *DockerCli) CmdCronInspect(args ...string) error {
 	cmd.ParseFlags(args, true)
 
 	if err := cmd.Parse(args); err != nil {
-		return nil
+		return err
 	}
 
 	ctx := context.Background()
@@ -321,11 +322,43 @@ func (cli *DockerCli) CmdCronInspect(args ...string) error {
 	return cli.inspectElements(*tmplStr, cmd.Args(), inspectSearcher)
 }
 
+// CmdCronHistory
+//
+// Usage: hyper cron history [OPTIONS] CRON
+func (cli *DockerCli) CmdCronHistory(args ...string) error {
+	cmd := Cli.Subcmd("cron history", []string{"cron"}, "Show history of the cron job", false)
+
+	cmd.Require(flag.Min, 1)
+	if err := cmd.ParseFlags(args, true); err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	name := cmd.Args()[0]
+	cronHistory, err := cli.client.CronHistory(ctx, name)
+	if err != nil {
+		return err
+	}
+	w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
+	fmt.Fprintf(w, "Status\tName\tSchedule\tContainer\tMessage\n")
+	for _, h := range cronHistory {
+		var t = h.StartedAt
+		if h.FinishedAt > h.StartedAt {
+			t = h.FinishedAt
+		}
+		fmt.Fprintf(w, "%s\t%s\t%v\t%s\t%s\n", h.Status, h.Job, time.Unix(t, 0), h.Container, h.Message)
+	}
+
+	w.Flush()
+	return nil
+}
+
 func cronUsage() string {
 	cronCommands := [][]string{
 		{"create", "Create a cron"},
 		{"inspect", "Display detailed information on the given cron"},
 		{"ls", "List all crons"},
+		{"history", "Show history of the cron job"},
 		{"rm", "Remove one or more crons"},
 	}
 

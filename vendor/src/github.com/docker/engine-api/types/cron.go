@@ -63,3 +63,12 @@ type Cron struct {
 type CronListOptions struct {
 	Filters filters.Args
 }
+
+type Event struct {
+	StartedAt  int64  `json:"StartedAt"`
+	FinishedAt int64  `json:"FinishedAt"`
+	Status     string `json:"Status"`
+	Job        string `json:"Job"`
+	Container  string `json:"Container"`
+	Message    string `json:"Message"`
+}
