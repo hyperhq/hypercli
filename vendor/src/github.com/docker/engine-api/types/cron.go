@@ -15,18 +15,6 @@ type Cron struct {
 	// Cron expression for the job. When to run the job.
 	Schedule string `json:"schedule"`
 
-	// APIRouter address
-	APIRouter string `json:"apirouter"`
-
-	// Access Key for Hyper.sh cloud
-	AccessKey string `json:"access_key"`
-
-	// Secret Key for Hyper.sh cloud
-	SecretKey string `json:"secret_key"`
-
-	// API version
-	Version string `json:"version"`
-
 	ContainerName string                    `json:"container_name"`
 	Config        *container.Config         `json:"config"`
 	HostConfig    *container.HostConfig     `json:"host_config"`
@@ -55,9 +43,6 @@ type Cron struct {
 
 	// Tags of the target servers to run this job against.
 	Tags map[string]string `json:"tags"`
-
-	// Number of times to retry a job that failed an execution.
-	Retries uint `json:"retries"`
 }
 
 type CronListOptions struct {
