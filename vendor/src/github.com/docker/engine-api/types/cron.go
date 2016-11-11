@@ -10,39 +10,39 @@ import (
 
 type Cron struct {
 	// Job name. Must be unique, acts as the id.
-	Name string `json:"name"`
+	Name string `json:"Name"`
 
 	// Cron expression for the job. When to run the job.
-	Schedule string `json:"schedule"`
+	Schedule string `json:"Schedule"`
 
-	ContainerName string                    `json:"container_name"`
-	Config        *container.Config         `json:"config"`
-	HostConfig    *container.HostConfig     `json:"host_config"`
-	NetConfig     *network.NetworkingConfig `json:"net_config"`
+	ContainerName string                    `json:"ContainerName"`
+	Config        *container.Config         `json:"Config"`
+	HostConfig    *container.HostConfig     `json:"HostConfig"`
+	NetConfig     *network.NetworkingConfig `json:"NetConfig"`
 
 	// Owner of the job.
-	Owner string `json:"owner"`
+	Owner string `json:"Owner"`
 
 	// Owner email of the job.
-	OwnerEmail string `json:"owner_email"`
+	OwnerEmail string `json:"OwnerEmail"`
 
 	// Number of successful executions of this job.
-	SuccessCount int `json:"success_count"`
+	SuccessCount int `json:"SuccessCount"`
 
 	// Number of errors running this job.
-	ErrorCount int `json:"error_count"`
+	ErrorCount int `json:"ErrorCount"`
 
 	// Last time this job executed succesful.
-	LastSuccess time.Time `json:"last_success"`
+	LastSuccess time.Time `json:"LastSuccess"`
 
 	// Last time this job failed.
-	LastError time.Time `json:"last_error"`
+	LastError time.Time `json:"LastError"`
 
 	// Is this job disabled?
-	Disabled bool `json:"disabled"`
+	Disabled bool `json:"Disabled"`
 
 	// Tags of the target servers to run this job against.
-	Tags map[string]string `json:"tags"`
+	Tags map[string]string `json:"Tags"`
 }
 
 type CronListOptions struct {
