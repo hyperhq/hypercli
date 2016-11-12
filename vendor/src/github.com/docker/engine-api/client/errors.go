@@ -110,7 +110,7 @@ type cronNotFoundError struct {
 
 // Error returns a string representation of a networkNotFoundError
 func (e cronNotFoundError) Error() string {
-	return fmt.Sprintf("Error: No such cron: %s", e.cronID)
+	return fmt.Sprintf("Error: No such cron job: %s", e.cronID)
 }
 
 // IsErrVolumeNotFound returns true if the error is caused
