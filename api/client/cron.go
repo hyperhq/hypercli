@@ -61,11 +61,11 @@ func (cli *DockerCli) CmdCronCreate(args ...string) error {
 		flRestartPolicy = cmd.String([]string{"-restart"}, "no", "Restart policy to apply when a container exits")
 		flMailTo        = cmd.String([]string{"-mailto"}, "", "Mail to while the cron has something")
 
-		flMinute = cmd.String([]string{"-minute"}, "0", "minute")
-		flHour   = cmd.String([]string{"-hour"}, "0", "hour")
-		flDom    = cmd.String([]string{"-dom"}, "*", "dom")
-		flDow    = cmd.String([]string{"-week"}, "*", "dow")
-		flMonth  = cmd.String([]string{"-month"}, "*", "month")
+		flMinute = cmd.String([]string{"-minute"}, "0", "The minutes of cron expression")
+		flHour   = cmd.String([]string{"-hour"}, "0", "The hour of cron expression")
+		flDom    = cmd.String([]string{"-dom"}, "*", "The day of month of cron expression")
+		flDow    = cmd.String([]string{"-week"}, "*", "The day of week of cron expression")
+		flMonth  = cmd.String([]string{"-month"}, "*", "The month of cron expression")
 	)
 	cmd.Var(&flLabels, []string{"l", "-label"}, "Set meta data on a container")
 	cmd.Var(&flLabelsFile, []string{"-label-file"}, "Read in a line delimited file of labels")
@@ -177,6 +177,7 @@ func (cli *DockerCli) CmdCronCreate(args ...string) error {
 	config := &container.Config{
 		Hostname:     hostname,
 		Domainname:   domainname,
+		Tty:          true,
 		ExposedPorts: ports,
 		Env:          envVariables,
 		Cmd:          runCmd,
@@ -326,16 +327,20 @@ func (cli *DockerCli) CmdCronInspect(args ...string) error {
 //
 // Usage: hyper cron history [OPTIONS] CRON
 func (cli *DockerCli) CmdCronHistory(args ...string) error {
-	cmd := Cli.Subcmd("cron history", []string{"cron"}, "Show history of the cron job", false)
+	cmd := Cli.Subcmd("cron history", []string{"cron"}, "Show history of the cron job", true)
+	flSince := cmd.String([]string{"-since"}, "", "Show history since timestamp")
+	flTail := cmd.String([]string{"-tail"}, "all", "Number of lines to show from the end of the history")
 
 	cmd.Require(flag.Min, 1)
-	if err := cmd.ParseFlags(args, true); err != nil {
+	cmd.ParseFlags(args, true)
+
+	if err := cmd.Parse(args); err != nil {
 		return err
 	}
 
 	ctx := context.Background()
 	name := cmd.Args()[0]
-	cronHistory, err := cli.client.CronHistory(ctx, name)
+	cronHistory, err := cli.client.CronHistory(ctx, name, *flSince, *flTail)
 	if err != nil {
 		return err
 	}

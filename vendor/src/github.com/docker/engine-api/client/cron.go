@@ -84,11 +84,17 @@ func (cli *Client) CronInspectWithRaw(ctx context.Context, cronID string) (types
 }
 
 // CronHistory
-func (cli *Client) CronHistory(ctx context.Context, id string) ([]types.Event, error) {
+func (cli *Client) CronHistory(ctx context.Context, id, since, tail string) ([]types.Event, error) {
 	var (
 		es = []types.Event{}
 		v  = url.Values{}
 	)
+	if since != "" {
+		v.Set("since", since)
+	}
+	if tail != "" {
+		v.Set("tail", tail)
+	}
 	resp, err := cli.get(ctx, "/crons/"+id+"/history", v, nil)
 	if err != nil {
 		return nil, err
