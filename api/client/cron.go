@@ -351,7 +351,7 @@ func (cli *DockerCli) CmdCronHistory(args ...string) error {
 		if h.FinishedAt > h.StartedAt {
 			t = h.FinishedAt
 		}
-		fmt.Fprintf(w, "%s\t%s\t%v\t%s\t%s\n", h.Status, h.Job, time.Unix(t, 0), h.Container, h.Message)
+		fmt.Fprintf(w, "%s\t%s\t%v\t%s\t%s\n", h.Status, h.Job, time.Unix(t, 0).UTC(), h.Container, h.Message)
 	}
 
 	w.Flush()
