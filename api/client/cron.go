@@ -86,7 +86,7 @@ func (cli *DockerCli) CmdCronCreate(args ...string) error {
 		return err
 	}
 
-	if *flAccessKey == "" || *flSecretKey == "" {
+	if (*flAccessKey == "" && *flSecretKey != "") || (*flAccessKey != "" && *flSecretKey == "") {
 		return fmt.Errorf("You must specify access key and secret key at the same time")
 	}
 
