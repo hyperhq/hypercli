@@ -15,6 +15,12 @@ type Cron struct {
 	// Cron expression for the job. When to run the job.
 	Schedule string `json:"Schedule"`
 
+	// AccessKey
+	AccessKey string `json:"AccessKey"`
+
+	// SecretKey
+	SecretKey string `json:"SecretKey"`
+
 	ContainerName string                    `json:"ContainerName"`
 	Config        *container.Config         `json:"Config"`
 	HostConfig    *container.HostConfig     `json:"HostConfig"`
@@ -26,17 +32,19 @@ type Cron struct {
 	// Owner email of the job.
 	OwnerEmail string `json:"OwnerEmail"`
 
+	// MailPolicy
+	MailPolicy string `json:"MailPolicy"`
+
 	// Number of successful executions of this job.
 	SuccessCount int `json:"SuccessCount"`
 
 	// Number of errors running this job.
 	ErrorCount int `json:"ErrorCount"`
 
-	// Last time this job executed succesful.
-	LastSuccess time.Time `json:"LastSuccess"`
+	// Last time this job executed.
+	LastRun time.Time `json:"LastRun"`
 
-	// Last time this job failed.
-	LastError time.Time `json:"LastError"`
+	Created time.Time `json:"Created"`
 
 	// Is this job disabled?
 	Disabled bool `json:"Disabled"`

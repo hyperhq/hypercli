@@ -60,6 +60,9 @@ func (cli *DockerCli) CmdCronCreate(args ...string) error {
 		flPublishAll    = cmd.Bool([]string{"P", "-publish-all"}, false, "Publish all exposed ports to random ports")
 		flRestartPolicy = cmd.String([]string{"-restart"}, "no", "Restart policy to apply when a container exits")
 		flMailTo        = cmd.String([]string{"-mailto"}, "", "Mail to while the cron has something")
+		flMailPolicy    = cmd.String([]string{"-mail"}, "on-failure", "Mail policy to apply when to send email")
+		flAccessKey     = cmd.String([]string{"-access-key"}, "", "Access key to run the cron job")
+		flSecretKey     = cmd.String([]string{"-secret-key"}, "", "Secret key to run the cron job")
 
 		flMinute = cmd.String([]string{"-minute"}, "0", "The minutes of cron expression")
 		flHour   = cmd.String([]string{"-hour"}, "0", "The hour of cron expression")
@@ -81,6 +84,10 @@ func (cli *DockerCli) CmdCronCreate(args ...string) error {
 	err := cmd.ParseFlags(args, true)
 	if err != nil {
 		return err
+	}
+
+	if *flAccessKey == "" || *flSecretKey == "" {
+		return fmt.Errorf("You must specify access key and secret key at the same time")
 	}
 
 	var (
@@ -222,6 +229,9 @@ func (cli *DockerCli) CmdCronCreate(args ...string) error {
 		Config:        config,
 		HostConfig:    hostConfig,
 		NetConfig:     networkingConfig,
+		AccessKey:     *flAccessKey,
+		SecretKey:     *flSecretKey,
+		MailPolicy:    *flMailPolicy,
 	}
 
 	_, err = cli.client.CronCreate(context.Background(), *flName, sv)
@@ -345,13 +355,21 @@ func (cli *DockerCli) CmdCronHistory(args ...string) error {
 		return err
 	}
 	w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
-	fmt.Fprintf(w, "Status\tName\tSchedule\tContainer\tMessage\n")
+	fmt.Fprintf(w, "Container\tStart\tEnd\tStatus\tMessage\n")
 	for _, h := range cronHistory {
-		var t = h.StartedAt
-		if h.FinishedAt > h.StartedAt {
-			t = h.FinishedAt
+		status := h.Status
+		if status == "success" {
+			status = "done"
+		} else if status == "error" {
+			status = "failed"
+		} else {
+			status = "-"
 		}
-		fmt.Fprintf(w, "%s\t%s\t%v\t%s\t%s\n", h.Status, h.Job, time.Unix(t, 0).UTC(), h.Container, h.Message)
+		if h.FinishedAt == 0 {
+			fmt.Fprintf(w, "%s\t%v\t-\t%s\t%s\n", h.Container, time.Unix(h.StartedAt, 0).UTC(), status, h.Message)
+		} else {
+			fmt.Fprintf(w, "%s\t%v\t%v\t%s\t%s\n", h.Container, time.Unix(h.StartedAt, 0).UTC(), time.Unix(h.FinishedAt, 0).UTC(), status, h.Message)
+		}
 	}
 
 	w.Flush()
