@@ -165,7 +165,7 @@ func (cli *DockerCli) createContainer(ctx context.Context, config *container.Con
 	//if image not found try to pull it
 	if err != nil {
 		if client.IsErrImageNotFound(err) {
-			fmt.Fprintf(cli.err, "Unable to find image '%s' locally\n", ref.String())
+			fmt.Fprintf(cli.err, "Unable to find image '%s' in the current region\n", ref.String())
 
 			// we don't want to write to stdout anything apart from container.ID
 			if err = cli.pullImageCustomOut(ctx, config.Image, cli.err); err != nil {
