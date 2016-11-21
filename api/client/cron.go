@@ -36,7 +36,7 @@ func (cli *DockerCli) CmdCron(args ...string) error {
 //
 // Usage: hyper cron create [OPTIONS]
 func (cli *DockerCli) CmdCronCreate(args ...string) error {
-	cmd := Cli.Subcmd("cron create", []string{"IMAGE"}, "Create a new cron", false)
+	cmd := Cli.Subcmd("cron create", []string{"IMAGE"}, "Create a cron job", false)
 	var (
 		flSecurityGroups = ropts.NewListOpts(nil)
 		flEnv            = ropts.NewListOpts(opts.ValidateEnv)
@@ -246,7 +246,7 @@ func (cli *DockerCli) CmdCronCreate(args ...string) error {
 //
 // Usage: hyper cron rm cron [cron...]
 func (cli *DockerCli) CmdCronRm(args ...string) error {
-	cmd := Cli.Subcmd("cron rm", []string{"cron [cron...]"}, "Remove one or more crons", false)
+	cmd := Cli.Subcmd("cron rm", []string{"cron [cron...]"}, "Remove one or more cron job", false)
 	cmd.Require(flag.Min, 1)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return err
@@ -271,7 +271,7 @@ func (cli *DockerCli) CmdCronRm(args ...string) error {
 //
 // Usage: hyper cron ls [OPTIONS]
 func (cli *DockerCli) CmdCronLs(args ...string) error {
-	cmd := Cli.Subcmd("cron ls", nil, "Lists crons", true)
+	cmd := Cli.Subcmd("cron ls", nil, "Lists all crons", true)
 
 	flFilter := ropts.NewListOpts(nil)
 	cmd.Var(&flFilter, []string{"f", "-filter"}, "Filter output based on conditions provided")
@@ -337,7 +337,7 @@ func (cli *DockerCli) CmdCronInspect(args ...string) error {
 //
 // Usage: hyper cron history [OPTIONS] CRON
 func (cli *DockerCli) CmdCronHistory(args ...string) error {
-	cmd := Cli.Subcmd("cron history", []string{"cron"}, "Show history of the cron job", true)
+	cmd := Cli.Subcmd("cron history", []string{"cron"}, "Show the execution history (last 100) of a cron job", true)
 	flSince := cmd.String([]string{"-since"}, "", "Show history since timestamp")
 	flTail := cmd.String([]string{"-tail"}, "all", "Number of lines to show from the end of the history")
 
@@ -378,11 +378,11 @@ func (cli *DockerCli) CmdCronHistory(args ...string) error {
 
 func cronUsage() string {
 	cronCommands := [][]string{
-		{"create", "Create a cron"},
+		{"create", "Create a cron job"},
 		{"inspect", "Display detailed information on the given cron"},
 		{"ls", "List all crons"},
-		{"history", "Show history of the cron job"},
-		{"rm", "Remove one or more crons"},
+		{"history", "Show execution history of a cron job"},
+		{"rm", "Remove one or more cron job"},
 	}
 
 	help := "Commands:\n"
