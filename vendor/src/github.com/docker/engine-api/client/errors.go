@@ -103,6 +103,23 @@ func IsErrServiceNotFound(err error) bool {
 	return ok
 }
 
+// cronNotFoundError implements an error returned when a cron is not in the docker host.
+type cronNotFoundError struct {
+	cronID string
+}
+
+// Error returns a string representation of a networkNotFoundError
+func (e cronNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such cron job: %s", e.cronID)
+}
+
+// IsErrVolumeNotFound returns true if the error is caused
+// when a volume is not found in the docker host.
+func IsErrCronNotFound(err error) bool {
+	_, ok := err.(cronNotFoundError)
+	return ok
+}
+
 // unauthorizedError represents an authorization error in a remote registry.
 type unauthorizedError struct {
 	cause error

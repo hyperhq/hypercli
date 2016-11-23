@@ -112,6 +112,13 @@ type APIClient interface {
 	ServiceList(ctx context.Context, opts types.ServiceListOptions) ([]types.Service, error)
 	ServiceInspect(ctx context.Context, serviceID string) (types.Service, error)
 	ServiceInspectWithRaw(ctx context.Context, serviceID string) (types.Service, []byte, error)
+
+	CronCreate(ctx context.Context, n string, j types.Cron) (types.Cron, error)
+	CronDelete(ctx context.Context, id string) error
+	CronHistory(ctx context.Context, id, since, tail string) ([]types.Event, error)
+	CronList(ctx context.Context, opts types.CronListOptions) ([]types.Cron, error)
+	CronInspect(ctx context.Context, id string) (types.Cron, error)
+	CronInspectWithRaw(ctx context.Context, serviceID string) (types.Cron, []byte, error)
 }
 
 // Ensure that Client always implements APIClient.
