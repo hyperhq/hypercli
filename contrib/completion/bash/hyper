@@ -1,0 +1,177 @@
+#!/bin/bash
+#
+# bash completion file for core hyper commands
+#
+# This script provides completion of:
+#  - commands and their options
+#  - container ids and names
+#  - image repos and tags
+#  - filepaths
+# To enable the completions:
+# - place this file in /etc/bash_completion.d
+#
+
+__hyper_previous_extglob_setting=$(shopt -p )
+shopt -s extglob
+
+__hyper_complete_log_levels() {
+	COMPREPLY=( $( compgen -W "debug info warn error fatal" -- "$cur" ) )
+}
+
+# Transforms a multiline list of strings into a single line string
+# with the words separated by "|".
+# This is used to prepare arguments to __hyper_pos_first_nonflag().
+__hyper_to_alternatives() {
+	local parts=( $1 )
+	local IFS='|'
+	echo "${parts[*]}"
+}
+
+# Transforms a multiline list of options into an extglob pattern
+# suitable for use in case statements
+__hyper_to_extglob() {
+	local extglob=$( __hyper_to_alternatives "$1" )
+	echo "@($extglob)"
+}
+
+# Finds the position of the first word that is neither option nor an option's argument.
+# If there are options that require arguments, you should pass a glob describing those
+# options, e.g. "--option1|-o|--option2"
+# Use this function to restrict completions to exact positions after the argument list
+__hyper_pos_first_nonflag() {
+	local argument_flags=$1
+
+	local counter=$((${subcommand_pos:-${command_pos}} + 1))
+	while [ $counter -le $cword ]; do
+		if [ -n "$argument_flags" ] && eval "case '${words[$counter]}' in $argument_flags) true ;; *) false ;; esac"; then
+			(( counter++ ))
+			# eat "=" in case of --option=arg syntax
+			[ "${words[$counter]}" = "=" ] && (( counter++ ))
+		else
+			case "${words[$counter]}" in
+				-*)
+					;;
+				*)
+					break
+					;;
+			esac
+		fi
+
+		# Bash splits words at "=", retaining "=" as a word, examples:
+		# "--debug=false" => 3 words, "--log-opt syslog-facility=daemon" => 4 words
+		while [ "${words[$counter + 1]}" = "=" ] ; do
+			counter=$(( counter + 2 ))
+		done
+
+		(( counter++ ))
+	done
+
+	echo $counter
+}
+
+# global options that may appear after the docker command
+_hyper_hyper() {
+	local boolean_options="
+		$global_boolean_options
+		--help
+		--version -v
+	"
+
+	case "$prev" in
+		--config)
+			_filedir -d
+			return
+			;;
+		--log-level|-l)
+			__hyper_complete_log_levels
+			return
+			;;
+		$(__hyper_to_extglob "$global_options_with_args") )
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "$boolean_options $global_options_with_args" -- "$cur") )
+			;;
+		*)
+			local counter=$( __hyper_pos_first_nonflag $(__hyper_to_extglob "$global_options_with_args") )
+			if [ $cword -eq $counter ]; then
+				COMPREPLY=( $( compgen -W "${commands[*]} help" -- "$cur" ) )
+			fi
+			;;
+	esac
+}
+
+_hyper() {
+	local previous_extglob_setting=$(shopt -p extglob)
+	shopt -s extglob
+
+	local commands=(
+		attach
+		compose
+		config
+		create
+		cron
+		exec
+		fip
+		history
+		images
+		info
+		inspect
+		kill
+		load
+		login
+		logout
+		logs
+		port
+		ps
+		pull
+		rename
+		restart
+		rm
+		rmi
+		run
+		search
+		service
+		sg
+		snapshot
+		start
+		stats
+		stop
+		update
+		version
+		volume
+	)
+
+	local global_boolean_options="
+		--debug -D
+	"
+
+	local global_options_with_args="
+		--config
+		--host -H
+		--log-level -l
+	"
+
+	local host config
+
+	COMPREPLY=()
+	local cur prev words cword
+	_get_comp_words_by_ref -n : cur prev words cword
+
+	local command='hyper' command_pos=0 subcommand_pos
+	local counter=1
+
+	local completions_func=_hyper_${command}
+	declare -F $completions_func >/dev/null && $completions_func
+
+	eval "$previous_extglob_setting"
+	return 0
+}
+
+eval "$__hyper_previous_extglob_setting"
+unset __hyper_previous_extglob_setting
+
+complete -F _hyper hyper
