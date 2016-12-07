@@ -112,6 +112,10 @@ _hyper_attach() {
 	esac
 }
 
+_hyper_config() {
+	COMPREPLY=( $( compgen -W "--accesskey --secretkey" -- "$cur" ) )
+}
+
 # global options that may appear after the docker command
 _hyper_hyper() {
 	local boolean_options="
