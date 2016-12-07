@@ -14,6 +14,38 @@
 __hyper_previous_extglob_setting=$(shopt -p )
 shopt -s extglob
 
+__hyper_q() {
+	hyper ${host:+-H "$host"} ${config:+--config "$config"} 2>/dev/null "$@"
+}
+
+__hyper_complete_containers_all() {
+	local IFS=$'\n'
+	local containers=( $(__hyper_q ps -aq --no-trunc) )
+	if [ "$1" ]; then
+		containers=( $(__hyper_q inspect --format "{{if $1}}{{.Id}}{{end}}" "${containers[@]}") )
+	fi
+	local names=( $(__hyper_q inspect --format '{{.Name}}' "${containers[@]}") )
+	names=( "${names[@]#/}" ) # trim off the leading "/" from the container names
+	unset IFS
+	COMPREPLY=( $(compgen -W "${names[*]} ${containers[*]}" -- "$cur") )
+}
+
+__hyper_complete_containers_running() {
+	__hyper_complete_containers_all '.State.Running'
+}
+
+__hyper_complete_containers_stopped() {
+	__hyper_complete_containers_all 'not .State.Running'
+}
+
+__hyper_complete_containers_pauseable() {
+	__hyper_complete_containers_all 'and .State.Running (not .State.Paused)'
+}
+
+__hyper_complete_containers_unpauseable() {
+	__hyper_complete_containers_all '.State.Paused'
+}
+
 __hyper_complete_log_levels() {
 	COMPREPLY=( $( compgen -W "debug info warn error fatal" -- "$cur" ) )
 }
@@ -67,6 +99,17 @@ __hyper_pos_first_nonflag() {
 	done
 
 	echo $counter
+}
+
+_hyper_attach() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --no-stdin" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_containers_running
+			;;
+	esac
 }
 
 # global options that may appear after the docker command
@@ -163,6 +206,34 @@ _hyper() {
 
 	local command='hyper' command_pos=0 subcommand_pos
 	local counter=1
+	while [ $counter -lt $cword ]; do
+		case "${words[$counter]}" in
+			# save host so that completion can use custom daemon
+			--host|-H)
+				(( counter++ ))
+				host="${words[$counter]}"
+				;;
+			# save config so that completion can use custom configuration directories
+			--config)
+				(( counter++ ))
+				config="${words[$counter]}"
+				;;
+			$(__hyper_to_extglob "$global_options_with_args") )
+				(( counter++ ))
+				;;
+			-*)
+				;;
+			=)
+				(( counter++ ))
+				;;
+			*)
+				command="${words[$counter]}"
+				command_pos=$counter
+				break
+				;;
+		esac
+		(( counter++ ))
+	done
 
 	local completions_func=_hyper_${command}
 	declare -F $completions_func >/dev/null && $completions_func
