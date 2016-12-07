@@ -116,6 +116,17 @@ _hyper_config() {
 	COMPREPLY=( $( compgen -W "--accesskey --secretkey" -- "$cur" ) )
 }
 
+_hyper_exec() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--detach -d --help --interactive -i --tty -t" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_containers_running
+			;;
+	esac
+}
+
 # global options that may appear after the docker command
 _hyper_hyper() {
 	local boolean_options="
