@@ -10,6 +10,23 @@
 # To enable the completions:
 # - place this file in /etc/bash_completion.d
 #
+# Configuration:
+#
+# For several commands, the amount of completions can be configured by
+# setting environment variables.
+#
+# You can tailor completion for the "events", "history", "inspect", "run",
+# "rmi" and "save" commands by settings the following environment
+# variables:
+#
+# HYPER_COMPLETION_SHOW_IMAGE_IDS
+#   "none" - Show names only (default)
+#   "non-intermediate" - Show names and ids, but omit intermediate image IDs
+#   "all" - Show names and ids, including intermediate image IDs
+#
+# HYPER_COMPLETION_SHOW_TAGS
+#   "yes" - include tags in completion options (default)
+#   "no"  - don't include tags in completion options
 
 __hyper_previous_extglob_setting=$(shopt -p )
 shopt -s extglob
@@ -44,6 +61,40 @@ __hyper_complete_containers_pauseable() {
 
 __hyper_complete_containers_unpauseable() {
 	__hyper_complete_containers_all '.State.Paused'
+}
+
+__hyper_complete_images() {
+	local images_args=""
+
+	case "$HYPER_COMPLETION_SHOW_IMAGES_IDS" in
+		all)
+			images_args="--no-trunc -a"
+			;;
+		non-intermediate)
+			images_args="--no-trunc"
+			;;
+	esac
+
+	local repo_print_command
+	if [ "${HYPER_COMPLETION_SHOW_TAGS:-yes}" = "yes" ]; then
+		repo_print_command='print $1; print $1":"$2'
+	else
+		repo_print_command='print $1'
+	fi
+
+	local awk_script
+	case "$HYPER_COMPLETION_SHOW_IMAGE_IDS" in
+		all|non-intermediate)
+			awk_script='NR>1 { print $3; if ($1 != "<none>") { '"$repo_print_command"' } }'
+			;;
+		none|*)
+			awk_script='NR>1 && $1 != "<none>" { '"$repo_print_command"' }'
+			;;
+	esac
+
+	local images=$(__hyper_q images $images_args | awk "$awk_script")
+	COMPREPLY=( $(compgen -W "$images" -- "$cur") )
+	__ltrim_colon_completions "$cur"
 }
 
 __hyper_complete_log_levels() {
@@ -123,6 +174,17 @@ _hyper_exec() {
 			;;
 		*)
 			__hyper_complete_containers_running
+			;;
+	esac
+}
+
+_hyper_history() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --no-trunc --quiet -q" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_images
 			;;
 	esac
 }
