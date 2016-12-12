@@ -97,6 +97,11 @@ __hyper_complete_images() {
 	__ltrim_colon_completions "$cur"
 }
 
+__hyper_complete_image_repos() {
+	local repos="$(__hyper_q images | awk 'NR>1 && $1 != "<none>" { print $1 }')"
+	COMPREPLY=( $(compgen -W "$repos" -- "$cur") )
+}
+
 __hyper_complete_log_levels() {
 	COMPREPLY=( $( compgen -W "debug info warn error fatal" -- "$cur" ) )
 }
@@ -152,6 +157,12 @@ __hyper_pos_first_nonflag() {
 	echo $counter
 }
 
+# suppress trailing whitespace
+__hyper_nospace() {
+	# compopt is not available in ancient bash versions
+	type compopt &>/dev/null && compopt -o nospace
+}
+
 _hyper_attach() {
 	case "$cur" in
 		-*)
@@ -185,6 +196,41 @@ _hyper_history() {
 			;;
 		*)
 			__hyper_complete_images
+			;;
+	esac
+}
+
+_hyper_images() {
+	case "$prev" in
+		--filter|-f)
+			COMPREPLY=( $( compgen -S = -W "dangling label" -- "$cur" ) )
+			__hyper_nospace
+			return
+			;;
+                --format)
+			return
+			;;
+	esac
+
+	case "${words[$cword-2]}$prev=" in
+		*dangling=*)
+			COMPREPLY=( $( compgen -W "true false" -- "${cur#=}" ) )
+			return
+			;;
+		*label=*)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--all -a --digests --filter -f --format --help --no-trunc --quiet -q" -- "$cur" ) )
+			;;
+		=)
+			return
+			;;
+		*)
+			__hyper_complete_image_repos
 			;;
 	esac
 }
