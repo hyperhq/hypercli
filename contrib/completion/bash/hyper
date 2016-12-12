@@ -102,6 +102,13 @@ __hyper_complete_image_repos() {
 	COMPREPLY=( $(compgen -W "$repos" -- "$cur") )
 }
 
+__hyper_complete_containers_and_images() {
+	__hyper_complete_containers_all
+	local containers=( "${COMPREPLY[@]}" )
+	__hyper_complete_images
+	COMPREPLY+=( "${containers[@]}" )
+}
+
 __hyper_complete_log_levels() {
 	COMPREPLY=( $( compgen -W "debug info warn error fatal" -- "$cur" ) )
 }
@@ -155,6 +162,25 @@ __hyper_pos_first_nonflag() {
 	done
 
 	echo $counter
+}
+
+# Returns the value of the first option matching option_glob.
+# Valid values for option_glob are option names like '--log-level' and
+# globs like '--log-level|-l'
+# Only positions between the command and the current word are considered.
+__hyper_value_of_option() {
+	local option_extglob=$(__hyper_to_extglob "$1")
+
+	local counter=$((command_pos + 1))
+	while [ $counter -lt $cword ]; do
+		case ${words[$counter]} in
+			$option_extglob )
+				echo ${words[$counter + 1]}
+				break
+				;;
+		esac
+		(( counter++ ))
+	done
 }
 
 # suppress trailing whitespace
@@ -243,7 +269,37 @@ _hyper_info() {
 	esac
 }
 
-# global options that may appear after the docker command
+_hyper_inspect() {
+	case "$prev" in
+		--format|-f)
+			return
+			;;
+		--type)
+            COMPREPLY=( $( compgen -W "image container" -- "$cur" ) )
+            return
+            ;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--format -f --help --size -s --type" -- "$cur" ) )
+			;;
+		*)
+			case $(__hyper_value_of_option --type) in
+				'')
+					__hyper_complete_containers_and_images
+					;;
+				container)
+					__hyper_complete_containers_all
+					;;
+				image)
+					__hyper_complete_images
+					;;
+			esac
+	esac
+}
+
+# global options that may appear after the hyper command
 _hyper_hyper() {
 	local boolean_options="
 		$global_boolean_options
