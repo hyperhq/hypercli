@@ -235,6 +235,14 @@ _hyper_images() {
 	esac
 }
 
+_hyper_info() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
 # global options that may appear after the docker command
 _hyper_hyper() {
 	local boolean_options="
