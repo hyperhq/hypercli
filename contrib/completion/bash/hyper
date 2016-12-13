@@ -478,6 +478,67 @@ _hyper_pull() {
 	esac
 }
 
+_hyper_rename() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__hyper_pos_first_nonflag)
+			if [ $cword -eq $counter ]; then
+				__hyper_complete_containers_all
+			fi
+			;;
+	esac
+}
+
+_hyper_restart() {
+	case "$prev" in
+		--time|-t)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --time -t" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_containers_all
+			;;
+	esac
+}
+
+_hyper_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--force -f --help --link -l --volumes -v" -- "$cur" ) )
+			;;
+		*)
+			for arg in "${COMP_WORDS[@]}"; do
+				case "$arg" in
+					--force|-f)
+						__hyper_complete_containers_all
+						return
+						;;
+				esac
+			done
+			__hyper_complete_containers_stopped
+			;;
+	esac
+}
+
+_hyper_rmi() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--force -f --help " -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_images
+			;;
+	esac
+}
+
 # global options that may appear after the hyper command
 _hyper_hyper() {
 	local boolean_options="
