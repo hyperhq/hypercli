@@ -63,6 +63,18 @@ __hyper_complete_containers_unpauseable() {
 	__hyper_complete_containers_all '.State.Paused'
 }
 
+__hyper_complete_container_names() {
+	local containers=( $(__hyper_q ps -aq --no-trunc) )
+	local names=( $(__hyper_q inspect --format '{{.Name}}' "${containers[@]}") )
+	names=( "${names[@]#/}" ) # trim off the leading "/" from the container names
+	COMPREPLY=( $(compgen -W "${names[*]}" -- "$cur") )
+}
+
+__hyper_complete_container_ids() {
+	local containers=( $(__hyper_q ps -aq) )
+	COMPREPLY=( $(compgen -W "${containers[*]}" -- "$cur") )
+}
+
 __hyper_complete_images() {
 	local images_args=""
 
@@ -100,6 +112,12 @@ __hyper_complete_images() {
 __hyper_complete_image_repos() {
 	local repos="$(__hyper_q images | awk 'NR>1 && $1 != "<none>" { print $1 }')"
 	COMPREPLY=( $(compgen -W "$repos" -- "$cur") )
+}
+
+__hyper_complete_image_repos_and_tags() {
+	local reposAndTags="$(__hyper_q images | awk 'NR>1 && $1 != "<none>" { print $1; print $1":"$2 }')"
+	COMPREPLY=( $(compgen -W "$reposAndTags" -- "$cur") )
+	__ltrim_colon_completions "$cur"
 }
 
 __hyper_complete_containers_and_images() {
@@ -367,6 +385,95 @@ _hyper_logout() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_logs() {
+	case "$prev" in
+		--since|--tail)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--follow -f --help --since --tail --timestamps -t" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__hyper_pos_first_nonflag '--tail')
+			if [ $cword -eq $counter ]; then
+				__hyper_complete_containers_all
+			fi
+			;;
+	esac
+}
+
+_hyper_port() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__hyper_pos_first_nonflag)
+			if [ $cword -eq $counter ]; then
+				__hyper_complete_containers_all
+			fi
+			;;
+	esac
+}
+
+_hyper_ps() {
+	case "$prev" in
+		--filter|-f)
+			COMPREPLY=( $( compgen -S = -W "ancestor exited id label name status" -- "$cur" ) )
+			__hyper_nospace
+			return
+			;;
+		--format|-n)
+			return
+			;;
+	esac
+
+	case "${words[$cword-2]}$prev=" in
+		*ancestor=*)
+			cur="${cur#=}"
+			__hyper_complete_images
+			return
+			;;
+		*id=*)
+			cur="${cur#=}"
+			__hyper_complete_container_ids
+			return
+			;;
+		*name=*)
+			cur="${cur#=}"
+			__hyper_complete_container_names
+			return
+			;;
+		*status=*)
+			COMPREPLY=( $( compgen -W "created dead exited paused restarting running" -- "${cur#=}" ) )
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--all -a --filter -f --format --help --latest -l -n --no-trunc --quiet -q --size -s " -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_pull() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--disable-content-trust=false --help" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__hyper_pos_first_nonflag)
+			if [ $cword -eq $counter ]; then
+				__hyper_complete_image_repos_and_tags
+			fi
 			;;
 	esac
 }
