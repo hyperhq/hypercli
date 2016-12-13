@@ -539,6 +539,67 @@ _hyper_rmi() {
 	esac
 }
 
+_hyper_search() {
+	case "$prev" in
+		--stars|-s)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--automated --help --no-trunc --stars -s" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_start() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--attach -a --help --interactive -i" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_containers_stopped
+			;;
+	esac
+}
+
+_hyper_stats() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--all -a --help --no-stream" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_containers_running
+			;;
+	esac
+}
+
+_hyper_stop() {
+	case "$prev" in
+		--time|-t)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --time -t" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_containers_running
+			;;
+	esac
+}
+
+_hyper_version() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
 # global options that may appear after the hyper command
 _hyper_hyper() {
 	local boolean_options="
