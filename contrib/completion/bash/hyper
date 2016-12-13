@@ -334,6 +334,43 @@ _hyper_kill() {
 	esac
 }
 
+_hyper_load() {
+#	case "$prev" in
+#		--input|-i)
+#			_filedir
+#			return
+#			;;
+#	esac
+
+	case "$cur" in
+		-* )
+			COMPREPLY=( $( compgen -W "--help --input -i --quiet -q" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_login() {
+	case "$prev" in
+		--email|-e|--password|-p|--username|-u)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--email -e --help --password -p --username -u" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_logout() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
 # global options that may appear after the hyper command
 _hyper_hyper() {
 	local boolean_options="
