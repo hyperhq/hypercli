@@ -131,6 +131,10 @@ __hyper_complete_volumes() {
 	COMPREPLY=( $(compgen -W "$(__hyper_q volume ls -q)" -- "$cur") )
 }
 
+__hyper_complete_snapshots() {
+	COMPREPLY=( $(compgen -W "$(__hyper_q snapshot ls -q)" -- "$cur") )
+}
+
 __hyper_complete_fips() {
 	local fips="$(__hyper_q fip ls | awk 'NR>1 {print $1}')"
 	COMPREPLY=( $(compgen -W "$fips" -- "$cur") )
@@ -722,6 +726,90 @@ _hyper_volume() {
 		inspect
 		ls
 		init
+		rm
+	"
+	__hyper_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_snapshot_create() {
+	case "$prev" in
+		--name|-v|--volume)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-f --force --help --name -v --volume" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_snapshot_inspect() {
+	case "$prev" in
+		-f|--format)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help -f --format" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_snapshots
+			;;
+	esac
+}
+
+_hyper_snapshot_ls() {
+	case "$prev" in
+		--filter|-f)
+			COMPREPLY=( $( compgen -S = -W "dangling" -- "$cur" ) )
+			__hyper_nospace
+			return
+			;;
+	esac
+
+	case "${words[$cword-2]}$prev=" in
+		*dangling=*)
+			COMPREPLY=( $( compgen -W "true false" -- "${cur#=}" ) )
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--filter -f --help --quiet -q" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_snapshot_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_snapshots
+			;;
+	esac
+}
+
+_hyper_snapshot() {
+	local subcommands="
+		create
+		inspect
+		ls
 		rm
 	"
 	__hyper_subcommands "$subcommands" && return
