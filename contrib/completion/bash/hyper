@@ -726,6 +726,186 @@ _hyper_volume() {
 	esac
 }
 
+_hyper_compose_create() {
+	case "$prev" in
+		--project-name|-p)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-f --file --force-recreate --help --no-recreate -p --project-name" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_down() {
+	case "$prev" in
+		--remove-orphans|--rmi|--volume|-v|--project-name|-p)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help -p --project-name --remove-orphans --rmi -v --volumes" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_kill() {
+	case "$prev" in
+		--project-name|-p)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help -p --project-name" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_ps() {
+	case "$prev" in
+		--project-name|-p|--file|-f)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-f --file --help -p --project-name -q --quiet" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_pull() {
+	case "$prev" in
+		--file|-f)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-f --file --help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_rm() {
+	case "$prev" in
+		--project-name|-p|-v)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help -p --project-name -v" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_run() {
+	case "$prev" in
+		--project-name|-p|--file|-f|--rm)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-f --file --help -p --project-name --rm" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_scale() {
+	case "$prev" in
+		--project-name|-p|--file|-f|-t|--timeout)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-f --file --help -p --project-name -t --timeout" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_start() {
+	case "$prev" in
+		--project-name|-p)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help -p --project-name" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_stop() {
+	case "$prev" in
+		--project-name|-p|--timeout|-t)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help -p --project-name -t --timeout" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose_up() {
+	case "$prev" in
+		--project-name|-p|--file|-f)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-d --detach -f --file --force-recreate --help --no-recreate -p --project-name" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_compose() {
+	local subcommands="
+		create
+		down
+		kill
+		ps
+		pull
+		rm
+		run
+		scale
+		start
+		stop
+		up
+	"
+	__hyper_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
 # global options that may appear after the hyper command
 _hyper_hyper() {
 	local boolean_options="
