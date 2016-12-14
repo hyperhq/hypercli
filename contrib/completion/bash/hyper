@@ -131,6 +131,11 @@ __hyper_complete_volumes() {
 	COMPREPLY=( $(compgen -W "$(__hyper_q volume ls -q)" -- "$cur") )
 }
 
+__hyper_complete_fips() {
+	local fips="$(__hyper_q fip ls | awk 'NR>1 {print $1}')"
+	COMPREPLY=( $(compgen -W "$fips" -- "$cur") )
+}
+
 __hyper_complete_log_levels() {
 	COMPREPLY=( $( compgen -W "debug info warn error fatal" -- "$cur" ) )
 }
@@ -893,6 +898,78 @@ _hyper_compose() {
 		start
 		stop
 		up
+	"
+	__hyper_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_fip_allocate() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help -y --yes" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_fip_attach() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_fip_detach() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_containers_all
+			;;
+	esac
+}
+
+_hyper_fip_ls() {
+	case "$prev" in
+		--filter|-f)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--filter -f --help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_fip_release() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_fips
+			;;
+	esac
+}
+
+_hyper_fip() {
+	local subcommands="
+		allocate
+		attach
+		detach
+		ls
+		release
 	"
 	__hyper_subcommands "$subcommands" && return
 
