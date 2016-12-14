@@ -136,6 +136,11 @@ __hyper_complete_fips() {
 	COMPREPLY=( $(compgen -W "$fips" -- "$cur") )
 }
 
+__hyper_complete_sgs() {
+	local sgs="$(__hyper_q sg ls | awk 'NR>1 {print $1}')"
+	COMPREPLY=( $(compgen -W "$sgs" -- "$cur") )
+}
+
 __hyper_complete_log_levels() {
 	COMPREPLY=( $( compgen -W "debug info warn error fatal" -- "$cur" ) )
 }
@@ -718,6 +723,93 @@ _hyper_volume() {
 		ls
 		init
 		rm
+	"
+	__hyper_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_sg_create() {
+	case "$prev" in
+		-f|--file)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-f --file --help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_sg_ls() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_sg_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_sgs
+			;;
+	esac
+}
+
+_hyper_sg_inspect() {
+	case "$prev" in
+		-o|--output)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-o --output --help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_sgs
+			;;
+	esac
+}
+
+_hyper_sg_update() {
+	case "$prev" in
+		-f|--file)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "-f --file --help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_sgs
+			;;
+	esac
+}
+
+_hyper_sg() {
+	local subcommands="
+		create
+		ls
+		rm
+		inspect
+		update
 	"
 	__hyper_subcommands "$subcommands" && return
 
