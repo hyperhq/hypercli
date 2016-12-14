@@ -127,6 +127,10 @@ __hyper_complete_containers_and_images() {
 	COMPREPLY+=( "${containers[@]}" )
 }
 
+__hyper_complete_volumes() {
+	COMPREPLY=( $(compgen -W "$(__hyper_q volume ls -q)" -- "$cur") )
+}
+
 __hyper_complete_log_levels() {
 	COMPREPLY=( $( compgen -W "debug info warn error fatal" -- "$cur" ) )
 }
@@ -216,6 +220,35 @@ __hyper_value_of_option() {
 		esac
 		(( counter++ ))
 	done
+}
+
+# Subcommand processing.
+# Locates the first occurrence of any of the subcommands contained in the
+# first argument. In case of a match, calls the corresponding completion
+# function and returns 0.
+# If no match is found, 1 is returned. The calling function can then
+# continue processing its completion.
+#
+# TODO if the preceding command has options that accept arguments and an
+# argument is equal ot one of the subcommands, this is falsely detected as
+# a match.
+__hyper_subcommands() {
+	local subcommands="$1"
+
+	local counter=$(($command_pos + 1))
+	while [ $counter -lt $cword ]; do
+		case "${words[$counter]}" in
+			$(__hyper_to_extglob "$subcommands") )
+				subcommand_pos=$counter
+				local subcommand=${words[$counter]}
+				local completions_func=_hyper_${command}_${subcommand}
+				declare -F $completions_func >/dev/null && $completions_func
+				return 0
+				;;
+		esac
+		(( counter++ ))
+	done
+	return 1
 }
 
 # suppress trailing whitespace
@@ -596,6 +629,99 @@ _hyper_version() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_volume_create() {
+	case "$prev" in
+		--name|--opt|-o|--size|--snapshot)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --name --opt -o --size --snapshot " -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_volume_inspect() {
+	case "$prev" in
+		--format|-f)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_volumes
+			;;
+	esac
+}
+
+_hyper_volume_ls() {
+	case "$prev" in
+		--filter|-f)
+			COMPREPLY=( $( compgen -S = -W "dangling" -- "$cur" ) )
+			__hyper_nospace
+			return
+			;;
+	esac
+
+	case "${words[$cword-2]}$prev=" in
+		*dangling=*)
+			COMPREPLY=( $( compgen -W "true false" -- "${cur#=}" ) )
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--filter -f --help --quiet -q" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_volume_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_volumes
+			;;
+	esac
+}
+
+_hyper_volume_init() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_volume() {
+	local subcommands="
+		create
+		inspect
+		ls
+		init
+		rm
+	"
+	__hyper_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
 			;;
 	esac
 }
