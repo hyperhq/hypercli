@@ -639,6 +639,23 @@ _hyper_stop() {
 	esac
 }
 
+_hyper_update() {
+	case "$prev" in
+		--sg-add|--sg-rm)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --protection --sg-add --sg-rm" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_containers_all
+			;;
+	esac
+}
+
 _hyper_version() {
 	case "$cur" in
 		-*)
