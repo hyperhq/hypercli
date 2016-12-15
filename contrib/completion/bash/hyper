@@ -140,6 +140,11 @@ __hyper_complete_fips() {
 	COMPREPLY=( $(compgen -W "$fips" -- "$cur") )
 }
 
+__hyper_complete_crons() {
+	local crons="$(__hyper_q cron ls | awk 'NR>1 {print $1}')"
+	COMPREPLY=( $(compgen -W "$crons" -- "$cur") )
+}
+
 __hyper_complete_sgs() {
 	local sgs="$(__hyper_q sg ls | awk 'NR>1 {print $1}')"
 	COMPREPLY=( $(compgen -W "$sgs" -- "$cur") )
@@ -851,6 +856,144 @@ _hyper_volume() {
 		inspect
 		ls
 		init
+		rm
+	"
+	__hyper_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_cron_create() {
+	local options_with_args="
+		--access-key
+		--container-name
+		--dom
+		--env -e
+		--entrypoint
+		--env-file
+		--expose
+		--hostname -h
+		--hour
+		--label -l
+		--label-file
+		--link
+		--mail
+		--mailto
+		--minute
+		--month
+		--name
+		--publish -p
+		--restart
+		--secret-key
+		--sg
+		--size
+		--stop-signal
+		--volume -v
+		--workdir -w
+		--week
+	"
+
+	local boolean_options="
+		--help
+		--noauto-volume
+	"
+
+	local all_options="$options_with_args $boolean_options"
+
+	case "$prev" in
+		$(__hyper_to_extglob "$options_with_args") )
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "$all_options" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_cron_inspect() {
+	case "$prev" in
+		--format|-f)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_crons
+			;;
+	esac
+}
+
+_hyper_cron_ls() {
+	case "$prev" in
+		--filter|-f)
+			COMPREPLY=( $( compgen -S = -W "dangling" -- "$cur" ) )
+			__hyper_nospace
+			return
+			;;
+	esac
+
+	case "${words[$cword-2]}$prev=" in
+		*dangling=*)
+			COMPREPLY=( $( compgen -W "true false" -- "${cur#=}" ) )
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--filter -f --help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_cron_history() {
+	case "$prev" in
+		--since|--tail)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --since --tail " -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_crons
+			;;
+	esac
+}
+
+_hyper_cron_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_crons
+			;;
+	esac
+}
+
+_hyper_cron() {
+	local subcommands="
+		create
+		inspect
+		ls
+		history
 		rm
 	"
 	__hyper_subcommands "$subcommands" && return
