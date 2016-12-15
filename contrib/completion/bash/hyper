@@ -640,6 +640,60 @@ _hyper_run() {
 	esac
 }
 
+_hyper_create() {
+	local options_with_args="
+		--attach -a
+		--cidfile
+		--env -e
+		--entrypoint
+		--env-file
+		--expose
+		--hostname -h
+		--label -l
+		--label-file
+		--link
+		--name
+		--publish -p
+		--protection
+		--restart
+		--sg
+		--size
+		--stop-signal
+		--volume -v
+		--workdir -w
+	"
+
+	local boolean_options="
+		--detach -d
+		--disable-content-trust=false
+		--help
+		--interactive -i
+		--noauto-volume
+		--publish-all -P
+		--tty -t
+	"
+
+	local all_options="$options_with_args $boolean_options"
+
+	case "$prev" in
+		$(__hyper_to_extglob "$options_with_args") )
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "$all_options" -- "$cur" ) )
+			;;
+		*)
+			local counter=$( __hyper_pos_first_nonflag $( __hyper_to_alternatives "$options_with_args" ) )
+			if [ $cword -eq $counter ]; then
+				__hyper_complete_images
+			fi
+			;;
+	esac
+}
+
 _hyper_search() {
 	case "$prev" in
 		--stars|-s)
