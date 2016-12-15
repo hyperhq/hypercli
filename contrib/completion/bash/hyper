@@ -145,6 +145,11 @@ __hyper_complete_crons() {
 	COMPREPLY=( $(compgen -W "$crons" -- "$cur") )
 }
 
+__hyper_complete_services() {
+	local crons="$(__hyper_q service ls | awk 'NR>1 {print $1}')"
+	COMPREPLY=( $(compgen -W "$crons" -- "$cur") )
+}
+
 __hyper_complete_sgs() {
 	local sgs="$(__hyper_q sg ls | awk 'NR>1 {print $1}')"
 	COMPREPLY=( $(compgen -W "$sgs" -- "$cur") )
@@ -994,6 +999,176 @@ _hyper_cron() {
 		inspect
 		ls
 		history
+		rm
+	"
+	__hyper_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_service_create() {
+	local options_with_args="
+		--algorithm
+		--container-port
+		--env -e
+		--entrypoint
+		--env-file
+		--health-check-fall
+		--health-check-interval
+		--health-check-rise
+		--label -l
+		--label-file
+		--name
+		--protocol
+		--replicas
+		--service-port
+		--session-affinity
+		--sg
+		--size
+		--ssl-cert
+		--stop-signal
+		--volume -v
+		--workdir -w
+	"
+
+	local boolean_options="
+		--help
+		--interactive -i
+		--tty -t
+	"
+
+	local all_options="$options_with_args $boolean_options"
+
+	case "$prev" in
+		$(__hyper_to_extglob "$options_with_args") )
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "$all_options" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_service_inspect() {
+	case "$prev" in
+		--format|-f)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_services
+			;;
+	esac
+}
+
+_hyper_service_ls() {
+	case "$prev" in
+		--filter|-f)
+			COMPREPLY=( $( compgen -S = -W "dangling" -- "$cur" ) )
+			__hyper_nospace
+			return
+			;;
+	esac
+
+	case "${words[$cword-2]}$prev=" in
+		*dangling=*)
+			COMPREPLY=( $( compgen -W "true false" -- "${cur#=}" ) )
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--filter -f --help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_service_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_services
+			;;
+	esac
+}
+
+_hyper_service_scale() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_service_rolling-update() {
+	case "$prev" in
+		--image)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--image --help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_services
+			;;
+	esac
+}
+
+_hyper_service_attach-fip() {
+	case "$prev" in
+		--fip)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--fip --help" -- "$cur" ) )
+			;;
+		*)
+			__hyper_complete_services
+			;;
+	esac
+}
+
+_hyper_service_detach-fip() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_hyper_service() {
+	local subcommands="
+		create
+		inspect
+		ls
+		scale
+		rolling-update
+		attach-fip
+		detach-fip
 		rm
 	"
 	__hyper_subcommands "$subcommands" && return
