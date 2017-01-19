@@ -121,7 +121,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 	cmd.Var(&flDNSSearch, []string{}, "Set custom DNS search domains")
 	cmd.Var(&flDNSOptions, []string{}, "Set DNS options")
 	cmd.Var(&flExtraHosts, []string{}, "Add a custom host-to-IP mapping (host:ip)")
-	cmd.Var(&flVolumesFrom, []string{}, "Mount volumes from the specified container(s)")
+	cmd.Var(&flVolumesFrom, []string{"-volumes-from"}, "Mount shared volumes from the specified container(s)")
 	cmd.Var(&flCapAdd, []string{}, "Add Linux capabilities")
 	cmd.Var(&flCapDrop, []string{}, "Drop Linux capabilities")
 	cmd.Var(&flGroupAdd, []string{}, "Add additional groups to join")
