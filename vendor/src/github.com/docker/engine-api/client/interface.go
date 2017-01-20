@@ -105,6 +105,20 @@ type APIClient interface {
 	ComposeStart(p string, services []string) (io.ReadCloser, error)
 	ComposeStop(p string, services []string, timeout int) (io.ReadCloser, error)
 	ComposeKill(p string, services []string, signal string) (io.ReadCloser, error)
+
+	ServiceCreate(ctx context.Context, sv types.Service) (types.Service, error)
+	ServiceUpdate(ctx context.Context, name string, sv types.ServiceUpdate) (types.Service, error)
+	ServiceDelete(ctx context.Context, id string, keep bool) error
+	ServiceList(ctx context.Context, opts types.ServiceListOptions) ([]types.Service, error)
+	ServiceInspect(ctx context.Context, serviceID string) (types.Service, error)
+	ServiceInspectWithRaw(ctx context.Context, serviceID string) (types.Service, []byte, error)
+
+	CronCreate(ctx context.Context, n string, j types.Cron) (types.Cron, error)
+	CronDelete(ctx context.Context, id string) error
+	CronHistory(ctx context.Context, id, since, tail string) ([]types.Event, error)
+	CronList(ctx context.Context, opts types.CronListOptions) ([]types.Cron, error)
+	CronInspect(ctx context.Context, id string) (types.Cron, error)
+	CronInspectWithRaw(ctx context.Context, serviceID string) (types.Cron, []byte, error)
 }
 
 // Ensure that Client always implements APIClient.

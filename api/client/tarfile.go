@@ -112,7 +112,9 @@ func (t *TarFile) writeClose(p []byte) (n int, err error) {
 		t.endPad -= ret
 	}
 	if t.endPad <= 0 {
-		t.progress.Finish()
+		if t.progress != nil {
+			t.progress.Finish()
+		}
 		t.closed = true
 		return size, io.EOF
 	}
@@ -139,7 +141,9 @@ func (t *TarFile) AddFile(info os.FileInfo, relPath, linkName, path string) {
 
 func (t *TarFile) Close() error {
 	if !t.closed {
-		t.progress.Finish()
+		if t.progress != nil {
+			t.progress.Finish()
+		}
 	}
 	t.closed = true
 	return nil
@@ -223,7 +227,9 @@ func (t *TarFile) Read(p []byte) (n int, err error) {
 			}
 		case TARINFO_UPLOADED:
 			file.state = TARINFO_FINISHED
-			t.progress.Increment()
+			if t.progress != nil {
+				t.progress.Increment()
+			}
 		}
 	}
 

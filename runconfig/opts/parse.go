@@ -43,59 +43,60 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 
 		flUlimits = NewUlimitOpt(nil)
 
-		flPublish           = opts.NewListOpts(nil)
-		flExpose            = opts.NewListOpts(nil)
-		flDNS               = opts.NewListOpts(opts.ValidateIPAddress)
-		flDNSSearch         = opts.NewListOpts(opts.ValidateDNSSearch)
-		flDNSOptions        = opts.NewListOpts(nil)
-		flExtraHosts        = opts.NewListOpts(ValidateExtraHost)
-		flVolumesFrom       = opts.NewListOpts(nil)
-		flEnvFile           = opts.NewListOpts(nil)
-		flCapAdd            = opts.NewListOpts(nil)
-		flCapDrop           = opts.NewListOpts(nil)
-		flGroupAdd          = opts.NewListOpts(nil)
-		flSecurityOpt       = opts.NewListOpts(nil)
-		flLabelsFile        = opts.NewListOpts(nil)
-		flLoggingOpts       = opts.NewListOpts(nil)
-		flPrivileged        = cmd.Bool([]string{}, false, "Give extended privileges to this container")
-		flPidMode           = cmd.String([]string{}, "", "PID namespace to use")
-		flUTSMode           = cmd.String([]string{}, "", "UTS namespace to use")
-		flPublishAll        = cmd.Bool([]string{"P", "-publish-all"}, false, "Publish all exposed ports to random ports")
-		flStdin             = cmd.Bool([]string{"i", "-interactive"}, false, "Keep STDIN open even if not attached")
-		flTty               = cmd.Bool([]string{"t", "-tty"}, false, "Allocate a pseudo-TTY")
-		flOomKillDisable    = cmd.Bool([]string{}, false, "Disable OOM Killer")
-		flOomScoreAdj       = cmd.Int([]string{}, 0, "Tune host's OOM preferences (-1000 to 1000)")
-		flContainerIDFile   = cmd.String([]string{"-cidfile"}, "", "Write the container ID to the file")
-		flEntrypoint        = cmd.String([]string{"-entrypoint"}, "", "Overwrite the default ENTRYPOINT of the image")
-		flHostname          = cmd.String([]string{"h", "-hostname"}, "", "Container host name")
-		flMemoryString      = cmd.String([]string{}, "", "Memory limit")
-		flMemoryReservation = cmd.String([]string{}, "", "Memory soft limit")
-		flMemorySwap        = cmd.String([]string{}, "", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
-		flKernelMemory      = cmd.String([]string{}, "", "Kernel memory limit")
-		flUser              = cmd.String([]string{}, "", "Username or UID (format: <name|uid>[:<group|gid>])")
-		flWorkingDir        = cmd.String([]string{"w", "-workdir"}, "", "Working directory inside the container")
-		flCPUShares         = cmd.Int64([]string{}, 0, "CPU shares (relative weight)")
-		flCPUPeriod         = cmd.Int64([]string{}, 0, "Limit CPU CFS (Completely Fair Scheduler) period")
-		flCPUQuota          = cmd.Int64([]string{}, 0, "Limit CPU CFS (Completely Fair Scheduler) quota")
-		flCpusetCpus        = cmd.String([]string{}, "", "CPUs in which to allow execution (0-3, 0,1)")
-		flCpusetMems        = cmd.String([]string{}, "", "MEMs in which to allow execution (0-3, 0,1)")
-		flBlkioWeight       = cmd.Uint16([]string{}, 0, "Block IO (relative weight), between 10 and 1000")
-		flSwappiness        = cmd.Int64([]string{}, -1, "Tune container memory swappiness (0 to 100)")
-		flNetMode           = cmd.String([]string{}, "bridge", "Connect a container to a network")
-		flMacAddress        = cmd.String([]string{}, "", "Container MAC address (e.g. 92:d0:c6:0a:29:33)")
-		flIPv4Address       = cmd.String([]string{}, "", "Container IPv4 address (e.g. 172.30.100.104)")
-		flIPv6Address       = cmd.String([]string{}, "", "Container IPv6 address (e.g. 2001:db8::33)")
-		flIpcMode           = cmd.String([]string{}, "", "IPC namespace to use")
-		flRestartPolicy     = cmd.String([]string{"-restart"}, "no", "Restart policy to apply when a container exits")
-		flReadonlyRootfs    = cmd.Bool([]string{}, false, "Mount the container's root filesystem as read only")
-		flLoggingDriver     = cmd.String([]string{}, "", "Logging driver for container")
-		flCgroupParent      = cmd.String([]string{}, "", "Optional parent cgroup for the container")
-		flVolumeDriver      = cmd.String([]string{}, "", "Optional volume driver for the container")
-		flStopSignal        = cmd.String([]string{"-stop-signal"}, signal.DefaultStopSignal, fmt.Sprintf("Signal to stop a container, %v by default", signal.DefaultStopSignal))
-		flIsolation         = cmd.String([]string{}, "", "Container isolation level")
-		flShmSize           = cmd.String([]string{}, "", "Size of /dev/shm, default value is 64MB")
-		flInstanceType      = cmd.String([]string{"-size"}, "s4", "The type for each instance (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
-		flNoAutoVolume      = cmd.Bool([]string{"-noauto-volume"}, false, "Do not create volumes specified in image")
+		flPublish             = opts.NewListOpts(nil)
+		flExpose              = opts.NewListOpts(nil)
+		flDNS                 = opts.NewListOpts(opts.ValidateIPAddress)
+		flDNSSearch           = opts.NewListOpts(opts.ValidateDNSSearch)
+		flDNSOptions          = opts.NewListOpts(nil)
+		flExtraHosts          = opts.NewListOpts(ValidateExtraHost)
+		flVolumesFrom         = opts.NewListOpts(nil)
+		flEnvFile             = opts.NewListOpts(nil)
+		flCapAdd              = opts.NewListOpts(nil)
+		flCapDrop             = opts.NewListOpts(nil)
+		flGroupAdd            = opts.NewListOpts(nil)
+		flSecurityOpt         = opts.NewListOpts(nil)
+		flLabelsFile          = opts.NewListOpts(nil)
+		flLoggingOpts         = opts.NewListOpts(nil)
+		flPrivileged          = cmd.Bool([]string{}, false, "Give extended privileges to this container")
+		flPidMode             = cmd.String([]string{}, "", "PID namespace to use")
+		flUTSMode             = cmd.String([]string{}, "", "UTS namespace to use")
+		flPublishAll          = cmd.Bool([]string{"P", "-publish-all"}, false, "Publish all exposed ports to random ports")
+		flStdin               = cmd.Bool([]string{"i", "-interactive"}, false, "Keep STDIN open even if not attached")
+		flTty                 = cmd.Bool([]string{"t", "-tty"}, false, "Allocate a pseudo-TTY")
+		flOomKillDisable      = cmd.Bool([]string{}, false, "Disable OOM Killer")
+		flOomScoreAdj         = cmd.Int([]string{}, 0, "Tune host's OOM preferences (-1000 to 1000)")
+		flContainerIDFile     = cmd.String([]string{"-cidfile"}, "", "Write the container ID to the file")
+		flEntrypoint          = cmd.String([]string{"-entrypoint"}, "", "Overwrite the default ENTRYPOINT of the image")
+		flHostname            = cmd.String([]string{"h", "-hostname"}, "", "Container host name")
+		flMemoryString        = cmd.String([]string{}, "", "Memory limit")
+		flMemoryReservation   = cmd.String([]string{}, "", "Memory soft limit")
+		flMemorySwap          = cmd.String([]string{}, "", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
+		flKernelMemory        = cmd.String([]string{}, "", "Kernel memory limit")
+		flUser                = cmd.String([]string{}, "", "Username or UID (format: <name|uid>[:<group|gid>])")
+		flWorkingDir          = cmd.String([]string{"w", "-workdir"}, "", "Working directory inside the container")
+		flCPUShares           = cmd.Int64([]string{}, 0, "CPU shares (relative weight)")
+		flCPUPeriod           = cmd.Int64([]string{}, 0, "Limit CPU CFS (Completely Fair Scheduler) period")
+		flCPUQuota            = cmd.Int64([]string{}, 0, "Limit CPU CFS (Completely Fair Scheduler) quota")
+		flCpusetCpus          = cmd.String([]string{}, "", "CPUs in which to allow execution (0-3, 0,1)")
+		flCpusetMems          = cmd.String([]string{}, "", "MEMs in which to allow execution (0-3, 0,1)")
+		flBlkioWeight         = cmd.Uint16([]string{}, 0, "Block IO (relative weight), between 10 and 1000")
+		flSwappiness          = cmd.Int64([]string{}, -1, "Tune container memory swappiness (0 to 100)")
+		flNetMode             = cmd.String([]string{}, "bridge", "Connect a container to a network")
+		flMacAddress          = cmd.String([]string{}, "", "Container MAC address (e.g. 92:d0:c6:0a:29:33)")
+		flIPv4Address         = cmd.String([]string{}, "", "Container IPv4 address (e.g. 172.30.100.104)")
+		flIPv6Address         = cmd.String([]string{}, "", "Container IPv6 address (e.g. 2001:db8::33)")
+		flIpcMode             = cmd.String([]string{}, "", "IPC namespace to use")
+		flRestartPolicy       = cmd.String([]string{"-restart"}, "no", "Restart policy to apply when a container exits")
+		flReadonlyRootfs      = cmd.Bool([]string{}, false, "Mount the container's root filesystem as read only")
+		flLoggingDriver       = cmd.String([]string{}, "", "Logging driver for container")
+		flCgroupParent        = cmd.String([]string{}, "", "Optional parent cgroup for the container")
+		flVolumeDriver        = cmd.String([]string{}, "", "Optional volume driver for the container")
+		flStopSignal          = cmd.String([]string{"-stop-signal"}, signal.DefaultStopSignal, fmt.Sprintf("Signal to stop a container, %v by default", signal.DefaultStopSignal))
+		flIsolation           = cmd.String([]string{}, "", "Container isolation level")
+		flShmSize             = cmd.String([]string{}, "", "Size of /dev/shm, default value is 64MB")
+		flInstanceType        = cmd.String([]string{"-size"}, "s4", "The type for each instance (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flNoAutoVolume        = cmd.Bool([]string{"-noauto-volume"}, false, "Do not create volumes specified in image")
+		flContainerProtection = cmd.String([]string{"-protection"}, "False", "Termination protection for container")
 	)
 	_ = flIsolation
 
@@ -120,7 +121,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 	cmd.Var(&flDNSSearch, []string{}, "Set custom DNS search domains")
 	cmd.Var(&flDNSOptions, []string{}, "Set DNS options")
 	cmd.Var(&flExtraHosts, []string{}, "Add a custom host-to-IP mapping (host:ip)")
-	cmd.Var(&flVolumesFrom, []string{}, "Mount volumes from the specified container(s)")
+	cmd.Var(&flVolumesFrom, []string{"-volumes-from"}, "Mount shared volumes from the specified container(s)")
 	cmd.Var(&flCapAdd, []string{}, "Add Linux capabilities")
 	cmd.Var(&flCapDrop, []string{}, "Drop Linux capabilities")
 	cmd.Var(&flGroupAdd, []string{}, "Add additional groups to join")
@@ -344,6 +345,13 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 	if *flNoAutoVolume {
 		labels = append(labels, "sh_hyper_noauto_volume=true")
 	}
+	if value, err := strconv.ParseBool(*flContainerProtection); err == nil {
+		if value {
+			labels = append(labels, "sh_hyper_container_protection=true")
+		}
+	} else {
+		return nil, nil, nil, cmd, fmt.Errorf("Parse flag protection failed: %v", err)
+	}
 
 	resources := container.Resources{
 		CgroupParent:         *flCgroupParent,
@@ -470,6 +478,10 @@ func Parse(cmd *flag.FlagSet, args []string) (*container.Config, *container.Host
 }
 
 // reads a file of line terminated key=value pairs and override that with override parameter
+func ReadKVStrings(files []string, override []string) ([]string, error) {
+	return readKVStrings(files, override)
+}
+
 func readKVStrings(files []string, override []string) ([]string, error) {
 	envVariables := []string{}
 	for _, ef := range files {
@@ -707,6 +719,10 @@ func validatePath(val string, validator func(string) bool) (string, error) {
 // volumeSplitN splits raw into a maximum of n parts, separated by a separator colon.
 // A separator colon is the last `:` character in the regex `[/:\\]?[a-zA-Z]:` (note `\\` is `\` escaped).
 // This allows to correctly split strings such as `C:\foo:D:\:rw`.
+func VolumeSplitN(raw string, n int) []string {
+	return volumeSplitN(raw, n)
+}
+
 func volumeSplitN(raw string, n int) []string {
 	var array []string
 	if len(raw) == 0 || raw[0] == ':' {

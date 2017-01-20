@@ -111,8 +111,8 @@ func (cli *DockerCli) CmdSnapshotInspect(args ...string) error {
 //
 // Usage: docker snapshot create [OPTIONS]
 func (cli *DockerCli) CmdSnapshotCreate(args ...string) error {
-	cmd := Cli.Subcmd("snapshot create", nil, "Create a snapshot", true)
-	flForce := cmd.Bool([]string{"f", "-force"}, false, "Force to create snapshot")
+	cmd := Cli.Subcmd("snapshot create", []string{"-v volume"}, "Create a snapshot", true)
+	flForce := cmd.Bool([]string{"f", "-force"}, false, "Force to create snapshot, needed if volume is in use")
 	flVolume := cmd.String([]string{"v", "-volume"}, "", "Specify volume to create snapshot")
 	flName := cmd.String([]string{"-name"}, "", "Specify snapshot name")
 
