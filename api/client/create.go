@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -87,6 +88,8 @@ func parseProtoAndLocalBind(bind string) (string, string, bool) {
 		if strings.Count(bind, ":") < 1 {
 			return "", "", false
 		}
+	case filepath.VolumeName(bind) != "":
+		// Windows local path
 	default:
 		return "", "", false
 	}

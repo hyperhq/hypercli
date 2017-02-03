@@ -199,6 +199,8 @@ func validateVolumeSource(source string) error {
 		fallthrough
 	case strings.HasPrefix(source, "https://"):
 		break
+	case filepath.VolumeName(source) != "":
+		fallthrough
 	case strings.HasPrefix(source, "/"):
 		info, err := os.Stat(source)
 		if err != nil {
@@ -215,24 +217,26 @@ func validateVolumeSource(source string) error {
 	return nil
 }
 
-func validateVolumeInitArgs(args []string, req *types.VolumesInitializeRequest) error {
-
+func validateVolumeInitArgs(args []string, req *types.VolumesInitializeRequest) ([]int, error) {
+	var sourceType []int
 	for _, desc := range args {
 		idx := strings.LastIndexByte(desc, ':')
 		if idx == -1 || idx >= len(desc)-1 {
-			return fmt.Errorf("%s does not match format SOURCE:VOLUME", desc)
+			return nil, fmt.Errorf("%s does not match format SOURCE:VOLUME", desc)
 		}
 		source := desc[:idx]
 		name := desc[idx+1:]
 		if err := validateVolumeSource(source); err != nil {
-			return err
+			return nil, err
 		}
+		pathType, source := convertToUnixPath(source)
 		req.Volume = append(req.Volume, types.VolumeInitDesc{
 			Name:   name,
 			Source: source,
 		})
+		sourceType = append(sourceType, pathType)
 	}
-	return nil
+	return sourceType, nil
 }
 
 // CmdVolumeInit Initializes one or more volumes.
@@ -248,11 +252,10 @@ func (cli *DockerCli) CmdVolumeInit(args ...string) error {
 
 func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	var req types.VolumesInitializeRequest
-	err := validateVolumeInitArgs(vols, &req)
+	pathType, err := validateVolumeInitArgs(vols, &req)
 	if err != nil {
 		return err
 	}
-
 	ctx := context.Background()
 	req.Reload = reload
 	resp, err := cli.client.VolumeInitialize(ctx, req)
@@ -263,7 +266,6 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	if len(resp.Session) == 0 {
 		return nil
 	}
-
 	// Upload local volumes
 	var wg sync.WaitGroup
 	var results []error
@@ -274,10 +276,11 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 		pool = nil
 		err = nil
 	}
-	for _, desc := range req.Volume {
+	for idx, desc := range req.Volume {
 		if url, ok := resp.Uploaders[desc.Name]; ok {
+			source := recoverPath(pathType[idx], desc.Source)
 			wg.Add(1)
-			go uploadLocalVolume(desc.Source, url, resp.Cookie, &results, &wg, pool)
+			go uploadLocalVolume(source, url, resp.Cookie, &results, &wg, pool)
 		}
 	}
 
