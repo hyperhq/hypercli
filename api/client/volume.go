@@ -200,6 +200,8 @@ func validateVolumeSource(source string) error {
 	case strings.HasPrefix(source, "https://"):
 		break
 	case strings.HasPrefix(source, "/"):
+		fallthrough
+	case strings.Contains(source, "\\"):
 		info, err := os.Stat(source)
 		if err != nil {
 			return err

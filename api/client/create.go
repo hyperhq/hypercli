@@ -87,6 +87,11 @@ func parseProtoAndLocalBind(bind string) (string, string, bool) {
 		if strings.Count(bind, ":") < 1 {
 			return "", "", false
 		}
+	case strings.Contains(bind, "\\") && ((bind[0] >= 'a' && bind[0] <= 'z') || (bind[0] >= 'A' && bind[0] <= 'Z')):
+		// windows local path
+		if len(bind) <= 3 || bind[1] != ':' || bind[2] != '\\' || strings.Count(bind, ":") != 2 {
+			return "", "", false
+		}
 	default:
 		return "", "", false
 	}
