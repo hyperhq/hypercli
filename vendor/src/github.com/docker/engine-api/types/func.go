@@ -37,6 +37,9 @@ type Func struct {
 
 	// The created time
 	Created time.Time `json:"Created,omitempty"`
+
+	// Weather the UUID should be regenerated
+	Refresh bool `json:"Refresh,omitempty"`
 }
 
 type FuncListOptions struct {

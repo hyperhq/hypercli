@@ -3,7 +3,7 @@ package client
 import (
 	"fmt"
 	// "io/ioutil"
-	// "strconv"
+	"strconv"
 	"strings"
 	"time"
 	"text/tabwriter"
@@ -107,6 +107,56 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 		return err
 	}
 	fmt.Fprintf(cli.out, "Func %s is created.\n", fn.Name)
+	return nil
+}
+
+// CmdFuncUpdate updates a func with a given name
+//
+// Usage: hyper func update [OPTIONS] NAME
+func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
+	cmd := Cli.Subcmd("func update", []string{}, "Update a func", false)
+	var (
+		flSize                = cmd.String([]string{"-size"}, "", "The size of func containers (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flEnv                 = ropts.NewListOpts(opts.ValidateEnv)
+		flHeader              = ropts.NewListOpts(opts.ValidateEnv)
+		flMaxConcurrency      = cmd.String([]string{"-max_concurrency"}, "", "The maximum number of concurrent container, default (-1) is container quota")
+		flMaxLimit            = cmd.String([]string{"-max_limit"}, "", "The maximum number of func call which waiting for completed, default (-1) is unlimit")
+		flRefresh             = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of func")
+	)
+	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables of container")
+	cmd.Var(&flHeader, []string{"h", "-header"}, "The http response header of the endpoint of func status query")
+
+	cmd.Require(flag.Exact, 1)
+	err := cmd.ParseFlags(args, true)
+	if err != nil {
+		return err
+	}
+
+	name := cmd.Arg(0)
+
+	// collect all the environment variables
+	envVariables := flEnv.GetAll()
+
+	// collect all the headers
+	envHeaders := flHeader.GetAll()
+
+	maxConcurrency, _ := strconv.Atoi(*flMaxConcurrency)
+	maxLimit, _ := strconv.Atoi(*flMaxLimit)
+	fnOpts := types.Func{
+		Name:                name,
+		Size:                *flSize,
+		Env:                 &envVariables,
+		Header:              &envHeaders,
+		MaxConcurrency:      maxConcurrency,
+		MaxLimit:            maxLimit,
+		Refresh:             *flRefresh,
+	}
+
+	fn, err := cli.client.FuncUpdate(context.Background(), name, fnOpts)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(cli.out, "Func %s is updated.\n", fn.Name)
 	return nil
 }
 
