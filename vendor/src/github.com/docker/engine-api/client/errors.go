@@ -127,7 +127,7 @@ type funcNotFoundError struct {
 
 // Error returns a string representation of a funcNotFoundError
 func (e funcNotFoundError) Error() string {
-	return fmt.Sprintf("Error: No such func: %s", e.name)
+	return fmt.Sprintf("Error: No such function: %s", e.name)
 }
 
 // IsErrFuncNotFound returns true if the error is caused

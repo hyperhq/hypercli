@@ -126,6 +126,8 @@ type APIClient interface {
 	FuncList(ctx context.Context, opts types.FuncListOptions) ([]types.Func, error)
 	FuncInspect(ctx context.Context, name string) (types.Func, error)
 	FuncInspectWithRaw(ctx context.Context, name string) (types.Func, []byte, error)
+	FuncCall(ctx context.Context, name string) (*types.FuncCallResponse, error)
+	FuncGet(ctx context.Context, name, callId string, wait bool) ([]byte, error)
 }
 
 // Ensure that Client always implements APIClient.

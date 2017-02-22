@@ -33,14 +33,14 @@ func (cli *DockerCli) CmdFunc(args ...string) error {
 
 func funcUsage() string {
 	funcCommands := [][]string{
-		{"create", "Create a func"},
-		{"update", "Update a func"},
-		{"ls", "List all funcs"},
-		{"rm", "Remove one or more funcs"},
-		{"inspect", "Display detailed information on the given func"},
-		{"call", "Call a func"},
-		{"log", "Display execution log of a func"},
-		{"get", "Query the request status of a func call"},
+		{"create", "Create a function"},
+		{"update", "Update a function"},
+		{"ls", "List all functions"},
+		{"rm", "Remove one or more functions"},
+		{"inspect", "Display detailed information on the given function"},
+		{"call", "Call a function"},
+		{"get", "Get the return of a function call"},
+		{"logs", "Retrieve the logs of a function"},
 	}
 
 	help := "Commands:\n"
@@ -57,17 +57,16 @@ func funcUsage() string {
 //
 // Usage: hyper func create [OPTIONS] IMAGE [COMMAND]
 func (cli *DockerCli) CmdFuncCreate(args ...string) error {
-	cmd := Cli.Subcmd("func create", []string{"IMAGE [COMMAND]"}, "Create a new func", false)
+	cmd := Cli.Subcmd("func create", []string{"IMAGE [COMMAND] [ARG...]"}, "Create a function", false)
 	var (
-		flName                = cmd.String([]string{"-name"}, "", "Func name")
-		flSize                = cmd.String([]string{"-size"}, "s4", "The size of func containers (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flName                = cmd.String([]string{"-name"}, "", "Function name")
+		flSize                = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
 		flEnv                 = ropts.NewListOpts(opts.ValidateEnv)
 		flHeader              = ropts.NewListOpts(opts.ValidateEnv)
-		flMaxConcurrency      = cmd.Int([]string{"-max_concurrency"}, -1, "The maximum number of concurrent container, default (-1) is container quota")
-		flMaxLimit            = cmd.Int([]string{"-max_limit"}, -1, "The maximum number of func call which waiting for completed, default (-1) is unlimit")
+		flMaxLimit            = cmd.Int([]string{"-max_limit"}, -1, "The maximum number of function call which waiting for completed, default (-1) is unlimit")
 	)
-	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables of container")
-	cmd.Var(&flHeader, []string{"h", "-header"}, "The http response header of the endpoint of func status query")
+	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
+	cmd.Var(&flHeader, []string{"h", "-header"}, "The http response header of the return of a function call")
 
 	cmd.Require(flag.Min, 1)
 	err := cmd.ParseFlags(args, true)
@@ -98,7 +97,6 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 		Command:             command,
 		Env:                 &envVariables,
 		Header:              &envHeaders,
-		MaxConcurrency:      *flMaxConcurrency,
 		MaxLimit:            *flMaxLimit,
 	}
 
@@ -114,17 +112,16 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 //
 // Usage: hyper func update [OPTIONS] NAME
 func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
-	cmd := Cli.Subcmd("func update", []string{}, "Update a func", false)
+	cmd := Cli.Subcmd("func update", []string{}, "Update a function", false)
 	var (
-		flSize                = cmd.String([]string{"-size"}, "", "The size of func containers (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flSize                = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
 		flEnv                 = ropts.NewListOpts(opts.ValidateEnv)
 		flHeader              = ropts.NewListOpts(opts.ValidateEnv)
-		flMaxConcurrency      = cmd.String([]string{"-max_concurrency"}, "", "The maximum number of concurrent container, default (-1) is container quota")
-		flMaxLimit            = cmd.String([]string{"-max_limit"}, "", "The maximum number of func call which waiting for completed, default (-1) is unlimit")
-		flRefresh             = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of func")
+		flMaxLimit            = cmd.String([]string{"-max_limit"}, "", "The maximum number of function call which waiting for completed, default (-1) is unlimit")
+		flRefresh             = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of function")
 	)
-	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables of container")
-	cmd.Var(&flHeader, []string{"h", "-header"}, "The http response header of the endpoint of func status query")
+	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
+	cmd.Var(&flHeader, []string{"h", "-header"}, "The http response header of the return of a function call")
 
 	cmd.Require(flag.Exact, 1)
 	err := cmd.ParseFlags(args, true)
@@ -140,14 +137,12 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	// collect all the headers
 	envHeaders := flHeader.GetAll()
 
-	maxConcurrency, _ := strconv.Atoi(*flMaxConcurrency)
 	maxLimit, _ := strconv.Atoi(*flMaxLimit)
 	fnOpts := types.Func{
 		Name:                name,
 		Size:                *flSize,
 		Env:                 &envVariables,
 		Header:              &envHeaders,
-		MaxConcurrency:      maxConcurrency,
 		MaxLimit:            maxLimit,
 		Refresh:             *flRefresh,
 	}
@@ -156,7 +151,7 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(cli.out, "Func %s is updated.\n", fn.Name)
+	fmt.Fprintf(cli.out, "Function %s is updated.\n", fn.Name)
 	return nil
 }
 
@@ -164,7 +159,7 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 //
 // Usage: hyper func rm NAME [NAME...]
 func (cli *DockerCli) CmdFuncRm(args ...string) error {
-	cmd := Cli.Subcmd("func rm", []string{"NAME [NAME...]"}, "Remove one or more funcs", false)
+	cmd := Cli.Subcmd("func rm", []string{"NAME [NAME...]"}, "Remove one or more functions", false)
 	cmd.Require(flag.Min, 1)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return err
@@ -189,7 +184,7 @@ func (cli *DockerCli) CmdFuncRm(args ...string) error {
 //
 // Usage: hyper func ls [OPTIONS]
 func (cli *DockerCli) CmdFuncLs(args ...string) error {
-	cmd := Cli.Subcmd("func ls", nil, "Lists funcs", true)
+	cmd := Cli.Subcmd("func ls", nil, "Lists functions", true)
 
 	flFilter := ropts.NewListOpts(nil)
 	cmd.Var(&flFilter, []string{"f", "-filter"}, "Filter output based on conditions provided")
@@ -234,7 +229,7 @@ func (cli *DockerCli) CmdFuncLs(args ...string) error {
 //
 // Usage: docker func inspect [OPTIONS] NAME [NAME...]
 func (cli *DockerCli) CmdFuncInspect(args ...string) error {
-	cmd := Cli.Subcmd("func inspect", []string{"NAME [NAME...]"}, "Display detailed information on the given func", true)
+	cmd := Cli.Subcmd("func inspect", []string{"NAME [NAME...]"}, "Display detailed information on the given function", true)
 	tmplStr := cmd.String([]string{"f", "-format"}, "", "Format the output using the given go template")
 
 	cmd.Require(flag.Min, 1)
@@ -252,4 +247,48 @@ func (cli *DockerCli) CmdFuncInspect(args ...string) error {
 	}
 
 	return cli.inspectElements(*tmplStr, cmd.Args(), inspectSearcher)
+}
+
+// CmdFuncCall call a func
+//
+// Usage: hyper func call NAME
+func (cli *DockerCli) CmdFuncCall(args ...string) error {
+	cmd := Cli.Subcmd("func call", []string{"NAME"}, "Call a function", false)
+	cmd.Require(flag.Exact, 1)
+	if err := cmd.ParseFlags(args, true); err != nil {
+		return err
+	}
+
+	name := cmd.Arg(0)
+
+	ret, err := cli.client.FuncCall(context.Background(), name)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(cli.out, "CallId: %s\n", ret.CallId)
+	return nil
+}
+
+// CmdFuncGet Get the return of a func call
+//
+// Usage: hyper func get [OPTIONS] CALL_ID
+func (cli *DockerCli) CmdFuncGet(args ...string) error {
+	cmd := Cli.Subcmd("func get", []string{"NAME CALL_ID"}, "Get the return of a function call", false)
+	var (
+		flWait                = cmd.Bool([]string{"-wait"}, false, "Block until the call is completed")
+	)
+	cmd.Require(flag.Exact, 2)
+	if err := cmd.ParseFlags(args, true); err != nil {
+		return err
+	}
+
+	name := cmd.Arg(0)
+	callId := cmd.Arg(1)
+
+	ret, err := cli.client.FuncGet(context.Background(), name, callId, *flWait)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(cli.out, "%s\n", ret)
+	return nil
 }

@@ -1,6 +1,9 @@
 package client
 
 import (
+	"os"
+	"fmt"
+	"path"
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
@@ -11,6 +14,46 @@ import (
 	"github.com/docker/engine-api/types/filters"
 	"golang.org/x/net/context"
 )
+
+func ensureFuncRespClosed(resp *http.Response) {
+	if resp != nil {
+		resp.Body.Close()
+	}
+}
+
+func (cli *Client) FuncEndpointRequest(method, resource, name, uuid, query string) (*http.Response, error) {
+	endpoint := os.Getenv("HYPER_FUNC_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "https://us-west-1.hyperfunc.io/"
+	}
+	api, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	api.Path = path.Join(api.Path, resource, name, uuid, query)
+
+	httpClient := &http.Client{}
+	req, err := http.NewRequest(method, api.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	// defer resp.Body.Close()
+
+	status := resp.StatusCode
+	if status != 101 && (status < 200 || status >= 400) {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return resp, err
+		}
+		return resp, fmt.Errorf("Error response from server: %s", bytes.TrimSpace(body))
+	}
+
+	return resp, nil
+}
 
 func (cli *Client) FuncCreate(ctx context.Context, opts types.Func) (types.Func, error) {
 	var fn types.Func
@@ -84,4 +127,43 @@ func (cli *Client) FuncInspectWithRaw(ctx context.Context, name string) (types.F
 	rdr := bytes.NewReader(body)
 	err = json.NewDecoder(rdr).Decode(&fn)
 	return fn, body, err
+}
+
+func (cli *Client) FuncCall(ctx context.Context, name string) (*types.FuncCallResponse, error) {
+	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := cli.FuncEndpointRequest("POST", "call", name, fn.UUID, "")
+	if err != nil {
+		return nil, err
+	}
+	defer ensureFuncRespClosed(resp)
+	var ret types.FuncCallResponse
+	err = json.NewDecoder(resp.Body).Decode(&ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+func (cli *Client) FuncGet(ctx context.Context, name, callId string, wait bool) ([]byte, error) {
+	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	query := callId
+	if wait {
+		query += "/wait"
+	}
+	resp, err := cli.FuncEndpointRequest("GET", "output", name, fn.UUID, query)
+	if err != nil {
+		return nil, err
+	}
+	defer ensureFuncRespClosed(resp)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
 }

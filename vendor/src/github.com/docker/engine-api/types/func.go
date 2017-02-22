@@ -26,9 +26,6 @@ type Func struct {
 	// The response headers of http endpoint, optional, format: ["key=value", ...]
 	Header *[]string `json:"Header,omitempty"`
 
-	// The maximum number of concurrent container, optional, default: -1 (container quota), min: 1, max: container quota
-	MaxConcurrency int `json:"MaxConcurrency,omitempty"`
-
 	// The maximum number of func call which waiting for completed, optional, default: -1 (unlimit), min: 1, max: unlimit
 	MaxLimit int `json:"MaxLimit,omitempty"`
 
@@ -44,4 +41,8 @@ type Func struct {
 
 type FuncListOptions struct {
 	Filters filters.Args
+}
+
+type FuncCallResponse struct {
+	CallId string `json:"CallId"`
 }
