@@ -3,9 +3,13 @@ package client
 import (
 	"os"
 	"fmt"
+	"net"
+	"crypto/tls"
 	"path"
 	"bytes"
+	"strconv"
 	"encoding/json"
+	"net/http/httputil"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -21,30 +25,62 @@ func ensureFuncRespClosed(resp *http.Response) {
 	}
 }
 
-func (cli *Client) FuncEndpointRequest(method, resource, name, uuid, query string) (*http.Response, error) {
+func newFuncEndpointRequest(method, subpath string, query url.Values) (*http.Request, error) {
 	endpoint := os.Getenv("HYPER_FUNC_ENDPOINT")
 	if endpoint == "" {
-		endpoint = "https://us-west-1.hyperfunc.io/"
+		endpoint = "us-west-1.hyperfunc.io"
 	}
-	api, err := url.Parse(endpoint)
+	apiUrl, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
 	}
-	api.Path = path.Join(api.Path, resource, name, uuid, query)
+	apiUrl.Scheme = "https"
+	apiUrl.Path = path.Join(apiUrl.Path, subpath)
+	queryStr := query.Encode()
+	if queryStr != "" {
+		apiUrl.RawQuery = queryStr
+	}
+	req, err := http.NewRequest(method, apiUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
+}
+
+func funcEndpointRequestHijack(method, subpath string, query url.Values) (*net.Conn, error) {
+	req, err := newFuncEndpointRequest(method, subpath, query)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Connection", "Upgrade")
+	req.Header.Set("Upgrade", "tcp")
+	conn, err := tls.Dial("tcp", req.URL.Host + ":443", &tls.Config{})
+	if err != nil {
+		return nil, err
+	}
+	clientConn := httputil.NewClientConn(conn, nil)
+	_, err = clientConn.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	respConn, _ := clientConn.Hijack()
+	return &respConn, nil
+}
+
+func funcEndpointRequest(method, subpath string, query url.Values) (*http.Response, error) {
+	req, err := newFuncEndpointRequest(method, subpath, query)
+	if err != nil {
+		return nil, err
+	}
 
 	httpClient := &http.Client{}
-	req, err := http.NewRequest(method, api.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	// defer resp.Body.Close()
 
 	status := resp.StatusCode
-	if status != 101 && (status < 200 || status >= 400) {
+	if status < 200 || status >= 400 {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return resp, err
@@ -134,11 +170,11 @@ func (cli *Client) FuncCall(ctx context.Context, name string) (*types.FuncCallRe
 	if err != nil {
 		return nil, err
 	}
-	resp, err := cli.FuncEndpointRequest("POST", "call", name, fn.UUID, "")
+	resp, err := funcEndpointRequest("POST", path.Join("call", name, fn.UUID), nil)
+	defer ensureFuncRespClosed(resp)
 	if err != nil {
 		return nil, err
 	}
-	defer ensureFuncRespClosed(resp)
 	var ret types.FuncCallResponse
 	err = json.NewDecoder(resp.Body).Decode(&ret)
 	if err != nil {
@@ -152,18 +188,40 @@ func (cli *Client) FuncGet(ctx context.Context, name, callId string, wait bool) 
 	if err != nil {
 		return nil, err
 	}
-	query := callId
+	subpath := callId
 	if wait {
-		query += "/wait"
+		subpath += "/wait"
 	}
-	resp, err := cli.FuncEndpointRequest("GET", "output", name, fn.UUID, query)
+	resp, err := funcEndpointRequest("GET", path.Join("output", name, fn.UUID, subpath), nil)
+	defer ensureFuncRespClosed(resp)
 	if err != nil {
 		return nil, err
 	}
-	defer ensureFuncRespClosed(resp)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 	return body, nil
+}
+
+func (cli *Client) FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (*net.Conn, error) {
+	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	query := url.Values{}
+	if callId != "" {
+		query.Set("callid", callId)
+	}
+	if follow {
+		query.Add("follow", strconv.FormatBool(follow))
+	}
+	if tail != "" {
+		query.Add("tail", tail)
+	}
+	conn, err := funcEndpointRequestHijack("GET", path.Join("logs", name, fn.UUID, ""), query)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
 }

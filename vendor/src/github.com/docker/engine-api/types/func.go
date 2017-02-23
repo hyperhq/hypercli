@@ -46,3 +46,12 @@ type FuncListOptions struct {
 type FuncCallResponse struct {
 	CallId string `json:"CallId"`
 }
+
+type FuncLogsResponse struct {
+	Time string `json:"Time"`
+	Event string `json:"Event"`
+	CallId string `json:"CallId"`
+	ShortStdin string `json:"ShortStdin"`
+	ShortStdout string `json:"ShortStdout"`
+	ShortStderr string `json:"ShortStderr"`
+}

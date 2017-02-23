@@ -1,8 +1,9 @@
 package client
 
 import (
+	"io"
 	"fmt"
-	// "io/ioutil"
+	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -274,9 +275,8 @@ func (cli *DockerCli) CmdFuncCall(args ...string) error {
 // Usage: hyper func get [OPTIONS] CALL_ID
 func (cli *DockerCli) CmdFuncGet(args ...string) error {
 	cmd := Cli.Subcmd("func get", []string{"NAME CALL_ID"}, "Get the return of a function call", false)
-	var (
-		flWait                = cmd.Bool([]string{"-wait"}, false, "Block until the call is completed")
-	)
+	wait := cmd.Bool([]string{"-wait"}, false, "Block until the call is completed")
+
 	cmd.Require(flag.Exact, 2)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return err
@@ -285,10 +285,43 @@ func (cli *DockerCli) CmdFuncGet(args ...string) error {
 	name := cmd.Arg(0)
 	callId := cmd.Arg(1)
 
-	ret, err := cli.client.FuncGet(context.Background(), name, callId, *flWait)
+	ret, err := cli.client.FuncGet(context.Background(), name, callId, *wait)
 	if err != nil {
 		return err
 	}
 	fmt.Fprintf(cli.out, "%s\n", ret)
+	return nil
+}
+
+// CmdFuncLogs Get the return of a func call
+//
+// Usage: hyper func get [OPTIONS] NAME
+func (cli *DockerCli) CmdFuncLogs(args ...string) error {
+	cmd := Cli.Subcmd("func get", []string{"NAME"}, "Get the return of a function call", false)
+
+	follow := cmd.Bool([]string{"f", "-follow"}, false, "Follow log output")
+	tail := cmd.String([]string{"-tail"}, "all", "Number of lines to show from the end of the logs")
+	callId := cmd.String([]string{"-callid"}, "", "Only retrieve specific logs of CallId")
+
+	cmd.Require(flag.Exact, 1)
+	if err := cmd.ParseFlags(args, true); err != nil {
+		return err
+	}
+
+	name := cmd.Arg(0)
+
+	conn, err := cli.client.FuncLogs(context.Background(), name, *callId, *follow, *tail)
+	if err != nil {
+		return err
+	}
+	dec := json.NewDecoder(*conn)
+	for {
+		var log types.FuncLogsResponse
+		err := dec.Decode(&log)
+		if err != nil && err == io.EOF {
+			break
+		}
+		fmt.Fprintf(cli.out, "%s [%s] CallId: %s ShortStdin: %s ShortStdout: %s ShortStderr: %s\n", log.Time, log.Event, log.CallId, log.ShortStdin, log.ShortStdout, log.ShortStderr)
+	}
 	return nil
 }
