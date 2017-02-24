@@ -1,18 +1,19 @@
 package client
 
 import (
-	"os"
-	"fmt"
-	"net"
-	"crypto/tls"
-	"path"
 	"bytes"
-	"strconv"
+	"crypto/tls"
 	"encoding/json"
-	"net/http/httputil"
+	"fmt"
+	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"os"
+	"path"
+	"strconv"
 
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
@@ -25,7 +26,7 @@ func ensureFuncRespClosed(resp *http.Response) {
 	}
 }
 
-func newFuncEndpointRequest(method, subpath string, query url.Values) (*http.Request, error) {
+func newFuncEndpointRequest(method, subpath string, query url.Values, body io.Reader) (*http.Request, error) {
 	endpoint := os.Getenv("HYPER_FUNC_ENDPOINT")
 	if endpoint == "" {
 		endpoint = "us-west-1.hyperfunc.io"
@@ -40,21 +41,17 @@ func newFuncEndpointRequest(method, subpath string, query url.Values) (*http.Req
 	if queryStr != "" {
 		apiUrl.RawQuery = queryStr
 	}
-	req, err := http.NewRequest(method, apiUrl.String(), nil)
+	req, err := http.NewRequest(method, apiUrl.String(), body)
 	if err != nil {
 		return nil, err
 	}
 	return req, nil
 }
 
-func funcEndpointRequestHijack(method, subpath string, query url.Values) (*net.Conn, error) {
-	req, err := newFuncEndpointRequest(method, subpath, query)
-	if err != nil {
-		return nil, err
-	}
+func funcEndpointRequestHijack(req *http.Request) (net.Conn, error) {
 	req.Header.Set("Connection", "Upgrade")
 	req.Header.Set("Upgrade", "tcp")
-	conn, err := tls.Dial("tcp", req.URL.Host + ":443", &tls.Config{})
+	conn, err := tls.Dial("tcp", req.URL.Host+":443", &tls.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -64,21 +61,15 @@ func funcEndpointRequestHijack(method, subpath string, query url.Values) (*net.C
 		return nil, err
 	}
 	respConn, _ := clientConn.Hijack()
-	return &respConn, nil
+	return respConn, nil
 }
 
-func funcEndpointRequest(method, subpath string, query url.Values) (*http.Response, error) {
-	req, err := newFuncEndpointRequest(method, subpath, query)
-	if err != nil {
-		return nil, err
-	}
-
+func funcEndpointRequest(req *http.Request) (*http.Response, error) {
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-
 	status := resp.StatusCode
 	if status < 200 || status >= 400 {
 		body, err := ioutil.ReadAll(resp.Body)
@@ -87,7 +78,6 @@ func funcEndpointRequest(method, subpath string, query url.Values) (*http.Respon
 		}
 		return resp, fmt.Errorf("Error response from server: %s", bytes.TrimSpace(body))
 	}
-
 	return resp, nil
 }
 
@@ -165,12 +155,16 @@ func (cli *Client) FuncInspectWithRaw(ctx context.Context, name string) (types.F
 	return fn, body, err
 }
 
-func (cli *Client) FuncCall(ctx context.Context, name string) (*types.FuncCallResponse, error) {
+func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader) (*types.FuncCallResponse, error) {
 	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := funcEndpointRequest("POST", path.Join("call", name, fn.UUID), nil)
+	req, err := newFuncEndpointRequest("POST", path.Join("call", name, fn.UUID), nil, stdin)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := funcEndpointRequest(req)
 	defer ensureFuncRespClosed(resp)
 	if err != nil {
 		return nil, err
@@ -192,7 +186,11 @@ func (cli *Client) FuncGet(ctx context.Context, name, callId string, wait bool) 
 	if wait {
 		subpath += "/wait"
 	}
-	resp, err := funcEndpointRequest("GET", path.Join("output", name, fn.UUID, subpath), nil)
+	req, err := newFuncEndpointRequest("GET", path.Join("output", name, fn.UUID, subpath), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := funcEndpointRequest(req)
 	defer ensureFuncRespClosed(resp)
 	if err != nil {
 		return nil, err
@@ -204,7 +202,7 @@ func (cli *Client) FuncGet(ctx context.Context, name, callId string, wait bool) 
 	return body, nil
 }
 
-func (cli *Client) FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (*net.Conn, error) {
+func (cli *Client) FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (io.ReadCloser, error) {
 	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
 	if err != nil {
 		return nil, err
@@ -219,9 +217,21 @@ func (cli *Client) FuncLogs(ctx context.Context, name, callId string, follow boo
 	if tail != "" {
 		query.Add("tail", tail)
 	}
-	conn, err := funcEndpointRequestHijack("GET", path.Join("logs", name, fn.UUID, ""), query)
+	req, err := newFuncEndpointRequest("GET", path.Join("logs", name, fn.UUID, ""), query, nil)
 	if err != nil {
 		return nil, err
 	}
-	return conn, nil
+	if follow {
+		conn, err := funcEndpointRequestHijack(req)
+		if err != nil {
+			return nil, err
+		}
+		return conn.(io.ReadCloser), nil
+	} else {
+		resp, err := funcEndpointRequest(req)
+		if err != nil {
+			return nil, err
+		}
+		return resp.Body, nil
+	}
 }

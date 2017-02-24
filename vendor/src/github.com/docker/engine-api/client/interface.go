@@ -2,7 +2,6 @@ package client
 
 import (
 	"io"
-	"net"
 
 	"golang.org/x/net/context"
 
@@ -127,9 +126,9 @@ type APIClient interface {
 	FuncList(ctx context.Context, opts types.FuncListOptions) ([]types.Func, error)
 	FuncInspect(ctx context.Context, name string) (types.Func, error)
 	FuncInspectWithRaw(ctx context.Context, name string) (types.Func, []byte, error)
-	FuncCall(ctx context.Context, name string) (*types.FuncCallResponse, error)
+	FuncCall(ctx context.Context, name string, stdin io.Reader) (*types.FuncCallResponse, error)
 	FuncGet(ctx context.Context, name, callId string, wait bool) ([]byte, error)
-	FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (*net.Conn, error)
+	FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (io.ReadCloser, error)
 }
 
 // Ensure that Client always implements APIClient.
