@@ -20,28 +20,22 @@ import (
 	"golang.org/x/net/context"
 )
 
-func ensureFuncRespClosed(resp *http.Response) {
-	if resp != nil {
-		resp.Body.Close()
-	}
-}
-
 func newFuncEndpointRequest(method, subpath string, query url.Values, body io.Reader) (*http.Request, error) {
 	endpoint := os.Getenv("HYPER_FUNC_ENDPOINT")
 	if endpoint == "" {
 		endpoint = "us-west-1.hyperfunc.io"
 	}
-	apiUrl, err := url.Parse(endpoint)
+	apiURL, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
 	}
-	apiUrl.Scheme = "https"
-	apiUrl.Path = path.Join(apiUrl.Path, subpath)
+	apiURL.Scheme = "https"
+	apiURL.Path = path.Join(apiURL.Path, subpath)
 	queryStr := query.Encode()
 	if queryStr != "" {
-		apiUrl.RawQuery = queryStr
+		apiURL.RawQuery = queryStr
 	}
-	req, err := http.NewRequest(method, apiUrl.String(), body)
+	req, err := http.NewRequest(method, apiURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +50,16 @@ func funcEndpointRequestHijack(req *http.Request) (net.Conn, error) {
 		return nil, err
 	}
 	clientConn := httputil.NewClientConn(conn, nil)
-	_, err = clientConn.Do(req)
+	resp, err := clientConn.Do(req)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != 101 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("Error response from server: %s", bytes.TrimSpace(body))
 	}
 	respConn, _ := clientConn.Hijack()
 	return respConn, nil
@@ -74,9 +75,9 @@ func funcEndpointRequest(req *http.Request) (*http.Response, error) {
 	if status < 200 || status >= 400 {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return resp, err
+			return nil, err
 		}
-		return resp, fmt.Errorf("Error response from server: %s", bytes.TrimSpace(body))
+		return nil, fmt.Errorf("Error response from server: %s", bytes.TrimSpace(body))
 	}
 	return resp, nil
 }
@@ -165,10 +166,10 @@ func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader) (
 		return nil, err
 	}
 	resp, err := funcEndpointRequest(req)
-	defer ensureFuncRespClosed(resp)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	var ret types.FuncCallResponse
 	err = json.NewDecoder(resp.Body).Decode(&ret)
 	if err != nil {
@@ -191,10 +192,10 @@ func (cli *Client) FuncGet(ctx context.Context, name, callId string, wait bool) 
 		return nil, err
 	}
 	resp, err := funcEndpointRequest(req)
-	defer ensureFuncRespClosed(resp)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -227,11 +228,10 @@ func (cli *Client) FuncLogs(ctx context.Context, name, callId string, follow boo
 			return nil, err
 		}
 		return conn.(io.ReadCloser), nil
-	} else {
-		resp, err := funcEndpointRequest(req)
-		if err != nil {
-			return nil, err
-		}
-		return resp.Body, nil
 	}
+	resp, err := funcEndpointRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
 }

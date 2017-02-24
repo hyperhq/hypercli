@@ -1,9 +1,11 @@
 package client
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -261,8 +263,9 @@ func (cli *DockerCli) CmdFuncCall(args ...string) error {
 	}
 
 	name := cmd.Arg(0)
+	stdin := bufio.NewReader(os.Stdin)
 
-	ret, err := cli.client.FuncCall(context.Background(), name, nil)
+	ret, err := cli.client.FuncCall(context.Background(), name, stdin)
 	if err != nil {
 		return err
 	}
