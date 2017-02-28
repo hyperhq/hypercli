@@ -26,9 +26,6 @@ type Func struct {
 	// The response headers of http endpoint, optional, format: ["key=value", ...]
 	Header *[]string `json:"Header,omitempty"`
 
-	// The maximum number of func call which waiting for completed, optional, default: -1 (unlimit), min: 1, max: unlimit
-	MaxLimit int `json:"MaxLimit,omitempty"`
-
 	// The UUID of func
 	UUID string `json:"UUID,omitempty"`
 

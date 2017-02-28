@@ -66,8 +66,10 @@ func funcEndpointRequestHijack(req *http.Request) (net.Conn, error) {
 }
 
 func funcEndpointRequest(req *http.Request) (*http.Response, error) {
-	httpClient := &http.Client{}
-	resp, err := httpClient.Do(req)
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{},
+	}}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

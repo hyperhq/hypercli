@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -62,11 +61,10 @@ func funcUsage() string {
 func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 	cmd := Cli.Subcmd("func create", []string{"IMAGE [COMMAND] [ARG...]"}, "Create a function", false)
 	var (
-		flName     = cmd.String([]string{"-name"}, "", "Function name")
-		flSize     = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
-		flEnv      = ropts.NewListOpts(opts.ValidateEnv)
-		flHeader   = ropts.NewListOpts(opts.ValidateEnv)
-		flMaxLimit = cmd.Int([]string{"-max_limit"}, -1, "The maximum number of function call which waiting for completed, default (-1) is unlimit")
+		flName   = cmd.String([]string{"-name"}, "", "Function name")
+		flSize   = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flEnv    = ropts.NewListOpts(opts.ValidateEnv)
+		flHeader = ropts.NewListOpts(opts.ValidateEnv)
 	)
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
 	cmd.Var(&flHeader, []string{"h", "-header"}, "The http response header of the return of a function call")
@@ -94,13 +92,12 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 	envHeaders := flHeader.GetAll()
 
 	fnOpts := types.Func{
-		Name:     *flName,
-		Size:     *flSize,
-		Image:    image,
-		Command:  command,
-		Env:      &envVariables,
-		Header:   &envHeaders,
-		MaxLimit: *flMaxLimit,
+		Name:    *flName,
+		Size:    *flSize,
+		Image:   image,
+		Command: command,
+		Env:     &envVariables,
+		Header:  &envHeaders,
 	}
 
 	fn, err := cli.client.FuncCreate(context.Background(), fnOpts)
@@ -117,11 +114,10 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	cmd := Cli.Subcmd("func update", []string{}, "Update a function", false)
 	var (
-		flSize     = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
-		flEnv      = ropts.NewListOpts(opts.ValidateEnv)
-		flHeader   = ropts.NewListOpts(opts.ValidateEnv)
-		flMaxLimit = cmd.String([]string{"-max_limit"}, "", "The maximum number of function call which waiting for completed, default (-1) is unlimit")
-		flRefresh  = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of function")
+		flSize    = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flEnv     = ropts.NewListOpts(opts.ValidateEnv)
+		flHeader  = ropts.NewListOpts(opts.ValidateEnv)
+		flRefresh = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of function")
 	)
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
 	cmd.Var(&flHeader, []string{"h", "-header"}, "The http response header of the return of a function call")
@@ -140,14 +136,12 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	// collect all the headers
 	envHeaders := flHeader.GetAll()
 
-	maxLimit, _ := strconv.Atoi(*flMaxLimit)
 	fnOpts := types.Func{
-		Name:     name,
-		Size:     *flSize,
-		Env:      &envVariables,
-		Header:   &envHeaders,
-		MaxLimit: maxLimit,
-		Refresh:  *flRefresh,
+		Name:    name,
+		Size:    *flSize,
+		Env:     &envVariables,
+		Header:  &envHeaders,
+		Refresh: *flRefresh,
 	}
 
 	fn, err := cli.client.FuncUpdate(context.Background(), name, fnOpts)
@@ -263,7 +257,13 @@ func (cli *DockerCli) CmdFuncCall(args ...string) error {
 	}
 
 	name := cmd.Arg(0)
-	stdin := bufio.NewReader(os.Stdin)
+
+	var stdin io.Reader
+	if fi, err := os.Stdin.Stat(); err == nil {
+		if fi.Mode()&os.ModeNamedPipe != 0 {
+			stdin = bufio.NewReader(os.Stdin)
+		}
+	}
 
 	ret, err := cli.client.FuncCall(context.Background(), name, stdin)
 	if err != nil {
