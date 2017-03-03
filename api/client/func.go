@@ -112,7 +112,7 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 //
 // Usage: hyper func update [OPTIONS] NAME
 func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
-	cmd := Cli.Subcmd("func update", []string{}, "Update a function", false)
+	cmd := Cli.Subcmd("func update", []string{"[OPTIONS] NAME"}, "Update a function", false)
 	var (
 		flSize    = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
 		flEnv     = ropts.NewListOpts(opts.ValidateEnv)
@@ -277,18 +277,17 @@ func (cli *DockerCli) CmdFuncCall(args ...string) error {
 //
 // Usage: hyper func get [OPTIONS] CALL_ID
 func (cli *DockerCli) CmdFuncGet(args ...string) error {
-	cmd := Cli.Subcmd("func get", []string{"NAME CALL_ID"}, "Get the return of a function call", false)
+	cmd := Cli.Subcmd("func get", []string{"CALL_ID"}, "Get the return of a function call", false)
 	wait := cmd.Bool([]string{"-wait"}, false, "Block until the call is completed")
 
-	cmd.Require(flag.Exact, 2)
+	cmd.Require(flag.Exact, 1)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return err
 	}
 
-	name := cmd.Arg(0)
-	callId := cmd.Arg(1)
+	callId := cmd.Arg(0)
 
-	ret, err := cli.client.FuncGet(context.Background(), name, callId, *wait)
+	ret, err := cli.client.FuncGet(context.Background(), callId, *wait)
 	if err != nil {
 		return err
 	}
@@ -338,6 +337,16 @@ func (cli *DockerCli) CmdFuncLogs(args ...string) error {
 				fmt.Fprintf(
 					cli.out, "%s [%s] CallId: %s, ShortStdout: %s, ShortStderr: %s\n",
 					log.Time, log.Event, log.CallId, log.ShortStdout, log.ShortStderr,
+				)
+			} else if log.Event == "COMPLETED" {
+				fmt.Fprintf(
+					cli.out, "%s [%s] CallId: %s, ShortStdout: %s, ShortStderr: %s\n",
+					log.Time, log.Event, log.CallId, log.ShortStdout, log.ShortStderr,
+				)
+			} else if log.Event == "ERROR" {
+				fmt.Fprintf(
+					cli.out, "%s [%s] CallId: %s, Message: %s\n",
+					log.Time, log.Event, log.CallId, log.Message,
 				)
 			} else {
 				fmt.Fprintf(

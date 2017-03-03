@@ -8,7 +8,7 @@ import (
 )
 
 type Func struct {
-  // Func name, required, unique, immutable, max length: 255, format: [a-z0-9]([-a-z0-9]*[a-z0-9])?
+	// Func name, required, unique, immutable, max length: 255, format: [a-z0-9]([-a-z0-9]*[a-z0-9])?
 	Name string `json:"Name"`
 
 	// Container size, optional, default: s4
@@ -45,10 +45,11 @@ type FuncCallResponse struct {
 }
 
 type FuncLogsResponse struct {
-	Time string `json:"Time"`
-	Event string `json:"Event"`
-	CallId string `json:"CallId"`
-	ShortStdin string `json:"ShortStdin"`
+	Time        string `json:"Time"`
+	Event       string `json:"Event"`
+	CallId      string `json:"CallId"`
+	ShortStdin  string `json:"ShortStdin"`
 	ShortStdout string `json:"ShortStdout"`
 	ShortStderr string `json:"ShortStderr"`
+	Message     string `json:"Message"`
 }

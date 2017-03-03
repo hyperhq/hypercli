@@ -158,6 +158,26 @@ func (cli *Client) FuncInspectWithRaw(ctx context.Context, name string) (types.F
 	return fn, body, err
 }
 
+func (cli *Client) FuncInspectWithCallId(ctx context.Context, id string) (*types.Func, error) {
+	var fn types.Func
+	resp, err := cli.get(ctx, "/funcs/call/"+id, nil, nil)
+	if err != nil {
+		if resp.statusCode == http.StatusNotFound {
+			return nil, funcCallNotFoundError{id}
+		}
+		return nil, err
+	}
+	defer ensureReaderClosed(resp)
+
+	body, err := ioutil.ReadAll(resp.body)
+	if err != nil {
+		return nil, err
+	}
+	rdr := bytes.NewReader(body)
+	err = json.NewDecoder(rdr).Decode(&fn)
+	return &fn, err
+}
+
 func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader) (*types.FuncCallResponse, error) {
 	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
 	if err != nil {
@@ -180,8 +200,8 @@ func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader) (
 	return &ret, nil
 }
 
-func (cli *Client) FuncGet(ctx context.Context, name, callId string, wait bool) ([]byte, error) {
-	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
+func (cli *Client) FuncGet(ctx context.Context, callId string, wait bool) ([]byte, error) {
+	fn, err := cli.FuncInspectWithCallId(ctx, callId)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +209,7 @@ func (cli *Client) FuncGet(ctx context.Context, name, callId string, wait bool) 
 	if wait {
 		subpath += "/wait"
 	}
-	req, err := newFuncEndpointRequest("GET", path.Join("output", name, fn.UUID, subpath), nil, nil)
+	req, err := newFuncEndpointRequest("GET", path.Join("output", fn.Name, fn.UUID, subpath), nil, nil)
 	if err != nil {
 		return nil, err
 	}
