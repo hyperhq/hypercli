@@ -61,13 +61,11 @@ func funcUsage() string {
 func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 	cmd := Cli.Subcmd("func create", []string{"IMAGE [COMMAND] [ARG...]"}, "Create a function", false)
 	var (
-		flName   = cmd.String([]string{"-name"}, "", "Function name")
-		flSize   = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
-		flEnv    = ropts.NewListOpts(opts.ValidateEnv)
-		flHeader = ropts.NewListOpts(opts.ValidateEnv)
+		flName = cmd.String([]string{"-name"}, "", "Function name")
+		flSize = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flEnv  = ropts.NewListOpts(opts.ValidateEnv)
 	)
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
-	cmd.Var(&flHeader, []string{"h", "-header"}, "The http response header of the return of a function call")
 
 	cmd.Require(flag.Min, 1)
 	err := cmd.ParseFlags(args, true)
@@ -88,16 +86,12 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 	// collect all the environment variables
 	envVariables := flEnv.GetAll()
 
-	// collect all the headers
-	envHeaders := flHeader.GetAll()
-
 	fnOpts := types.Func{
 		Name:    *flName,
 		Size:    *flSize,
 		Image:   image,
 		Command: command,
 		Env:     &envVariables,
-		Header:  &envHeaders,
 	}
 
 	fn, err := cli.client.FuncCreate(context.Background(), fnOpts)
@@ -112,15 +106,13 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 //
 // Usage: hyper func update [OPTIONS] NAME
 func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
-	cmd := Cli.Subcmd("func update", []string{"[OPTIONS] NAME"}, "Update a function", false)
+	cmd := Cli.Subcmd("func update", []string{"NAME"}, "Update a function", false)
 	var (
 		flSize    = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
 		flEnv     = ropts.NewListOpts(opts.ValidateEnv)
-		flHeader  = ropts.NewListOpts(opts.ValidateEnv)
 		flRefresh = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of function")
 	)
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
-	cmd.Var(&flHeader, []string{"h", "-header"}, "The http response header of the return of a function call")
 
 	cmd.Require(flag.Exact, 1)
 	err := cmd.ParseFlags(args, true)
@@ -133,14 +125,10 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	// collect all the environment variables
 	envVariables := flEnv.GetAll()
 
-	// collect all the headers
-	envHeaders := flHeader.GetAll()
-
 	fnOpts := types.Func{
 		Name:    name,
 		Size:    *flSize,
 		Env:     &envVariables,
-		Header:  &envHeaders,
 		Refresh: *flRefresh,
 	}
 
@@ -299,7 +287,7 @@ func (cli *DockerCli) CmdFuncGet(args ...string) error {
 //
 // Usage: hyper func get [OPTIONS] NAME
 func (cli *DockerCli) CmdFuncLogs(args ...string) error {
-	cmd := Cli.Subcmd("func get", []string{"NAME"}, "Get the return of a function call", false)
+	cmd := Cli.Subcmd("func logs", []string{"NAME"}, "Retrieve the logs of a function", false)
 
 	follow := cmd.Bool([]string{"f", "-follow"}, false, "Follow log output")
 	tail := cmd.String([]string{"-tail"}, "all", "Number of lines to show from the end of the logs")

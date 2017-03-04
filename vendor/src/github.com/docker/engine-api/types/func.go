@@ -23,9 +23,6 @@ type Func struct {
 	// List of environment variable to set in the container, optional, format: ["VAR=value", ...]
 	Env *[]string `json:"Env,omitempty"`
 
-	// The response headers of http endpoint, optional, format: ["key=value", ...]
-	Header *[]string `json:"Header,omitempty"`
-
 	// The UUID of func
 	UUID string `json:"UUID,omitempty"`
 
