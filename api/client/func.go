@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -61,9 +62,10 @@ func funcUsage() string {
 func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 	cmd := Cli.Subcmd("func create", []string{"IMAGE [COMMAND] [ARG...]"}, "Create a function", false)
 	var (
-		flName = cmd.String([]string{"-name"}, "", "Function name")
-		flSize = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
-		flEnv  = ropts.NewListOpts(opts.ValidateEnv)
+		flName    = cmd.String([]string{"-name"}, "", "Function name")
+		flSize    = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flEnv     = ropts.NewListOpts(opts.ValidateEnv)
+		flTimeout = cmd.Int([]string{"-timeout"}, 300, "The maximum execution duration of function call")
 	)
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
 
@@ -92,13 +94,14 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 		Image:   image,
 		Command: command,
 		Env:     &envVariables,
+		Timeout: *flTimeout,
 	}
 
 	fn, err := cli.client.FuncCreate(context.Background(), fnOpts)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(cli.out, "Func %s is created.\n", fn.Name)
+	fmt.Fprintf(cli.out, "%s is created with the address of https://us-west-1.hyperfunc.io/%s/%s\n", fn.Name, fn.Name, fn.UUID)
 	return nil
 }
 
@@ -111,6 +114,7 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 		flSize    = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
 		flEnv     = ropts.NewListOpts(opts.ValidateEnv)
 		flRefresh = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of function")
+		flTimeout = cmd.String([]string{"-timeout"}, "", "The maximum execution duration of function call")
 	)
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
 
@@ -125,11 +129,14 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	// collect all the environment variables
 	envVariables := flEnv.GetAll()
 
+	timeout, _ := strconv.Atoi(*flTimeout)
+
 	fnOpts := types.Func{
 		Name:    name,
 		Size:    *flSize,
 		Env:     &envVariables,
 		Refresh: *flRefresh,
+		Timeout: timeout,
 	}
 
 	fn, err := cli.client.FuncUpdate(context.Background(), name, fnOpts)
@@ -279,7 +286,7 @@ func (cli *DockerCli) CmdFuncGet(args ...string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(cli.out, "%s\n", ret)
+	fmt.Fprintf(cli.out, "%s", ret)
 	return nil
 }
 

@@ -23,6 +23,9 @@ type Func struct {
 	// List of environment variable to set in the container, optional, format: ["VAR=value", ...]
 	Env *[]string `json:"Env,omitempty"`
 
+	// The maximum execution duration of function call
+	Timeout int `json:"Timeout,omitempty"`
+
 	// The UUID of func
 	UUID string `json:"UUID,omitempty"`
 
