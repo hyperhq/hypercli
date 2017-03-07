@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/engine-api/types/strslice"
+	"github.com/docker/go-connections/nat"
 )
 
 type Func struct {
@@ -12,13 +13,7 @@ type Func struct {
 	Name string `json:"Name"`
 
 	// Container size, optional, default: s4
-	Size string `json:"Size,omitempty"`
-
-	// Name of the container image, required, immutable
-	Image string `json:"Image"`
-
-	// Command to run when starting the container, optional, immutable
-	Command strslice.StrSlice `json:"Command,omitempty"`
+	ContainerSize string `json:"Size,omitempty"`
 
 	// List of environment variable to set in the container, optional, format: ["VAR=value", ...]
 	Env *[]string `json:"Env,omitempty"`
@@ -34,6 +29,22 @@ type Func struct {
 
 	// Weather the UUID should be regenerated
 	Refresh bool `json:"Refresh,omitempty"`
+
+	// The container config
+	Hostname        string                `json:"Hostname,omitempty"`
+	Domainname      string                `json:"Domainname,omitempty"`
+	Tty             bool                  `json:"Tty,omitempty"`
+	ExposedPorts    map[nat.Port]struct{} `json:"ExposedPorts,omitempty"`
+	Cmd             strslice.StrSlice     `json:"Cmd,omitempty"`
+	Image           string                `json:"Image,omitempty"`
+	Entrypoint      strslice.StrSlice     `json:"Entrypoint,omitempty"`
+	WorkingDir      string                `json:"WorkingDir,omitempty"`
+	Labels          map[string]string     `json:"Labels,omitempty"`
+	StopSignal      string                `json:"StopSignal,omitempty"`
+	VolumesFrom     []string              `json:"VolumesFrom,omitempty"`
+	PortBindings    nat.PortMap           `json:"PortBindings,omitempty"`
+	Links           []string              `json:"Links,omitempty"`
+	PublishAllPorts bool                  `json:"PublishAllPorts,omitempty"`
 }
 
 type FuncListOptions struct {

@@ -11,9 +11,11 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/engine-api/types/strslice"
+	"github.com/docker/go-connections/nat"
 	"github.com/docker/go-units"
 	Cli "github.com/hyperhq/hypercli/cli"
 	ropts "github.com/hyperhq/hypercli/opts"
@@ -62,12 +64,41 @@ func funcUsage() string {
 func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 	cmd := Cli.Subcmd("func create", []string{"IMAGE [COMMAND] [ARG...]"}, "Create a function", false)
 	var (
-		flName    = cmd.String([]string{"-name"}, "", "Function name")
-		flSize    = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flName          = cmd.String([]string{"-name"}, "", "Function name")
+		flContainerSize = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flTimeout       = cmd.Int([]string{"-timeout"}, 300, "The maximum execution duration of function call")
+
 		flEnv     = ropts.NewListOpts(opts.ValidateEnv)
-		flTimeout = cmd.Int([]string{"-timeout"}, 300, "The maximum execution duration of function call")
+		flEnvFile = ropts.NewListOpts(nil)
+
+		flLabels     = ropts.NewListOpts(opts.ValidateEnv)
+		flLabelsFile = ropts.NewListOpts(nil)
+
+		flVolumesFrom  = ropts.NewListOpts(nil)
+		flNoAutoVolume = cmd.Bool([]string{"-noauto-volume"}, false, "Do not create volumes specified in image")
+
+		flPublish    = ropts.NewListOpts(nil)
+		flExpose     = ropts.NewListOpts(nil)
+		flPublishAll = cmd.Bool([]string{"P", "-publish-all"}, false, "Publish all exposed ports to random ports")
+
+		flEntrypoint = cmd.String([]string{"-entrypoint"}, "", "Overwrite the default ENTRYPOINT of the image")
+		flWorkingDir = cmd.String([]string{"w", "-workdir"}, "", "Working directory inside the container")
+
+		flTty            = cmd.Bool([]string{"t", "-tty"}, false, "Allocate a pseudo-TTY")
+		flHostname       = cmd.String([]string{"h", "-hostname"}, "", "Container host name")
+		flLinks          = ropts.NewListOpts(opts.ValidateLink)
+		flSecurityGroups = ropts.NewListOpts(nil)
+		flStopSignal     = cmd.String([]string{"-stop-signal"}, signal.DefaultStopSignal, fmt.Sprintf("Signal to stop a container, %v by default", signal.DefaultStopSignal))
 	)
+	cmd.Var(&flLabels, []string{"l", "-label"}, "Set meta data on a container")
+	cmd.Var(&flLabelsFile, []string{"-label-file"}, "Read in a line delimited file of labels")
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
+	cmd.Var(&flEnvFile, []string{"-env-file"}, "Read in a file of environment variables")
+	cmd.Var(&flSecurityGroups, []string{"-sg"}, "Security group for each container")
+	cmd.Var(&flLinks, []string{"-link"}, "Add link to another container")
+	cmd.Var(&flPublish, []string{"p", "-publish"}, "Publish a container's port(s) to the host")
+	cmd.Var(&flExpose, []string{"-expose"}, "Expose a port or a range of ports")
+	cmd.Var(&flVolumesFrom, []string{"-volumes-from"}, "Mount shared volumes from the specified container(s)")
 
 	cmd.Require(flag.Min, 1)
 	err := cmd.ParseFlags(args, true)
@@ -77,24 +108,106 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 
 	var (
 		parsedArgs = cmd.Args()
+		runCmd     strslice.StrSlice
+		entrypoint strslice.StrSlice
 		image      = cmd.Arg(0)
-		command    strslice.StrSlice
 	)
-
 	if len(parsedArgs) > 1 {
-		command = strslice.StrSlice(parsedArgs[1:])
+		runCmd = strslice.StrSlice(parsedArgs[1:])
+	}
+	if *flEntrypoint != "" {
+		entrypoint = strslice.StrSlice{*flEntrypoint}
 	}
 
-	// collect all the environment variables
-	envVariables := flEnv.GetAll()
+	// collect all the environment variables for the container
+	envVariables, err := opts.ReadKVStrings(flEnvFile.GetAll(), flEnv.GetAll())
+	if err != nil {
+		return err
+	}
+
+	// collect all the labels for the container
+	labels, err := opts.ReadKVStrings(flLabelsFile.GetAll(), flLabels.GetAll())
+	if err != nil {
+		return err
+	}
+	for _, sg := range flSecurityGroups.GetAll() {
+		if sg == "" {
+			continue
+		}
+		labels = append(labels, fmt.Sprintf("sh_hyper_sg_%s=yes", sg))
+	}
+	if *flNoAutoVolume {
+		labels = append(labels, "sh_hyper_noauto_volume=true")
+	}
+
+	var (
+		domainname string
+		hostname   = *flHostname
+		parts      = strings.SplitN(hostname, ".", 2)
+	)
+	if len(parts) > 1 {
+		hostname = parts[0]
+		domainname = parts[1]
+	}
+	ports, portBindings, err := nat.ParsePortSpecs(flPublish.GetAll())
+	if err != nil {
+		return err
+	}
+
+	// Merge in exposed ports to the map of published ports
+	for _, e := range flExpose.GetAll() {
+		if strings.Contains(e, ":") {
+			return fmt.Errorf("Invalid port format for --expose: %s", e)
+		}
+		//support two formats for expose, original format <portnum>/[<proto>] or <startport-endport>/[<proto>]
+		proto, port := nat.SplitProtoPort(e)
+		//parse the start and end port and create a sequence of ports to expose
+		//if expose a port, the start and end port are the same
+		start, end, err := nat.ParsePortRange(port)
+		if err != nil {
+			return fmt.Errorf("Invalid range format for --expose: %s, error: %s", e, err)
+		}
+		for i := start; i <= end; i++ {
+			p, err := nat.NewPort(proto, strconv.FormatUint(i, 10))
+			if err != nil {
+				return err
+			}
+			if _, exists := ports[p]; !exists {
+				ports[p] = struct{}{}
+			}
+		}
+	}
+
+	// endpointsConfig := make(map[string]*network.EndpointSettings)
+	// if hostConfig.NetworkMode.IsUserDefined() && len(hostConfig.Links) > 0 {
+	// 	epConfig := endpointsConfig[string(hostConfig.NetworkMode)]
+	// 	if epConfig == nil {
+	// 		epConfig = &network.EndpointSettings{}
+	// 	}
+	// 	epConfig.Links = make([]string, len(hostConfig.Links))
+	// 	copy(epConfig.Links, hostConfig.Links)
+	// 	endpointsConfig[string(hostConfig.NetworkMode)] = epConfig
+	// }
 
 	fnOpts := types.Func{
-		Name:    *flName,
-		Size:    *flSize,
-		Image:   image,
-		Command: command,
-		Env:     &envVariables,
-		Timeout: *flTimeout,
+		Name:          *flName,
+		ContainerSize: *flContainerSize,
+		Env:           &envVariables,
+		Timeout:       *flTimeout,
+
+		Hostname:        hostname,
+		Domainname:      domainname,
+		Tty:             *flTty,
+		ExposedPorts:    ports,
+		Cmd:             runCmd,
+		Image:           image,
+		Entrypoint:      entrypoint,
+		WorkingDir:      *flWorkingDir,
+		Labels:          opts.ConvertKVStringsToMap(labels),
+		StopSignal:      *flStopSignal,
+		PortBindings:    portBindings,
+		Links:           flLinks.GetAll(),
+		PublishAllPorts: *flPublishAll,
 	}
 
 	fn, err := cli.client.FuncCreate(context.Background(), fnOpts)
@@ -111,10 +224,10 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	cmd := Cli.Subcmd("func update", []string{"NAME"}, "Update a function", false)
 	var (
-		flSize    = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
-		flEnv     = ropts.NewListOpts(opts.ValidateEnv)
-		flRefresh = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of function")
-		flTimeout = cmd.String([]string{"-timeout"}, "", "The maximum execution duration of function call")
+		flContainerSize = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flEnv           = ropts.NewListOpts(opts.ValidateEnv)
+		flRefresh       = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of function")
+		flTimeout       = cmd.String([]string{"-timeout"}, "", "The maximum execution duration of function call")
 	)
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
 
@@ -132,11 +245,11 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	timeout, _ := strconv.Atoi(*flTimeout)
 
 	fnOpts := types.Func{
-		Name:    name,
-		Size:    *flSize,
-		Env:     &envVariables,
-		Refresh: *flRefresh,
-		Timeout: timeout,
+		Name:          name,
+		ContainerSize: *flContainerSize,
+		Env:           &envVariables,
+		Refresh:       *flRefresh,
+		Timeout:       timeout,
 	}
 
 	fn, err := cli.client.FuncUpdate(context.Background(), name, fnOpts)
@@ -209,8 +322,8 @@ func (cli *DockerCli) CmdFuncLs(args ...string) error {
 	fmt.Fprintf(w, "NAME\tSIZE\tIMAGE\tCOMMAND\tCREATED\tUUID\n")
 	for _, fn := range fns {
 		created := units.HumanDuration(time.Now().UTC().Sub(fn.Created)) + " ago"
-		command := strings.Join([]string(fn.Command), " ")
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", fn.Name, fn.Size, fn.Image, command, created, fn.UUID)
+		command := strings.Join([]string(fn.Cmd), " ")
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", fn.Name, fn.ContainerSize, fn.Image, command, created, fn.UUID)
 	}
 
 	w.Flush()
@@ -327,11 +440,6 @@ func (cli *DockerCli) CmdFuncLogs(args ...string) error {
 				fmt.Fprintf(
 					cli.out, "%s [%s] CallId: %s, ShortStdin: %s\n",
 					log.Time, log.Event, log.CallId, log.ShortStdin,
-				)
-			} else if log.Event == "COMPLETED" {
-				fmt.Fprintf(
-					cli.out, "%s [%s] CallId: %s, ShortStdout: %s, ShortStderr: %s\n",
-					log.Time, log.Event, log.CallId, log.ShortStdout, log.ShortStderr,
 				)
 			} else if log.Event == "COMPLETED" {
 				fmt.Fprintf(
