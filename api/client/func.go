@@ -13,7 +13,9 @@ import (
 
 	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/filters"
+	"github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/strslice"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/go-units"
@@ -89,6 +91,7 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 		flLinks          = ropts.NewListOpts(opts.ValidateLink)
 		flSecurityGroups = ropts.NewListOpts(nil)
 		flStopSignal     = cmd.String([]string{"-stop-signal"}, signal.DefaultStopSignal, fmt.Sprintf("Signal to stop a container, %v by default", signal.DefaultStopSignal))
+		flNetMode        = cmd.String([]string{}, "bridge", "Connect containers to a network, only bridge is supported now")
 	)
 	cmd.Var(&flLabels, []string{"l", "-label"}, "Set meta data on a container")
 	cmd.Var(&flLabelsFile, []string{"-label-file"}, "Read in a line delimited file of labels")
@@ -178,36 +181,48 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 		}
 	}
 
-	// endpointsConfig := make(map[string]*network.EndpointSettings)
-	// if hostConfig.NetworkMode.IsUserDefined() && len(hostConfig.Links) > 0 {
-	// 	epConfig := endpointsConfig[string(hostConfig.NetworkMode)]
-	// 	if epConfig == nil {
-	// 		epConfig = &network.EndpointSettings{}
-	// 	}
-	// 	epConfig.Links = make([]string, len(hostConfig.Links))
-	// 	copy(epConfig.Links, hostConfig.Links)
-	// 	endpointsConfig[string(hostConfig.NetworkMode)] = epConfig
-	// }
+	config := types.FuncConfig{
+		Hostname:     hostname,
+		Domainname:   domainname,
+		Tty:          *flTty,
+		ExposedPorts: ports,
+		Env:          &envVariables,
+		Cmd:          runCmd,
+		Image:        image,
+		Entrypoint:   entrypoint,
+		WorkingDir:   *flWorkingDir,
+		Labels:       opts.ConvertKVStringsToMap(labels),
+		StopSignal:   *flStopSignal,
+	}
+
+	hostConfig := types.FuncHostConfig{
+		PortBindings:    portBindings,
+		Links:           flLinks.GetAll(),
+		PublishAllPorts: *flPublishAll,
+		NetworkMode:     container.NetworkMode(*flNetMode),
+	}
+	networkingConfig := network.NetworkingConfig{
+		EndpointsConfig: make(map[string]*network.EndpointSettings),
+	}
+
+	if hostConfig.NetworkMode.IsUserDefined() && len(hostConfig.Links) > 0 {
+		epConfig := networkingConfig.EndpointsConfig[string(hostConfig.NetworkMode)]
+		if epConfig == nil {
+			epConfig = &network.EndpointSettings{}
+		}
+		epConfig.Links = make([]string, len(hostConfig.Links))
+		copy(epConfig.Links, hostConfig.Links)
+		networkingConfig.EndpointsConfig[string(hostConfig.NetworkMode)] = epConfig
+	}
 
 	fnOpts := types.Func{
 		Name:          *flName,
 		ContainerSize: *flContainerSize,
-		Env:           &envVariables,
 		Timeout:       *flTimeout,
 
-		Hostname:        hostname,
-		Domainname:      domainname,
-		Tty:             *flTty,
-		ExposedPorts:    ports,
-		Cmd:             runCmd,
-		Image:           image,
-		Entrypoint:      entrypoint,
-		WorkingDir:      *flWorkingDir,
-		Labels:          opts.ConvertKVStringsToMap(labels),
-		StopSignal:      *flStopSignal,
-		PortBindings:    portBindings,
-		Links:           flLinks.GetAll(),
-		PublishAllPorts: *flPublishAll,
+		Config:           config,
+		HostConfig:       hostConfig,
+		NetworkingConfig: networkingConfig,
 	}
 
 	fn, err := cli.client.FuncCreate(context.Background(), fnOpts)
@@ -247,9 +262,11 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	fnOpts := types.Func{
 		Name:          name,
 		ContainerSize: *flContainerSize,
-		Env:           &envVariables,
 		Refresh:       *flRefresh,
 		Timeout:       timeout,
+		Config: types.FuncConfig{
+			Env: &envVariables,
+		},
 	}
 
 	fn, err := cli.client.FuncUpdate(context.Background(), name, fnOpts)
@@ -322,8 +339,8 @@ func (cli *DockerCli) CmdFuncLs(args ...string) error {
 	fmt.Fprintf(w, "NAME\tSIZE\tIMAGE\tCOMMAND\tCREATED\tUUID\n")
 	for _, fn := range fns {
 		created := units.HumanDuration(time.Now().UTC().Sub(fn.Created)) + " ago"
-		command := strings.Join([]string(fn.Cmd), " ")
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", fn.Name, fn.ContainerSize, fn.Image, command, created, fn.UUID)
+		command := strings.Join([]string(fn.Config.Cmd), " ")
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", fn.Name, fn.ContainerSize, fn.Config.Image, command, created, fn.UUID)
 	}
 
 	w.Flush()

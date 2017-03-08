@@ -3,20 +3,41 @@ package types
 import (
 	"time"
 
+	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/filters"
+	"github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/strslice"
 	"github.com/docker/go-connections/nat"
 )
+
+type FuncConfig struct {
+	Hostname     string                `json:"Hostname,omitempty"`
+	Domainname   string                `json:"Domainname,omitempty"`
+	Tty          bool                  `json:"Tty,omitempty"`
+	Env          *[]string             `json:"Env,omitempty"`
+	ExposedPorts map[nat.Port]struct{} `json:"ExposedPorts,omitempty"`
+	Cmd          strslice.StrSlice     `json:"Cmd,omitempty"`
+	Image        string                `json:"Image,omitempty"`
+	Entrypoint   strslice.StrSlice     `json:"Entrypoint,omitempty"`
+	WorkingDir   string                `json:"WorkingDir,omitempty"`
+	Labels       map[string]string     `json:"Labels,omitempty"`
+	StopSignal   string                `json:"StopSignal,omitempty"`
+}
+
+type FuncHostConfig struct {
+	VolumesFrom     []string              `json:"VolumesFrom,omitempty"`
+	PortBindings    nat.PortMap           `json:"PortBindings,omitempty"`
+	Links           []string              `json:"Links,omitempty"`
+	PublishAllPorts bool                  `json:"PublishAllPorts,omitempty"`
+	NetworkMode     container.NetworkMode `json:"NetworkMode,omitempty"`
+}
 
 type Func struct {
 	// Func name, required, unique, immutable, max length: 255, format: [a-z0-9]([-a-z0-9]*[a-z0-9])?
 	Name string `json:"Name"`
 
 	// Container size, optional, default: s4
-	ContainerSize string `json:"Size,omitempty"`
-
-	// List of environment variable to set in the container, optional, format: ["VAR=value", ...]
-	Env *[]string `json:"Env,omitempty"`
+	ContainerSize string `json:"ContainerSize,omitempty"`
 
 	// The maximum execution duration of function call
 	Timeout int `json:"Timeout,omitempty"`
@@ -31,20 +52,11 @@ type Func struct {
 	Refresh bool `json:"Refresh,omitempty"`
 
 	// The container config
-	Hostname        string                `json:"Hostname,omitempty"`
-	Domainname      string                `json:"Domainname,omitempty"`
-	Tty             bool                  `json:"Tty,omitempty"`
-	ExposedPorts    map[nat.Port]struct{} `json:"ExposedPorts,omitempty"`
-	Cmd             strslice.StrSlice     `json:"Cmd,omitempty"`
-	Image           string                `json:"Image,omitempty"`
-	Entrypoint      strslice.StrSlice     `json:"Entrypoint,omitempty"`
-	WorkingDir      string                `json:"WorkingDir,omitempty"`
-	Labels          map[string]string     `json:"Labels,omitempty"`
-	StopSignal      string                `json:"StopSignal,omitempty"`
-	VolumesFrom     []string              `json:"VolumesFrom,omitempty"`
-	PortBindings    nat.PortMap           `json:"PortBindings,omitempty"`
-	Links           []string              `json:"Links,omitempty"`
-	PublishAllPorts bool                  `json:"PublishAllPorts,omitempty"`
+	Config FuncConfig `json:"Config,omitempty"`
+
+	HostConfig FuncHostConfig `json:"HostConfig,omitempty"`
+
+	NetworkingConfig network.NetworkingConfig `json:"NetworkingConfig,omitempty"`
 }
 
 type FuncListOptions struct {
