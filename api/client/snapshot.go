@@ -40,7 +40,7 @@ func (cli *DockerCli) CmdSnapshot(args ...string) error {
 
 // CmdSnapshotLs outputs a list of Docker snapshots.
 //
-// Usage: docker snapshot ls [OPTIONS]
+// Usage: hyper snapshot ls [OPTIONS]
 func (cli *DockerCli) CmdSnapshotLs(args ...string) error {
 	cmd := Cli.Subcmd("snapshot ls", nil, "List snapshots", true)
 
