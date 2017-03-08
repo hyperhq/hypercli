@@ -17,20 +17,20 @@ import (
 //
 // Usage: docker snapshot <COMMAND> <OPTS>
 func (cli *DockerCli) CmdSnapshot(args ...string) error {
-	description := Cli.DockerCommands["snaphot"].Description + "\n\nSnapshots:\n"
+	description := Cli.DockerCommands["snapshot"].Description + "\n\nSnapshots:\n"
 	commands := [][]string{
-		{"create", "Create a snaphot"},
-		{"inspect", "Return low-level information on a snaphot"},
-		{"ls", "List snaphots"},
-		{"rm", "Remove a snaphot"},
+		{"create", "Create a snapshot"},
+		{"inspect", "Return low-level information on a snapshot"},
+		{"ls", "List snapshots"},
+		{"rm", "Remove a snapshot"},
 	}
 
 	for _, cmd := range commands {
 		description += fmt.Sprintf("  %-25.25s%s\n", cmd[0], cmd[1])
 	}
 
-	description += "\nRun 'hyper snaphot COMMAND --help' for more information on a command"
-	cmd := Cli.Subcmd("snaphot", []string{"[COMMAND]"}, description, false)
+	description += "\nRun 'hyper snapshot COMMAND --help' for more information on a command"
+	cmd := Cli.Subcmd("snapshot", []string{"[COMMAND]"}, description, false)
 
 	cmd.Require(flag.Exact, 0)
 	err := cmd.ParseFlags(args, true)
