@@ -29,7 +29,7 @@ func (cli *DockerCli) CmdSnapshot(args ...string) error {
 		description += fmt.Sprintf("  %-25.25s%s\n", cmd[0], cmd[1])
 	}
 
-	description += "\nRun 'docker snaphot COMMAND --help' for more information on a command"
+	description += "\nRun 'hyper snaphot COMMAND --help' for more information on a command"
 	cmd := Cli.Subcmd("snaphot", []string{"[COMMAND]"}, description, false)
 
 	cmd.Require(flag.Exact, 0)
