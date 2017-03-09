@@ -64,7 +64,7 @@ func funcUsage() string {
 //
 // Usage: hyper func create [OPTIONS] IMAGE [COMMAND]
 func (cli *DockerCli) CmdFuncCreate(args ...string) error {
-	cmd := Cli.Subcmd("func create", []string{"IMAGE [COMMAND] [ARG...]"}, "Create a function", false)
+	cmd := Cli.Subcmd("func create", []string{"IMAGE [COMMAND] [ARG...]"}, "Create a new function", false)
 	var (
 		flName          = cmd.String([]string{"-name"}, "", "Function name")
 		flContainerSize = cmd.String([]string{"-size"}, "s4", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
@@ -296,7 +296,7 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 //
 // Usage: hyper func rm NAME [NAME...]
 func (cli *DockerCli) CmdFuncRm(args ...string) error {
-	cmd := Cli.Subcmd("func rm", []string{"NAME [NAME...]"}, "Remove one or more functions", false)
+	cmd := Cli.Subcmd("func rm", []string{"NAME [NAME...]"}, "Remove one or more function", false)
 	cmd.Require(flag.Min, 1)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return err
@@ -321,7 +321,7 @@ func (cli *DockerCli) CmdFuncRm(args ...string) error {
 //
 // Usage: hyper func ls [OPTIONS]
 func (cli *DockerCli) CmdFuncLs(args ...string) error {
-	cmd := Cli.Subcmd("func ls", nil, "Lists functions", true)
+	cmd := Cli.Subcmd("func ls", nil, "Lists all functions", true)
 
 	flFilter := ropts.NewListOpts(nil)
 	cmd.Var(&flFilter, []string{"f", "-filter"}, "Filter output based on conditions provided")
