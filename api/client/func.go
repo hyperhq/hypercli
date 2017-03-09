@@ -241,10 +241,12 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	var (
 		flContainerSize = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
 		flEnv           = ropts.NewListOpts(opts.ValidateEnv)
+		flEnvFile       = ropts.NewListOpts(nil)
 		flRefresh       = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of function")
 		flTimeout       = cmd.String([]string{"-timeout"}, "", "The maximum execution duration of function call")
 	)
 	cmd.Var(&flEnv, []string{"e", "-env"}, "Set environment variables")
+	cmd.Var(&flEnvFile, []string{"-env-file"}, "Read in a file of environment variables")
 
 	cmd.Require(flag.Exact, 1)
 	err := cmd.ParseFlags(args, true)
@@ -254,8 +256,21 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 
 	name := cmd.Arg(0)
 
-	// collect all the environment variables
-	envVariables := flEnv.GetAll()
+	// collect all the environment variables for the container
+	envVariables, err := opts.ReadKVStrings(flEnvFile.GetAll(), flEnv.GetAll())
+	if err != nil {
+		return err
+	}
+	for _, env := range envVariables {
+		if env == "" {
+			envVariables = []string{}
+			break
+		}
+	}
+	env := &envVariables
+	if !cmd.IsSet("-env") && !cmd.IsSet("e") && !cmd.IsSet("-env-file") {
+		env = nil
+	}
 
 	timeout, _ := strconv.Atoi(*flTimeout)
 
@@ -265,7 +280,7 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 		Refresh:       *flRefresh,
 		Timeout:       timeout,
 		Config: types.FuncConfig{
-			Env: &envVariables,
+			Env: env,
 		},
 	}
 
