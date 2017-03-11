@@ -40,14 +40,15 @@ func (cli *DockerCli) CmdFunc(args ...string) error {
 
 func funcUsage() string {
 	funcCommands := [][]string{
-		{"create", "Create a function"},
+		{"create", "Create a new function"},
 		{"update", "Update a function"},
-		{"ls", "List all functions"},
-		{"rm", "Remove one or more functions"},
+		{"ls", "Lists all functions"},
+		{"rm", "Remove one or more function"},
 		{"inspect", "Display detailed information on the given function"},
 		{"call", "Call a function"},
 		{"get", "Get the return of a function call"},
 		{"logs", "Retrieve the logs of a function"},
+		{"status", "Retrieve the status of a function"},
 	}
 
 	help := "Commands:\n"
