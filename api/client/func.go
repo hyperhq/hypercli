@@ -469,25 +469,26 @@ func (cli *DockerCli) CmdFuncLogs(args ...string) error {
 			return err
 		}
 		if log.Event != "" {
+			logTime := log.Time.Local().Format("2006-01-02T15:04:05Z")
 			if log.Event == "CALL" {
 				fmt.Fprintf(
 					cli.out, "%s [%s] CallId: %s, ShortStdin: %s\n",
-					log.Time, log.Event, log.CallId, log.ShortStdin,
+					logTime, log.Event, log.CallId, log.ShortStdin,
 				)
 			} else if log.Event == "FINISHED" {
 				fmt.Fprintf(
 					cli.out, "%s [%s] CallId: %s, ShortStdout: %s, ShortStderr: %s\n",
-					log.Time, log.Event, log.CallId, log.ShortStdout, log.ShortStderr,
+					logTime, log.Event, log.CallId, log.ShortStdout, log.ShortStderr,
 				)
 			} else if log.Event == "FAILED" {
 				fmt.Fprintf(
 					cli.out, "%s [%s] CallId: %s, Message: %s\n",
-					log.Time, log.Event, log.CallId, log.Message,
+					logTime, log.Event, log.CallId, log.Message,
 				)
 			} else {
 				fmt.Fprintf(
 					cli.out, "%s [%s] CallId: %s\n",
-					log.Time, log.Event, log.CallId,
+					logTime, log.Event, log.CallId,
 				)
 			}
 		}

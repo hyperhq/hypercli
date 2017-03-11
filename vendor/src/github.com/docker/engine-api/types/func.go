@@ -68,13 +68,13 @@ type FuncCallResponse struct {
 }
 
 type FuncLogsResponse struct {
-	Time        string `json:"Time"`
-	Event       string `json:"Event"`
-	CallId      string `json:"CallId"`
-	ShortStdin  string `json:"ShortStdin"`
-	ShortStdout string `json:"ShortStdout"`
-	ShortStderr string `json:"ShortStderr"`
-	Message     string `json:"Message"`
+	Time        time.Time `json:"Time"`
+	Event       string    `json:"Event"`
+	CallId      string    `json:"CallId"`
+	ShortStdin  string    `json:"ShortStdin"`
+	ShortStdout string    `json:"ShortStdout"`
+	ShortStderr string    `json:"ShortStderr"`
+	Message     string    `json:"Message"`
 }
 
 type FuncStatusResponse struct {
