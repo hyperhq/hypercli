@@ -257,3 +257,30 @@ func (cli *Client) FuncLogs(ctx context.Context, name, callId string, follow boo
 	}
 	return resp.Body, nil
 }
+
+func (cli *Client) FuncStatus(ctx context.Context, name string) (*types.FuncStatusResponse, error) {
+	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	query := url.Values{}
+	query.Set("list", strconv.FormatBool(false))
+	req, err := newFuncEndpointRequest("GET", path.Join("status", name, fn.UUID), query, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := funcEndpointRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var ret types.FuncStatusResponse
+	err = json.NewDecoder(resp.Body).Decode(&ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}

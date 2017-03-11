@@ -129,6 +129,7 @@ type APIClient interface {
 	FuncCall(ctx context.Context, name string, stdin io.Reader) (*types.FuncCallResponse, error)
 	FuncGet(ctx context.Context, callId string, wait bool) ([]byte, error)
 	FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (io.ReadCloser, error)
+	FuncStatus(ctx context.Context, name string) (*types.FuncStatusResponse, error)
 }
 
 // Ensure that Client always implements APIClient.

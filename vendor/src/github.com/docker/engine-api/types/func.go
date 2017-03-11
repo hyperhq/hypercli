@@ -76,3 +76,11 @@ type FuncLogsResponse struct {
 	ShortStderr string `json:"ShortStderr"`
 	Message     string `json:"Message"`
 }
+
+type FuncStatusResponse struct {
+	Total    int `json:"Total"`
+	Pending  int `json:"Pending"`
+	Running  int `json:"Running"`
+	Finished int `json:"Finished"`
+	Failed   int `json:"Failed"`
+}

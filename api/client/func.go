@@ -357,8 +357,8 @@ func (cli *DockerCli) CmdFuncLs(args ...string) error {
 		command := strings.Join([]string(fn.Config.Cmd), " ")
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", fn.Name, fn.ContainerSize, fn.Config.Image, command, created, fn.UUID)
 	}
-
 	w.Flush()
+
 	return nil
 }
 
@@ -473,12 +473,12 @@ func (cli *DockerCli) CmdFuncLogs(args ...string) error {
 					cli.out, "%s [%s] CallId: %s, ShortStdin: %s\n",
 					log.Time, log.Event, log.CallId, log.ShortStdin,
 				)
-			} else if log.Event == "COMPLETED" {
+			} else if log.Event == "FINISHED" {
 				fmt.Fprintf(
 					cli.out, "%s [%s] CallId: %s, ShortStdout: %s, ShortStderr: %s\n",
 					log.Time, log.Event, log.CallId, log.ShortStdout, log.ShortStderr,
 				)
-			} else if log.Event == "ERROR" {
+			} else if log.Event == "FAILED" {
 				fmt.Fprintf(
 					cli.out, "%s [%s] CallId: %s, Message: %s\n",
 					log.Time, log.Event, log.CallId, log.Message,
@@ -491,5 +491,31 @@ func (cli *DockerCli) CmdFuncLogs(args ...string) error {
 			}
 		}
 	}
+	return nil
+}
+
+// CmdFuncStatus Status the return of a func call
+//
+// Usage: hyper func status [OPTIONS] NAME
+func (cli *DockerCli) CmdFuncStatus(args ...string) error {
+	cmd := Cli.Subcmd("func status", []string{"NAME"}, "Retrieve the status of a function", false)
+
+	cmd.Require(flag.Exact, 1)
+	if err := cmd.ParseFlags(args, true); err != nil {
+		return err
+	}
+
+	name := cmd.Arg(0)
+
+	status, err := cli.client.FuncStatus(context.Background(), name)
+	if err != nil {
+		return err
+	}
+
+	w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
+	fmt.Fprintf(w, "TOTAL\tPENDING\tRUNNING\tFINISHED\tFAILED\n")
+	fmt.Fprintf(w, "%d\t%d\t%d\t%d\t%d\n", status.Total, status.Pending, status.Running, status.Finished, status.Failed)
+	w.Flush()
+
 	return nil
 }
