@@ -12,6 +12,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/registry/api/errcode"
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/container"
+	timetypes "github.com/docker/engine-api/types/time"
 	"github.com/hyperhq/hypercli/api/server/httputils"
 	"github.com/hyperhq/hypercli/daemon"
 	derr "github.com/hyperhq/hypercli/errors"
@@ -20,9 +23,6 @@ import (
 	"github.com/hyperhq/hypercli/pkg/term"
 	"github.com/hyperhq/hypercli/runconfig"
 	"github.com/hyperhq/hypercli/utils"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/container"
-	timetypes "github.com/docker/engine-api/types/time"
 	"golang.org/x/net/context"
 	"golang.org/x/net/websocket"
 )

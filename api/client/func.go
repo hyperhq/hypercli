@@ -197,6 +197,7 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 	}
 
 	hostConfig := types.FuncHostConfig{
+		VolumesFrom:     flVolumesFrom.GetAll(),
 		PortBindings:    portBindings,
 		Links:           flLinks.GetAll(),
 		PublishAllPorts: *flPublishAll,
