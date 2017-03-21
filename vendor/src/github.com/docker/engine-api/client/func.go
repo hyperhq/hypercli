@@ -86,6 +86,10 @@ func funcEndpointRequest(req *http.Request) (*http.Response, error) {
 
 func (cli *Client) FuncCreate(ctx context.Context, opts types.Func) (types.Func, error) {
 	var fn types.Func
+	_, _, err := cli.ImageInspectWithRaw(context.Background(), opts.Config.Image, false)
+	if err != nil {
+		return fn, err
+	}
 	resp, err := cli.post(ctx, "/funcs/create", nil, opts, nil)
 	if err != nil {
 		return fn, err
