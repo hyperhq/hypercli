@@ -70,7 +70,7 @@ var dockerCommands = []Command{
 	{"volume", "Manage Hyper.sh volumes"},
 	{"snapshot", "Manage Hyper.sh snapshots"},
 	{"fip", "Manage Hyper.sh floating IPs"},
-	//{"wait", "Block until a container stops, then print its exit code"},
+	{"wait", "Block until a container stops, then print its exit code"},
 	{"compose", "Define and run multi-container applications with Hyper.sh"},
 	{"sg", "Manage security group of Hyper.sh"},
 	{"service", "Manage service of Hyper.sh"},
