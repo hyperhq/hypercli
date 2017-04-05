@@ -342,11 +342,14 @@ func (cli *DockerCli) CmdServiceAttach_fip(args ...string) error {
 	cmd := Cli.Subcmd("service attach-fip", []string{"SERVICE"}, "Attach a fip to the service", true)
 	flFip := cmd.String([]string{"-fip"}, "", "Attach a fip to the service")
 
-	cmd.Require(flag.Min, 1)
+	cmd.Require(flag.Exact, 1)
 	cmd.ParseFlags(args, true)
 
 	if err := cmd.Parse(args); err != nil {
 		return nil
+	}
+	if *flFip == "" {
+		return fmt.Errorf("Error: please provide the attached FIP via --fip")
 	}
 
 	ctx := context.Background()
