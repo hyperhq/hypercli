@@ -88,7 +88,6 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 		flWorkingDir = cmd.String([]string{"w", "-workdir"}, "", "Working directory inside the container")
 
 		flTty            = cmd.Bool([]string{"t", "-tty"}, false, "Allocate a pseudo-TTY")
-		flHostname       = cmd.String([]string{"h", "-hostname"}, "", "Container host name")
 		flLinks          = ropts.NewListOpts(opts.ValidateLink)
 		flSecurityGroups = ropts.NewListOpts(nil)
 		flStopSignal     = cmd.String([]string{"-stop-signal"}, signal.DefaultStopSignal, fmt.Sprintf("Signal to stop a container, %v by default", signal.DefaultStopSignal))
@@ -144,15 +143,6 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 		labels = append(labels, "sh_hyper_noauto_volume=true")
 	}
 
-	var (
-		domainname string
-		hostname   = *flHostname
-		parts      = strings.SplitN(hostname, ".", 2)
-	)
-	if len(parts) > 1 {
-		hostname = parts[0]
-		domainname = parts[1]
-	}
 	ports, portBindings, err := nat.ParsePortSpecs(flPublish.GetAll())
 	if err != nil {
 		return err
@@ -183,8 +173,6 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 	}
 
 	config := types.FuncConfig{
-		Hostname:     hostname,
-		Domainname:   domainname,
 		Tty:          *flTty,
 		ExposedPorts: ports,
 		Env:          &envVariables,

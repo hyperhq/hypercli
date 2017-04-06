@@ -11,8 +11,6 @@ import (
 )
 
 type FuncConfig struct {
-	Hostname     string                `json:"Hostname,omitempty"`
-	Domainname   string                `json:"Domainname,omitempty"`
 	Tty          bool                  `json:"Tty,omitempty"`
 	Env          *[]string             `json:"Env,omitempty"`
 	ExposedPorts map[nat.Port]struct{} `json:"ExposedPorts,omitempty"`
