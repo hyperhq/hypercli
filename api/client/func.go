@@ -245,6 +245,7 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	}
 
 	name := cmd.Arg(0)
+	name = strings.Replace(name, "/", "", -1)
 
 	// collect all the environment variables for the container
 	envVariables, err := opts.ReadKVStrings(flEnvFile.GetAll(), flEnv.GetAll())
@@ -278,7 +279,7 @@ func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(cli.out, "Function %s is updated.\n", fn.Name)
+	fmt.Fprintf(cli.out, "%s\n", fn.Name)
 	return nil
 }
 
@@ -293,13 +294,14 @@ func (cli *DockerCli) CmdFuncRm(args ...string) error {
 	}
 
 	status := 0
-	for _, fn := range cmd.Args() {
-		if err := cli.client.FuncDelete(context.Background(), fn); err != nil {
+	for _, name := range cmd.Args() {
+		name = strings.Replace(name, "/", "", -1)
+		if err := cli.client.FuncDelete(context.Background(), name); err != nil {
 			fmt.Fprintf(cli.err, "%s\n", err)
 			status = 1
 			continue
 		}
-		fmt.Fprintf(cli.out, "%s\n", fn)
+		fmt.Fprintf(cli.out, "%s\n", name)
 	}
 	if status != 0 {
 		return Cli.StatusError{StatusCode: status}
@@ -369,6 +371,7 @@ func (cli *DockerCli) CmdFuncInspect(args ...string) error {
 	ctx := context.Background()
 
 	inspectSearcher := func(name string) (interface{}, []byte, error) {
+		name = strings.Replace(name, "/", "", -1)
 		i, err := cli.client.FuncInspect(ctx, name)
 		return i, nil, err
 	}
@@ -387,6 +390,7 @@ func (cli *DockerCli) CmdFuncCall(args ...string) error {
 	}
 
 	name := cmd.Arg(0)
+	name = strings.Replace(name, "/", "", -1)
 
 	var stdin io.Reader
 	if fi, err := os.Stdin.Stat(); err == nil {
@@ -441,6 +445,7 @@ func (cli *DockerCli) CmdFuncLogs(args ...string) error {
 	}
 
 	name := cmd.Arg(0)
+	name = strings.Replace(name, "/", "", -1)
 
 	reader, err := cli.client.FuncLogs(context.Background(), name, *callId, *follow, *tail)
 	if err != nil {
@@ -497,6 +502,7 @@ func (cli *DockerCli) CmdFuncStatus(args ...string) error {
 	}
 
 	name := cmd.Arg(0)
+	name = strings.Replace(name, "/", "", -1)
 
 	status, err := cli.client.FuncStatus(context.Background(), name)
 	if err != nil {
