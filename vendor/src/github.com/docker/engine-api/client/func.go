@@ -204,7 +204,7 @@ func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader) (
 	return &ret, nil
 }
 
-func (cli *Client) FuncGet(ctx context.Context, callId string, wait bool) ([]byte, error) {
+func (cli *Client) FuncGet(ctx context.Context, callId string, wait bool) (io.ReadCloser, error) {
 	fn, err := cli.FuncInspectWithCallId(ctx, callId)
 	if err != nil {
 		return nil, err
@@ -221,12 +221,7 @@ func (cli *Client) FuncGet(ctx context.Context, callId string, wait bool) ([]byt
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
+	return resp.Body, nil
 }
 
 func (cli *Client) FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (io.ReadCloser, error) {

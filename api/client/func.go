@@ -421,12 +421,16 @@ func (cli *DockerCli) CmdFuncGet(args ...string) error {
 
 	callId := cmd.Arg(0)
 
-	ret, err := cli.client.FuncGet(context.Background(), callId, *wait)
+	body, err := cli.client.FuncGet(context.Background(), callId, *wait)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(cli.out, "%s", ret)
-	return nil
+	defer func() {
+		body.Close()
+	}()
+
+	_, err = io.Copy(cli.out, body)
+	return err
 }
 
 // CmdFuncLogs Get the return of a func call
