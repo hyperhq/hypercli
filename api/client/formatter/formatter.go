@@ -8,8 +8,8 @@ import (
 	"text/tabwriter"
 	"text/template"
 
-	"github.com/hyperhq/hypercli/reference"
 	"github.com/docker/engine-api/types"
+	"github.com/hyperhq/hypercli/reference"
 )
 
 const (
@@ -19,6 +19,7 @@ const (
 	defaultContainerTableFormat       = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}} ago\t{{.Status}}\t{{.Ports}}\t{{.Names}}\t{{.PublicIP}}"
 	defaultImageTableFormat           = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}} ago\t{{.Size}}"
 	defaultImageTableFormatWithDigest = "table {{.Repository}}\t{{.Tag}}\t{{.Digest}}\t{{.ID}}\t{{.CreatedSince}} ago\t{{.Size}}"
+	defaultVolumeTableFormat          = "table {{.Driver}}\t{{.Name}}\t{{.Size}}\t{{.Container}}"
 	defaultQuietFormat                = "{{.ID}}"
 )
 
@@ -108,6 +109,12 @@ type ImageContext struct {
 	Digest bool
 	// Images
 	Images []types.Image
+}
+
+type VolumeContext struct {
+	Context
+	// Volumes
+	Volumes []*types.Volume
 }
 
 func (ctx ContainerContext) Write() {
@@ -252,4 +259,44 @@ virtual_size: {{.Size}}
 	}
 
 	ctx.postformat(tmpl, &imageContext{})
+}
+
+func (ctx VolumeContext) Write() {
+	switch ctx.Format {
+	case tableFormatKey:
+		ctx.Format = defaultVolumeTableFormat
+		if ctx.Quiet {
+			ctx.Format = "{{.Name}}"
+		}
+	case rawFormatKey:
+		if ctx.Quiet {
+			ctx.Format = `name: {{.Name}}`
+		} else {
+			ctx.Format = `name: {{.Name}}
+driver: {{.Driver}}
+size: {{.Size}}
+container: {{.Container}}
+`
+		}
+	}
+
+	ctx.buffer = bytes.NewBufferString("")
+	ctx.preformat()
+
+	tmpl, err := ctx.parseFormat()
+	if err != nil {
+		return
+	}
+
+	for _, vol := range ctx.Volumes {
+		volCtx := &volumeContext{
+			i: *vol,
+		}
+		err = ctx.contextFormat(tmpl, volCtx)
+		if err != nil {
+			return
+		}
+	}
+
+	ctx.postformat(tmpl, &volumeContext{})
 }

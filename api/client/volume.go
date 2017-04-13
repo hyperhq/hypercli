@@ -9,16 +9,15 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"text/tabwriter"
 
+	"github.com/hyperhq/hypercli/api/client/formatter"
 	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/hyperhq/hypercli/pkg/stringid"
 
 	"github.com/cheggaaa/pb"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
-	"github.com/hyperhq/hypercli/opts"
 	"golang.org/x/net/context"
 )
 
@@ -55,6 +54,7 @@ func (cli *DockerCli) CmdVolumeLs(args ...string) error {
 	cmd := Cli.Subcmd("volume ls", nil, "List volumes", true)
 
 	quiet := cmd.Bool([]string{"q", "-quiet"}, false, "Only display volume names")
+	format := cmd.String([]string{"-format"}, "", "Pretty-print containers using a Go template")
 	flFilter := opts.NewListOpts(nil)
 	cmd.Var(&flFilter, []string{"f", "-filter"}, "Provide filter values (i.e. 'dangling=true')")
 
@@ -75,31 +75,52 @@ func (cli *DockerCli) CmdVolumeLs(args ...string) error {
 		return err
 	}
 
-	w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
-	if !*quiet {
-		for _, warn := range volumes.Warnings {
-			fmt.Fprintln(cli.err, warn)
+	/*
+		w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
+		if !*quiet {
+			for _, warn := range volumes.Warnings {
+				fmt.Fprintln(cli.err, warn)
+			}
+			fmt.Fprintf(w, "DRIVER \tVOLUME NAME\tSIZE\tCONTAINER")
+			fmt.Fprintf(w, "\n")
 		}
-		fmt.Fprintf(w, "DRIVER \tVOLUME NAME\tSIZE\tCONTAINER")
-		fmt.Fprintf(w, "\n")
+
+		for _, vol := range volumes.Volumes {
+			if *quiet {
+				fmt.Fprintln(w, vol.Name)
+				continue
+			}
+			var size, container string
+			if vol.Labels != nil {
+				size = vol.Labels["size"]
+				container = vol.Labels["container"]
+				if container != "" {
+					container = stringid.TruncateID(container)
+				}
+			}
+			fmt.Fprintf(w, "%s\t%s\t%s GB\t%s\n", vol.Driver, vol.Name, size, container)
+		}
+		w.Flush()
+	*/
+	f := *format
+	if len(f) == 0 {
+		if len(cli.VolumesFormat()) > 0 && !*quiet {
+			f = cli.VolumesFormat()
+		} else {
+			f = "table"
+		}
 	}
 
-	for _, vol := range volumes.Volumes {
-		if *quiet {
-			fmt.Fprintln(w, vol.Name)
-			continue
-		}
-		var size, container string
-		if vol.Labels != nil {
-			size = vol.Labels["size"]
-			container = vol.Labels["container"]
-			if container != "" {
-				container = stringid.TruncateID(container)
-			}
-		}
-		fmt.Fprintf(w, "%s\t%s\t%s GB\t%s\n", vol.Driver, vol.Name, size, container)
+	volCtx := formatter.VolumeContext{
+		Context: formatter.Context{
+			Output: cli.out,
+			Format: f,
+			Quiet:  *quiet,
+		},
+		Volumes: volumes.Volumes,
 	}
-	w.Flush()
+
+	volCtx.Write()
 	return nil
 }
 
