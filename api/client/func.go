@@ -11,7 +11,6 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/filters"
@@ -22,7 +21,7 @@ import (
 	Cli "github.com/hyperhq/hypercli/cli"
 	ropts "github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	// "github.com/hyperhq/hypercli/pkg/signal"
+	"github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/hyperhq/hypercli/runconfig/opts"
 	"golang.org/x/net/context"
 )
