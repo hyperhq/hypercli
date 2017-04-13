@@ -6,33 +6,37 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/engine-api/types"
+	"github.com/docker/go-units"
 	"github.com/hyperhq/hypercli/api"
 	"github.com/hyperhq/hypercli/pkg/stringid"
 	"github.com/hyperhq/hypercli/pkg/stringutils"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/go-units"
 )
 
 const (
 	tableKey = "table"
 	fipLabel = "sh.hyper.fip"
 
-	containerIDHeader  = "CONTAINER ID"
-	imageHeader        = "IMAGE"
-	namesHeader        = "NAMES"
-	commandHeader      = "COMMAND"
-	createdSinceHeader = "CREATED"
-	createdAtHeader    = "CREATED AT"
-	runningForHeader   = "CREATED"
-	statusHeader       = "STATUS"
-	portsHeader        = "PORTS"
-	sizeHeader         = "SIZE"
-	labelsHeader       = "LABELS"
-	imageIDHeader      = "IMAGE ID"
-	repositoryHeader   = "REPOSITORY"
-	tagHeader          = "TAG"
-	digestHeader       = "DIGEST"
-	fipHeader          = "PUBLIC IP"
+	containerIDHeader     = "CONTAINER ID"
+	imageHeader           = "IMAGE"
+	namesHeader           = "NAMES"
+	commandHeader         = "COMMAND"
+	createdSinceHeader    = "CREATED"
+	createdAtHeader       = "CREATED AT"
+	runningForHeader      = "CREATED"
+	statusHeader          = "STATUS"
+	portsHeader           = "PORTS"
+	sizeHeader            = "SIZE"
+	labelsHeader          = "LABELS"
+	imageIDHeader         = "IMAGE ID"
+	repositoryHeader      = "REPOSITORY"
+	tagHeader             = "TAG"
+	digestHeader          = "DIGEST"
+	fipHeader             = "PUBLIC IP"
+	volumeNameHeader      = "NAME"
+	volumeSizeHeader      = "SIZE"
+	volumeDriverHeader    = "DRIVER"
+	volumeContainerHeader = "CONTAINER"
 )
 
 type containerContext struct {
@@ -199,6 +203,33 @@ func (c *imageContext) CreatedAt() string {
 func (c *imageContext) Size() string {
 	c.addHeader(sizeHeader)
 	return units.HumanSize(float64(c.i.Size))
+}
+
+type volumeContext struct {
+	baseSubContext
+	i types.Volume
+}
+
+func (c *volumeContext) Name() string {
+	c.addHeader(volumeNameHeader)
+	return c.i.Name
+}
+
+func (c *volumeContext) Size() string {
+	c.addHeader(volumeSizeHeader)
+	size := c.i.Labels["size"]
+	return size + " GB"
+}
+
+func (c *volumeContext) Driver() string {
+	c.addHeader(volumeDriverHeader)
+	return c.i.Driver
+}
+
+func (c *volumeContext) Container() string {
+	c.addHeader(volumeContainerHeader)
+	container := c.i.Labels["container"]
+	return container
 }
 
 type subContext interface {

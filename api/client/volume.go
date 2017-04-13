@@ -9,16 +9,15 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"text/tabwriter"
 
+	"github.com/hyperhq/hypercli/api/client/formatter"
 	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
-	"github.com/hyperhq/hypercli/pkg/stringid"
 
 	"github.com/cheggaaa/pb"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
-	"github.com/hyperhq/hypercli/opts"
 	"golang.org/x/net/context"
 )
 
@@ -55,6 +54,7 @@ func (cli *DockerCli) CmdVolumeLs(args ...string) error {
 	cmd := Cli.Subcmd("volume ls", nil, "List volumes", true)
 
 	quiet := cmd.Bool([]string{"q", "-quiet"}, false, "Only display volume names")
+	format := cmd.String([]string{"-format"}, "", "Pretty-print containers using a Go template")
 	flFilter := opts.NewListOpts(nil)
 	cmd.Var(&flFilter, []string{"f", "-filter"}, "Provide filter values (i.e. 'dangling=true')")
 
@@ -75,31 +75,52 @@ func (cli *DockerCli) CmdVolumeLs(args ...string) error {
 		return err
 	}
 
-	w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
-	if !*quiet {
-		for _, warn := range volumes.Warnings {
-			fmt.Fprintln(cli.err, warn)
+	/*
+		w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
+		if !*quiet {
+			for _, warn := range volumes.Warnings {
+				fmt.Fprintln(cli.err, warn)
+			}
+			fmt.Fprintf(w, "DRIVER \tVOLUME NAME\tSIZE\tCONTAINER")
+			fmt.Fprintf(w, "\n")
 		}
-		fmt.Fprintf(w, "DRIVER \tVOLUME NAME\tSIZE\tCONTAINER")
-		fmt.Fprintf(w, "\n")
+
+		for _, vol := range volumes.Volumes {
+			if *quiet {
+				fmt.Fprintln(w, vol.Name)
+				continue
+			}
+			var size, container string
+			if vol.Labels != nil {
+				size = vol.Labels["size"]
+				container = vol.Labels["container"]
+				if container != "" {
+					container = stringid.TruncateID(container)
+				}
+			}
+			fmt.Fprintf(w, "%s\t%s\t%s GB\t%s\n", vol.Driver, vol.Name, size, container)
+		}
+		w.Flush()
+	*/
+	f := *format
+	if len(f) == 0 {
+		if len(cli.VolumesFormat()) > 0 && !*quiet {
+			f = cli.VolumesFormat()
+		} else {
+			f = "table"
+		}
 	}
 
-	for _, vol := range volumes.Volumes {
-		if *quiet {
-			fmt.Fprintln(w, vol.Name)
-			continue
-		}
-		var size, container string
-		if vol.Labels != nil {
-			size = vol.Labels["size"]
-			container = vol.Labels["container"]
-			if container != "" {
-				container = stringid.TruncateID(container)
-			}
-		}
-		fmt.Fprintf(w, "%s\t%s\t%s GB\t%s\n", vol.Driver, vol.Name, size, container)
+	volCtx := formatter.VolumeContext{
+		Context: formatter.Context{
+			Output: cli.out,
+			Format: f,
+			Quiet:  *quiet,
+		},
+		Volumes: volumes.Volumes,
 	}
-	w.Flush()
+
+	volCtx.Write()
 	return nil
 }
 
@@ -137,15 +158,12 @@ func (cli *DockerCli) CmdVolumeCreate(args ...string) error {
 	flSnapshot := cmd.String([]string{"-snapshot"}, "", "Specify snapshot to create volume")
 	flSize := cmd.Int([]string{"-size"}, 10, "Specify volume size")
 
-	flDriverOpts := opts.NewMapOpts(nil, nil)
-	cmd.Var(flDriverOpts, []string{"o", "-opt"}, "Set driver specific options")
-
 	cmd.Require(flag.Exact, 0)
 	cmd.ParseFlags(args, true)
 
 	volReq := types.VolumeCreateRequest{
 		Driver:     *flDriver,
-		DriverOpts: flDriverOpts.GetAll(),
+		DriverOpts: make(map[string]string),
 		Name:       *flName,
 	}
 
@@ -199,6 +217,8 @@ func validateVolumeSource(source string) error {
 		fallthrough
 	case strings.HasPrefix(source, "https://"):
 		break
+	case filepath.VolumeName(source) != "":
+		fallthrough
 	case strings.HasPrefix(source, "/"):
 		info, err := os.Stat(source)
 		if err != nil {
@@ -215,24 +235,26 @@ func validateVolumeSource(source string) error {
 	return nil
 }
 
-func validateVolumeInitArgs(args []string, req *types.VolumesInitializeRequest) error {
-
+func validateVolumeInitArgs(args []string, req *types.VolumesInitializeRequest) ([]int, error) {
+	var sourceType []int
 	for _, desc := range args {
 		idx := strings.LastIndexByte(desc, ':')
 		if idx == -1 || idx >= len(desc)-1 {
-			return fmt.Errorf("%s does not match format SOURCE:VOLUME", desc)
+			return nil, fmt.Errorf("%s does not match format SOURCE:VOLUME", desc)
 		}
 		source := desc[:idx]
 		name := desc[idx+1:]
 		if err := validateVolumeSource(source); err != nil {
-			return err
+			return nil, err
 		}
+		pathType, source := convertToUnixPath(source)
 		req.Volume = append(req.Volume, types.VolumeInitDesc{
 			Name:   name,
 			Source: source,
 		})
+		sourceType = append(sourceType, pathType)
 	}
-	return nil
+	return sourceType, nil
 }
 
 // CmdVolumeInit Initializes one or more volumes.
@@ -248,11 +270,10 @@ func (cli *DockerCli) CmdVolumeInit(args ...string) error {
 
 func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	var req types.VolumesInitializeRequest
-	err := validateVolumeInitArgs(vols, &req)
+	pathType, err := validateVolumeInitArgs(vols, &req)
 	if err != nil {
 		return err
 	}
-
 	ctx := context.Background()
 	req.Reload = reload
 	resp, err := cli.client.VolumeInitialize(ctx, req)
@@ -263,7 +284,6 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	if len(resp.Session) == 0 {
 		return nil
 	}
-
 	// Upload local volumes
 	var wg sync.WaitGroup
 	var results []error
@@ -274,10 +294,11 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 		pool = nil
 		err = nil
 	}
-	for _, desc := range req.Volume {
+	for idx, desc := range req.Volume {
 		if url, ok := resp.Uploaders[desc.Name]; ok {
+			source := recoverPath(pathType[idx], desc.Source)
 			wg.Add(1)
-			go uploadLocalVolume(desc.Source, url, resp.Cookie, &results, &wg, pool)
+			go uploadLocalVolume(source, url, resp.Cookie, &results, &wg, pool)
 		}
 	}
 

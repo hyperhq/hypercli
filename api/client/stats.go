@@ -1,143 +1,25 @@
 package client
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
-	"sort"
 	"strings"
 	"sync"
-	"text/tabwriter"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/engine-api/types"
-	"github.com/docker/go-units"
+	"github.com/docker/engine-api/types/events"
 	Cli "github.com/hyperhq/hypercli/cli"
+	"github.com/hyperhq/hypercli/cli/command"
+	"github.com/hyperhq/hypercli/cli/command/formatter"
+	"golang.org/x/net/context"
 )
-
-type containerStats struct {
-	Name             string
-	CPUPercentage    float64
-	Memory           float64
-	MemoryLimit      float64
-	MemoryPercentage float64
-	NetworkRx        float64
-	NetworkTx        float64
-	BlockRead        float64
-	BlockWrite       float64
-	mu               sync.RWMutex
-	err              error
-}
-
-type stats struct {
-	mu sync.Mutex
-	cs []*containerStats
-}
-
-func (s *containerStats) Collect(cli *DockerCli, ctx context.Context, streamStats bool) {
-	responseBody, err := cli.client.ContainerStats(ctx, s.Name, streamStats)
-	if err != nil {
-		s.mu.Lock()
-		s.err = err
-		s.mu.Unlock()
-		return
-	}
-	defer responseBody.Close()
-
-	var (
-		previousCPU    uint64
-		previousSystem uint64
-		dec            = json.NewDecoder(responseBody)
-		u              = make(chan error, 1)
-	)
-	go func() {
-		for {
-			var v *types.StatsJSON
-			if err := dec.Decode(&v); err != nil {
-				u <- err
-				return
-			}
-
-			var memPercent = 0.0
-			var cpuPercent = 0.0
-
-			// MemoryStats.Limit will never be 0 unless the container is not running and we haven't
-			// got any data from cgroup
-			if v.MemoryStats.Limit != 0 {
-				memPercent = float64(v.MemoryStats.Usage) / float64(v.MemoryStats.Limit) * 100.0
-			}
-
-			previousCPU = v.PreCPUStats.CPUUsage.TotalUsage
-			previousSystem = v.PreCPUStats.SystemUsage
-			cpuPercent = calculateCPUPercent(previousCPU, previousSystem, v)
-			blkRead, blkWrite := calculateBlockIO(v.BlkioStats)
-			s.mu.Lock()
-			s.CPUPercentage = cpuPercent
-			s.Memory = float64(v.MemoryStats.Usage)
-			s.MemoryLimit = float64(v.MemoryStats.Limit)
-			s.MemoryPercentage = memPercent
-			s.NetworkRx, s.NetworkTx = calculateNetwork(v.Networks)
-			s.BlockRead = float64(blkRead)
-			s.BlockWrite = float64(blkWrite)
-			s.mu.Unlock()
-			u <- nil
-			if !streamStats {
-				return
-			}
-		}
-	}()
-	for {
-		select {
-		case <-time.After(2 * time.Second):
-			// zero out the values if we have not received an update within
-			// the specified duration.
-			s.mu.Lock()
-			s.CPUPercentage = 0
-			s.Memory = 0
-			s.MemoryPercentage = 0
-			s.MemoryLimit = 0
-			s.NetworkRx = 0
-			s.NetworkTx = 0
-			s.BlockRead = 0
-			s.BlockWrite = 0
-			s.mu.Unlock()
-		case err := <-u:
-			if err != nil {
-				s.mu.Lock()
-				s.err = err
-				s.mu.Unlock()
-				return
-			}
-		}
-		if !streamStats {
-			return
-		}
-	}
-}
-
-func (s *containerStats) Display(w io.Writer) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	if s.err != nil {
-		return s.err
-	}
-	fmt.Fprintf(w, "%s\t%.2f%%\t%s / %s\t%.2f%%\t%s / %s\t%s / %s\n",
-		s.Name,
-		s.CPUPercentage,
-		units.HumanSize(s.Memory), units.HumanSize(s.MemoryLimit),
-		s.MemoryPercentage,
-		units.HumanSize(s.NetworkRx), units.HumanSize(s.NetworkTx),
-		units.HumanSize(s.BlockRead), units.HumanSize(s.BlockWrite))
-	return nil
-}
 
 // CmdStats displays a live stream of resource usage statistics for one or more containers.
 //
 // This shows real-time information on CPU usage, memory usage, and network I/O.
 //
-// Usage: docker stats [OPTIONS] [CONTAINER...]
+// Usage: hyper stats [OPTIONS] [CONTAINER...]
 func (cli *DockerCli) CmdStats(args ...string) error {
 	cmd := Cli.Subcmd("stats", []string{"[CONTAINER...]"}, Cli.DockerCommands["stats"].Description, true)
 	all := cmd.Bool([]string{"a", "-all"}, false, "Show all containers (default shows just running)")
@@ -147,106 +29,162 @@ func (cli *DockerCli) CmdStats(args ...string) error {
 
 	names := cmd.Args()
 	showAll := len(names) == 0
-
+	closeChan := make(chan error)
 	ctx := context.Background()
+	eventChan := make(chan events.Message)
 
-	if showAll {
+	// monitorContainerEvents watches for container creation and removal (only
+	// used when calling `docker stats` without arguments).
+	monitorContainerEvents := func(started chan<- struct{}, c chan events.Message) {
+		eventq, errq := cli.Events(ctx)
+
+		// Whether we successfully subscribed to eventq or not, we can now
+		// unblock the main goroutine.
+		close(started)
+
+		for {
+			select {
+			case event := <-eventq:
+				c <- event
+			case err := <-errq:
+				closeChan <- err
+				return
+			}
+		}
+	}
+
+	// waitFirst is a WaitGroup to wait first stat data's reach for each container
+	waitFirst := &sync.WaitGroup{}
+
+	cStats := stats{}
+	// getContainerList simulates creation event for all previously existing
+	// containers (only used when calling `docker stats` without arguments).
+	getContainerList := func() {
 		options := types.ContainerListOptions{
 			All: *all,
 		}
 		cs, err := cli.client.ContainerList(ctx, options)
 		if err != nil {
-			return err
+			closeChan <- err
 		}
-		for _, c := range cs {
-			names = append(names, c.ID[:12])
+		for _, container := range cs {
+			s := formatter.NewContainerStats(container.ID[:12])
+			if cStats.add(s) {
+				waitFirst.Add(1)
+				go collect(ctx, s, cli, !*noStream, waitFirst, eventChan, false)
+			}
 		}
 	}
-	if len(names) == 0 && !showAll {
-		return fmt.Errorf("No containers found")
-	}
-	sort.Strings(names)
 
-	var (
-		cStats = stats{}
-		w      = tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
-	)
-	printHeader := func() {
+	if showAll {
+		// If no names were specified, start a long running goroutine which
+		// monitors container events. We make sure we're subscribed before
+		// retrieving the list of running containers to avoid a race where we
+		// would "miss" a creation.
+		started := make(chan struct{})
+		eh := command.InitEventHandler()
+
+		eh.Handle("start", func(e events.Message) {
+			s := formatter.NewContainerStats(e.ID[:12])
+			if cStats.add(s) {
+				waitFirst.Add(1)
+				go collect(ctx, s, cli, !*noStream, waitFirst, eventChan, false)
+			}
+		})
+
+		eh.Handle("stop", func(e events.Message) {
+			if !*all {
+				cStats.remove(e.ID[:12])
+			}
+		})
+
+		go eh.Watch(eventChan)
+		go monitorContainerEvents(started, eventChan)
+		defer close(eventChan)
+		<-started
+
+		// Start a short-lived goroutine to retrieve the initial list of
+		// containers.
+		getContainerList()
+	} else {
+		// Artificially send creation events for the containers we were asked to
+		// monitor (same code path than we use when monitoring all containers).
+		for _, name := range names {
+			s := formatter.NewContainerStats(name)
+			if cStats.add(s) {
+				waitFirst.Add(1)
+				go collect(ctx, s, cli, !*noStream, waitFirst, nil, true)
+			}
+		}
+
+		// We don't expect any asynchronous errors: closeChan can be closed.
+		close(closeChan)
+
+		// Do a quick pause to detect any error with the provided list of
+		// container names.
+		time.Sleep(1500 * time.Millisecond)
+		var errs []string
+		cStats.mu.Lock()
+		for _, c := range cStats.cs {
+			cErr := c.GetError()
+			if cErr != nil {
+				errs = append(errs, fmt.Sprintf("%s: %v", c.Name, cErr))
+			}
+		}
+		cStats.mu.Unlock()
+		if len(errs) > 0 {
+			return fmt.Errorf("%s", strings.Join(errs, ", "))
+		}
+	}
+
+	// before print to screen, make sure each container get at least one valid stat data
+	waitFirst.Wait()
+
+	statsCtx := formatter.Context{
+		Output: cli.out,
+		Format: formatter.NewStatsFormat(formatter.TableFormatKey),
+	}
+
+	cleanScreen := func() {
 		if !*noStream {
 			fmt.Fprint(cli.out, "\033[2J")
 			fmt.Fprint(cli.out, "\033[H")
 		}
-		io.WriteString(w, "CONTAINER\tCPU %\tMEM USAGE / LIMIT\tMEM %\tNET I/O\tBLOCK I/O\n")
 	}
-	for _, n := range names {
-		s := &containerStats{Name: n}
-		// no need to lock here since only the main goroutine is running here
-		cStats.cs = append(cStats.cs, s)
-		go s.Collect(cli, ctx, !*noStream)
-	}
-	// do a quick pause so that any failed connections for containers that do not exist are able to be
-	// evicted before we display the initial or default values.
-	time.Sleep(1500 * time.Millisecond)
-	var errs []string
-	cStats.mu.Lock()
-	for _, c := range cStats.cs {
-		c.mu.Lock()
-		if c.err != nil {
-			errs = append(errs, fmt.Sprintf("%s: %v", c.Name, c.err))
-		}
-		c.mu.Unlock()
-	}
-	cStats.mu.Unlock()
-	if len(errs) > 0 {
-		return fmt.Errorf("%s", strings.Join(errs, ", "))
-	}
-	for range time.Tick(1000 * time.Millisecond) {
-		printHeader()
-		toRemove := []int{}
+
+	var err error
+	for range time.Tick(500 * time.Millisecond) {
+		cleanScreen()
+		ccstats := []formatter.StatsEntry{}
 		cStats.mu.Lock()
-		for i, s := range cStats.cs {
-			if err := s.Display(w); err != nil && !*noStream {
-				toRemove = append(toRemove, i)
-			}
-		}
-		for j := len(toRemove) - 1; j >= 0; j-- {
-			i := toRemove[j]
-			cStats.cs = append(cStats.cs[:i], cStats.cs[i+1:]...)
-		}
-		if len(cStats.cs) == 0 && !showAll {
-			return nil
+		for _, c := range cStats.cs {
+			ccstats = append(ccstats, c.GetStatistics())
 		}
 		cStats.mu.Unlock()
-		w.Flush()
+		if err = formatter.ContainerStatsWrite(statsCtx, ccstats); err != nil {
+			break
+		}
+		if len(cStats.cs) == 0 && !showAll {
+			break
+		}
 		if *noStream {
 			break
 		}
-	}
-	return nil
-}
-
-func calculateCPUPercent(previousCPU, previousSystem uint64, v *types.StatsJSON) float64 {
-	return float64(v.CPUStats.CPUUsage.TotalUsage) / 100.0
-}
-
-func calculateBlockIO(blkio types.BlkioStats) (blkRead uint64, blkWrite uint64) {
-	for _, bioEntry := range blkio.IoServiceBytesRecursive {
-		switch strings.ToLower(bioEntry.Op) {
-		case "read":
-			blkRead = blkRead + bioEntry.Value
-		case "write":
-			blkWrite = blkWrite + bioEntry.Value
+		select {
+		case err, ok := <-closeChan:
+			if ok {
+				if err != nil {
+					// this is suppressing "unexpected EOF" in the cli when the
+					// daemon restarts so it shutdowns cleanly
+					if err == io.ErrUnexpectedEOF {
+						return nil
+					}
+					return err
+				}
+			}
+		default:
+			// just skip
 		}
 	}
-	return
-}
-
-func calculateNetwork(network map[string]types.NetworkStats) (float64, float64) {
-	var rx, tx float64
-
-	for _, v := range network {
-		rx += float64(v.RxBytes)
-		tx += float64(v.TxBytes)
-	}
-	return rx, tx
+	return err
 }

@@ -35,12 +35,28 @@ func (cli *DockerCli) CmdFip(args ...string) error {
 // Usage: docker fip create [OPTIONS] COUNT
 func (cli *DockerCli) CmdFipAllocate(args ...string) error {
 	cmd := Cli.Subcmd("fip allocate", []string{"COUNT"}, "Creates some new floating IPs by the user", false)
+	flAvailable := cmd.Bool([]string{"-pick"}, false, "Pick an available floating IP if have")
 	flForce := cmd.Bool([]string{"y", "-yes"}, false, "Agree to allocate floating IP, will not show prompt")
 
 	cmd.Require(flag.Exact, 1)
 	err := cmd.ParseFlags(args, true)
 	if err != nil {
 		return err
+	}
+	if *flAvailable == true {
+		fipFilterArgs, _ := filters.FromParam("dangling=true")
+		options := types.NetworkListOptions{
+			Filters: fipFilterArgs,
+		}
+		fips, err := cli.client.FipList(context.Background(), options)
+		if err == nil {
+			for _, fip := range fips {
+				if fip["container"] == "" && fip["service"] == "" {
+					fmt.Fprintf(cli.out, "%s\n", fip["fip"])
+					return nil
+				}
+			}
+		}
 	}
 	if *flForce == false {
 		if askForConfirmation(warnMessage) == false {
@@ -87,9 +103,35 @@ func (cli *DockerCli) CmdFipRelease(args ...string) error {
 // Usage: docker fip attach [OPTIONS] <FIP> <CONTAINER>
 func (cli *DockerCli) CmdFipAttach(args ...string) error {
 	cmd := Cli.Subcmd("fip attach", []string{"FIP CONTAINER"}, "Connects a container to a floating IP", false)
+	flForce := cmd.Bool([]string{"f", "-force"}, false, "Deattach that FIP and attach it to this container")
 	cmd.Require(flag.Min, 2)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return err
+	}
+	if *flForce {
+		filter, _ := filters.FromParam("dangling=false")
+		options := types.NetworkListOptions{
+			Filters: filter,
+		}
+
+		fips, err := cli.client.FipList(context.Background(), options)
+		if err != nil {
+			return err
+		}
+		for _, fip := range fips {
+			if ip := fip["fip"]; ip == cmd.Arg(0) {
+				if fip["container"] != "" {
+					cli.client.FipDetach(context.Background(), fip["container"])
+				} else if fip["service"] != "" {
+					ip = ""
+					sv := types.ServiceUpdate{
+						FIP: &ip,
+					}
+					cli.client.ServiceUpdate(context.Background(), fip["service"], sv)
+				}
+				break
+			}
+		}
 	}
 	return cli.client.FipAttach(context.Background(), cmd.Arg(0), cmd.Arg(1))
 }
