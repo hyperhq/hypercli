@@ -119,6 +119,17 @@ type APIClient interface {
 	CronList(ctx context.Context, opts types.CronListOptions) ([]types.Cron, error)
 	CronInspect(ctx context.Context, id string) (types.Cron, error)
 	CronInspectWithRaw(ctx context.Context, serviceID string) (types.Cron, []byte, error)
+
+	FuncCreate(ctx context.Context, opts types.Func) (types.Func, error)
+	FuncUpdate(ctx context.Context, name string, opts types.Func) (types.Func, error)
+	FuncDelete(ctx context.Context, name string) error
+	FuncList(ctx context.Context, opts types.FuncListOptions) ([]types.Func, error)
+	FuncInspect(ctx context.Context, name string) (types.Func, error)
+	FuncInspectWithRaw(ctx context.Context, name string) (types.Func, []byte, error)
+	FuncCall(ctx context.Context, name string, stdin io.Reader) (*types.FuncCallResponse, error)
+	FuncGet(ctx context.Context, callId string, wait bool) (io.ReadCloser, error)
+	FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (io.ReadCloser, error)
+	FuncStatus(ctx context.Context, name string) (*types.FuncStatusResponse, error)
 }
 
 // Ensure that Client always implements APIClient.

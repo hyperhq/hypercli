@@ -120,6 +120,33 @@ func IsErrCronNotFound(err error) bool {
 	return ok
 }
 
+// funcNotFoundError implements an error returned when a func is not in the docker host.
+type funcNotFoundError struct {
+	name string
+}
+
+// Error returns a string representation of a funcNotFoundError
+func (e funcNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such function: %s", e.name)
+}
+
+// funcCallNotFoundError implements an error returned when a func call is not in the docker host.
+type funcCallNotFoundError struct {
+	id string
+}
+
+// Error returns a string representation of a funcNotFoundError
+func (e funcCallNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such call id: %s", e.id)
+}
+
+// IsErrFuncNotFound returns true if the error is caused
+// when a func is not found in the docker host.
+func IsErrFuncNotFound(err error) bool {
+	_, ok := err.(funcNotFoundError)
+	return ok
+}
+
 // unauthorizedError represents an authorization error in a remote registry.
 type unauthorizedError struct {
 	cause error

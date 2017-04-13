@@ -75,6 +75,7 @@ var dockerCommands = []Command{
 	{"sg", "Manage security group of Hyper.sh"},
 	{"service", "Manage service of Hyper.sh"},
 	{"cron", "Manage cron service of Hyper.sh"},
+	{"func", "Manage func service of Hyper.sh"},
 }
 
 // DockerCommands stores all the docker command
