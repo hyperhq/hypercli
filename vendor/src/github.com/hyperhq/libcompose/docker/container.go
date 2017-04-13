@@ -7,8 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"golang.org/x/net/context"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
@@ -16,6 +14,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/hyperhq/hypercli/pkg/promise"
 	"github.com/hyperhq/hypercli/pkg/stdcopy"
+	"github.com/hyperhq/hypercli/pkg/stringid"
 	"github.com/hyperhq/hypercli/pkg/term"
 	"github.com/hyperhq/libcompose/config"
 	"github.com/hyperhq/libcompose/labels"
@@ -23,6 +22,7 @@ import (
 	"github.com/hyperhq/libcompose/project"
 	"github.com/hyperhq/libcompose/project/events"
 	util "github.com/hyperhq/libcompose/utils"
+	"golang.org/x/net/context"
 )
 
 // Container holds information about a docker container and the service it is tied on.
@@ -325,12 +325,48 @@ func (c *Container) Run(ctx context.Context, imageName string, configOverride *c
 		return -1, err
 	}
 
-	exitedContainer, err := c.client.ContainerInspect(ctx, container.ID)
-	if err != nil {
-		return -1, err
+	var status int
+	// Attached mode
+	if c.service.context.Autoremove {
+		// Warn user if they detached us
+		js, err := c.client.ContainerInspect(ctx, container.ID)
+		if err != nil {
+			return -1, err
+		}
+		if js.State.Running == true || js.State.Paused == true {
+			logrus.Infof("Detached from %s, awaiting its termination in order to uphold \"--rm\".\n",
+				stringid.TruncateID(container.ID))
+		}
+
+		// Autoremove: wait for the container to finish, retrieve
+		// the exit code and remove the container
+		if status, err = c.client.ContainerWait(ctx, container.ID); err != nil {
+			return -1, err
+		}
+		exitedContainer, err := c.client.ContainerInspect(ctx, container.ID)
+		if err != nil {
+			return -1, err
+		}
+		status = exitedContainer.State.ExitCode
+	} else {
+		// No Autoremove: Simply retrieve the exit code
+		if !configOverride.Tty {
+			// In non-TTY mode, we can't detach, so we must wait for container exit
+			if status, err = c.client.ContainerWait(ctx, container.ID); err != nil {
+				return -1, err
+			}
+		} else {
+			// In TTY mode, there is a race: if the process dies too slowly, the state could
+			// be updated after the getExitCode call and result in the wrong exit code being reported
+			exitedContainer, err := c.client.ContainerInspect(ctx, container.ID)
+			if err != nil {
+				return -1, err
+			}
+			status = exitedContainer.State.ExitCode
+		}
 	}
 
-	return exitedContainer.State.ExitCode, nil
+	return status, nil
 }
 
 func holdHijackedConnection(tty bool, inputStream io.ReadCloser, outputStream, errorStream io.Writer, resp types.HijackedResponse) error {

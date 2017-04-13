@@ -57,6 +57,7 @@ func (cli *DockerCli) CmdComposeRun(args ...string) error {
 		Context: project.Context{
 			ComposeFiles: []string{*composeFile},
 			ProjectName:  *projectName,
+			Autoremove:   *rm,
 		},
 		ClientFactory: cli,
 	})
@@ -69,14 +70,14 @@ func (cli *DockerCli) CmdComposeRun(args ...string) error {
 	if err != nil {
 		return err
 	}
-	if status != 0 {
-		return Cli.StatusError{StatusCode: status}
-	}
 	if *rm {
 		opts := options.Delete{RemoveVolume: true}
 		if err = project.Delete(opts, service); err != nil {
 			return err
 		}
+	}
+	if status != 0 {
+		return Cli.StatusError{StatusCode: status}
 	}
 
 	return nil
