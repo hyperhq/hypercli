@@ -28,7 +28,7 @@ type Command struct {
 var dockerCommands = []Command{
 	{"attach", "Attach to a running container"},
 	//{"build", "Build an image from a Dockerfile"},
-	//{"commit", "Create a new image from a container's changes"},
+	{"commit", "Create a new image from a container's changes"},
 	{"config", "Config access key and secret key to Hyper server"},
 	//{"cp", "Copy files/folders between a container and the local filesystem"},
 	{"create", "Create a new container"},

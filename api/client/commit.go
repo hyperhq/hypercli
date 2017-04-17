@@ -4,27 +4,26 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
+	"golang.org/x/net/context"
 )
 
 // CmdCommit creates a new image from a container's changes.
 //
-// Usage: docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
-func (cli *DockerCli) Commit(args ...string) error {
+// Usage: hyper commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
+func (cli *DockerCli) CmdCommit(args ...string) error {
 	cmd := Cli.Subcmd("commit", []string{"CONTAINER [REPOSITORY[:TAG]]"}, Cli.DockerCommands["commit"].Description, true)
-	flPause := cmd.Bool([]string{"p", "-pause"}, true, "Pause container during commit")
+	flPause := cmd.Bool([]string{}, true, "Pause container during commit")
 	flComment := cmd.String([]string{"m", "-message"}, "", "Commit message")
 	flAuthor := cmd.String([]string{"a", "-author"}, "", "Author (e.g., \"John Hannibal Smith <hannibal@a-team.com>\")")
 	flChanges := opts.NewListOpts(nil)
 	cmd.Var(&flChanges, []string{"c", "-change"}, "Apply Dockerfile instruction to the created image")
 	// FIXME: --run is deprecated, it will be replaced with inline Dockerfile commands.
-	flConfig := cmd.String([]string{"#-run"}, "", "This option is deprecated and will be removed in a future version in favor of inline Dockerfile-compatible commands")
+	flConfig := cmd.String([]string{}, "", "This option is deprecated and will be removed in a future version in favor of inline Dockerfile-compatible commands")
 	cmd.Require(flag.Max, 2)
 	cmd.Require(flag.Min, 1)
 
