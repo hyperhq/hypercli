@@ -2,10 +2,11 @@ package opts
 
 import (
 	"fmt"
-	fopts "github.com/hyperhq/hypercli/opts"
 	"net"
 	"os"
 	"strings"
+
+	fopts "github.com/hyperhq/hypercli/opts"
 )
 
 // ValidateAttach validates that the specified string is a valid attach option.
@@ -31,7 +32,7 @@ func ValidateEnv(val string) (string, error) {
 		return val, nil
 	}
 	if !doesEnvExist(val) {
-		return val, nil
+		return val + "=", nil
 	}
 	return fmt.Sprintf("%s=%s", val, os.Getenv(val)), nil
 }
