@@ -182,12 +182,16 @@ func (cli *Client) FuncInspectWithCallId(ctx context.Context, id string) (*types
 	return &fn, err
 }
 
-func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader) (*types.FuncCallResponse, error) {
+func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader, wait bool) (io.ReadCloser, error) {
 	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
 	if err != nil {
 		return nil, err
 	}
-	req, err := newFuncEndpointRequest("POST", path.Join("call", name, fn.UUID), nil, stdin)
+	subpath := ""
+	if wait {
+		subpath += "/wait"
+	}
+	req, err := newFuncEndpointRequest("POST", path.Join("call", name, fn.UUID, subpath), nil, stdin)
 	if err != nil {
 		return nil, err
 	}
@@ -195,13 +199,7 @@ func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader) (
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	var ret types.FuncCallResponse
-	err = json.NewDecoder(resp.Body).Decode(&ret)
-	if err != nil {
-		return nil, err
-	}
-	return &ret, nil
+	return resp.Body, nil
 }
 
 func (cli *Client) FuncGet(ctx context.Context, callId string, wait bool) (io.ReadCloser, error) {

@@ -17,7 +17,7 @@ import (
 	"github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/strslice"
 	"github.com/docker/go-connections/nat"
-	"github.com/docker/go-units"
+	units "github.com/docker/go-units"
 	Cli "github.com/hyperhq/hypercli/cli"
 	ropts "github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
@@ -383,6 +383,8 @@ func (cli *DockerCli) CmdFuncInspect(args ...string) error {
 // Usage: hyper func call NAME
 func (cli *DockerCli) CmdFuncCall(args ...string) error {
 	cmd := Cli.Subcmd("func call", []string{"NAME"}, "Call a function", false)
+	wait := cmd.Bool([]string{"-wait"}, false, "Block until the call is completed")
+
 	cmd.Require(flag.Exact, 1)
 	if err := cmd.ParseFlags(args, true); err != nil {
 		return err
@@ -398,11 +400,24 @@ func (cli *DockerCli) CmdFuncCall(args ...string) error {
 		}
 	}
 
-	ret, err := cli.client.FuncCall(context.Background(), name, stdin)
+	body, err := cli.client.FuncCall(context.Background(), name, stdin, *wait)
+	if err != nil {
+		return err
+	}
+	defer body.Close()
+
+	if *wait {
+		_, err = io.Copy(cli.out, body)
+		return err
+	}
+
+	var ret types.FuncCallResponse
+	err = json.NewDecoder(body).Decode(&ret)
 	if err != nil {
 		return err
 	}
 	fmt.Fprintf(cli.out, "CallId: %s\n", ret.CallId)
+
 	return nil
 }
 
@@ -424,9 +439,7 @@ func (cli *DockerCli) CmdFuncGet(args ...string) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		body.Close()
-	}()
+	defer body.Close()
 
 	_, err = io.Copy(cli.out, body)
 	return err
