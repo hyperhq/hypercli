@@ -51,7 +51,7 @@ var dockerCommands = []Command{
 	{"port", "List port mappings or a specific mapping for the CONTAINER"},
 	{"ps", "List containers"},
 	{"pull", "Pull an image or a repository from a registry"},
-	//{"push", "Push an image or a repository to a registry"},
+	{"push", "Push an image or a repository to a registry"},
 	{"rename", "Rename a container"},
 	{"restart", "Restart a container"},
 	{"rm", "Remove one or more containers"},
