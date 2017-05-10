@@ -182,14 +182,14 @@ func (cli *Client) FuncInspectWithCallId(ctx context.Context, id string) (*types
 	return &fn, err
 }
 
-func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader, wait bool) (io.ReadCloser, error) {
+func (cli *Client) FuncCall(ctx context.Context, name string, stdin io.Reader, sync bool) (io.ReadCloser, error) {
 	fn, _, err := cli.FuncInspectWithRaw(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 	subpath := ""
-	if wait {
-		subpath += "/wait"
+	if sync {
+		subpath += "/sync"
 	}
 	req, err := newFuncEndpointRequest("POST", path.Join("call", name, fn.UUID, subpath), nil, stdin)
 	if err != nil {
