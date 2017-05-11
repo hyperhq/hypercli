@@ -126,7 +126,7 @@ type APIClient interface {
 	FuncList(ctx context.Context, opts types.FuncListOptions) ([]types.Func, error)
 	FuncInspect(ctx context.Context, name string) (types.Func, error)
 	FuncInspectWithRaw(ctx context.Context, name string) (types.Func, []byte, error)
-	FuncCall(ctx context.Context, name string, stdin io.Reader, wait bool) (io.ReadCloser, error)
+	FuncCall(ctx context.Context, name string, stdin io.Reader, sync bool) (io.ReadCloser, error)
 	FuncGet(ctx context.Context, callId string, wait bool) (io.ReadCloser, error)
 	FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (io.ReadCloser, error)
 	FuncStatus(ctx context.Context, name string) (*types.FuncStatusResponse, error)

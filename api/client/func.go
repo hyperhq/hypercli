@@ -383,7 +383,7 @@ func (cli *DockerCli) CmdFuncInspect(args ...string) error {
 // Usage: hyper func call NAME
 func (cli *DockerCli) CmdFuncCall(args ...string) error {
 	cmd := Cli.Subcmd("func call", []string{"NAME"}, "Call a function", false)
-	wait := cmd.Bool([]string{"-wait"}, false, "Block until the call is completed")
+	sync := cmd.Bool([]string{"-sync"}, false, "Block until the call is completed")
 
 	cmd.Require(flag.Exact, 1)
 	if err := cmd.ParseFlags(args, true); err != nil {
@@ -400,13 +400,13 @@ func (cli *DockerCli) CmdFuncCall(args ...string) error {
 		}
 	}
 
-	body, err := cli.client.FuncCall(context.Background(), name, stdin, *wait)
+	body, err := cli.client.FuncCall(context.Background(), name, stdin, *sync)
 	if err != nil {
 		return err
 	}
 	defer body.Close()
 
-	if *wait {
+	if *sync {
 		_, err = io.Copy(cli.out, body)
 		return err
 	}
