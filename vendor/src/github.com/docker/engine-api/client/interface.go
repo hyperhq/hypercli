@@ -91,6 +91,7 @@ type APIClient interface {
 	FipAttach(ctx context.Context, ip, container string) error
 	FipDetach(ctx context.Context, container string) (string, error)
 	FipList(ctx context.Context, opts types.NetworkListOptions) ([]map[string]string, error)
+	FipName(ctx context.Context, ip, name string) error
 
 	SgCreate(ctx context.Context, name string, data io.Reader) error
 	SgRm(ctx context.Context, name string) error
