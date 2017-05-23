@@ -188,12 +188,28 @@ func (cli *DockerCli) CmdFipLs(args ...string) error {
 		return err
 	}
 	w := tabwriter.NewWriter(cli.out, 20, 1, 3, ' ', 0)
-	fmt.Fprintf(w, "Floating IP\tContainer\tService\n")
+	fmt.Fprintf(w, "Floating IP\tName\tContainer\tService\n")
 	for _, fip := range fips {
-		fmt.Fprintf(w, "%s\t%s\t%s\n", fip["fip"], fip["container"], fip["service"])
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", fip["fip"], fip["name"], fip["container"], fip["service"])
 	}
 
 	w.Flush()
+	return nil
+}
+
+func (cli *DockerCli) CmdFipName(args ...string) error {
+	cmd := Cli.Subcmd("fip name", []string{"FIP [NAME]"}, "Set a name for a floating IP", false)
+	//force := cmd.Bool([]string{"f", "-force"}, false, "Force the container to disconnect from a floating IP")
+	cmd.Require(flag.Min, 1)
+	cmd.Require(flag.Max, 2)
+	if err := cmd.ParseFlags(args, true); err != nil {
+		return err
+	}
+
+	err := cli.client.FipName(context.Background(), cmd.Arg(0), cmd.Arg(1))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -204,6 +220,7 @@ func fipUsage() string {
 		{"detach", "Detach floating IP from conainer"},
 		{"ls", "List all floating IPs"},
 		{"release", "Release a floating IP"},
+		{"name", "Name a floating IP"},
 	}
 
 	help := "Commands:\n"
