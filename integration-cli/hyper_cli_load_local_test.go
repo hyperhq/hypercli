@@ -28,7 +28,7 @@ func (s *DockerSuite) TestLoadFromLocalTarPipe(c *check.C) {
 
 	//load via pipe
 	catCmd := exec.Command("cat", imagePath)
-	loadCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "--config", os.Getenv("HYPER_CONFIG"), "load", "-i", imagePath)
+	loadCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "--config", os.Getenv("HYPER_CONFIG"), "load")
 
 	catOut, err := catCmd.StdoutPipe()
 	catCmd.Start()
