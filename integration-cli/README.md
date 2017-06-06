@@ -33,6 +33,8 @@ Integration test for hyper cli
 	- [if test case will be supported in the future](#if-test-case-will-be-supported-in-the-future)
 - [After issues fixed](#after-issues-fixed)
 
+- [Run test on localhost](#run-test-on-localhost)
+
 <!-- /TOC -->
 
 # Project status
@@ -292,3 +294,51 @@ ok      github.com/hyperhq/hypercli/integration-cli    ?s
 
 - move the test case from `integration-cli/issue` to `integration-cli` dir
 - go to [start test](#start-test)
+
+
+# Run test on localhost
+
+## prepare
+
+```
+// ensure hyperhq and docker dir
+mkdir -p $GOPATH/src/github.com/{hyperhq,docker}
+
+// clone and build hypercli
+cd $GOPATH/src/github.com/hyperhq
+git clone git@github.com:hyperhq/hypercli.git
+cd hypercli
+./build.sh
+
+// copy hyper binary to /usr/bin/hyper
+sudo cp hyper/hyper /usr/bin/hyper
+
+// create link
+cd $GOPATH/src/github.com/docker
+ln -s ../hyperhq/hypercli docker
+
+// generate util.conf
+$ cd $GOPATH/src/github.com/hyperhq/hypercli
+$ git checkout integration-test
+$ cd integration-cli
+$ ./util.sh
+
+// config util.conf
+$ vi util.conf
+HYPER_CONFIG=<$HOME/.hyper>
+ACCESS_KEY="<hyper access key>"
+SECRET_KEY="<hyper secret key>"
+```
+
+## run test case
+
+```
+// run all test cases
+$ ./util.sh test
+
+// run specified test case
+$ ./util.sh test TestLoadFromLocalTar$
+
+// run test cases start with specified prefix
+$ ./util.sh test TestLoadFromLocalTar
+```
