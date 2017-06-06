@@ -10,6 +10,7 @@ Usage: ./util.sh <action>
     build      # build docker image 'hyperhq/hypercl' from Dockerfile.centos
     make       # make hyper cli in container
     enter      # enter container
+    test       # test on host
 EOF
 }
 
@@ -21,15 +22,23 @@ cd ${WORKDIR}
 # ensure util.conf
 if [ ! -s ${WORKDIR}/util.conf ];then
     cat > ${WORKDIR}/util.conf <<EOF
+export GOPATH=\$(pwd)/../vendor:$GOPATH
+export HYPER_CONFIG=\$HOME/.hyperpkt1
+export IMAGE_DIR=/tmp/image
+export LOCAL_DOCKER_HOST="unix:///var/run/docker.sock"
+
+#########################################
+export DOCKER_REMOTE_DAEMON=1
+
 #########################################
 #packet env
 #########################################
 #apirouter service
-DOCKER_HOST=tcp://147.75.195.39:6443
-
+export DOCKER_HOST=tcp://147.75.195.39:6443
 #Hyper Credentials
-ACCESS_KEY=
-SECRET_KEY=
+
+export ACCESS_KEY="8Gxxxxxxxxxxxxxxxxx8JL"
+export SECRET_KEY="Ek7xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxpOe"
 
 
 #########################################
@@ -44,23 +53,24 @@ SECRET_KEY=
 
 
 #########################################
-##AWS Credentials
+## AWS Credentials(option)
 #########################################
-AWS_ACCESS_KEY=
-AWS_SECRET_KEY=
+export AWS_ACCESS_KEY=AKIxxxxxxxxxxxxxQRQ
+export AWS_SECRET_KEY=UWuxxxxxxxxxxxxxxxxxxxxxxxxxxQCH
 
 
 #########################################
-##MONGODB
+##MONGODB(option)
 #########################################
-MONGODB_URL=
+export MONGODB_URL=
 
 
 ##For test load image from basic auth url
-URL_WITH_BASIC_AUTH=http://username:password@test.xx.xx/ubuntu.tar.gz
+export URL_WITH_BASIC_AUTH=http://xxxx:xxxxxx@test.hyper.sh/ubuntu.tar.gz
 EOF
 
 fi
+
 
 # load util.conf
 source ${WORKDIR}/util.conf
@@ -96,6 +106,15 @@ case $1 in
         -e MONGODB_URL=${MONGODB_URL} \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
         hyperhq/hypercli zsh
+    ;;
+  test)
+    mkdir -p ${IMAGE_DIR} 
+    shift
+    if [ $# -ne 0 ];then
+        go test -check.f $@
+    else
+        go test
+    fi
     ;;
   *) show_usage
     ;;
