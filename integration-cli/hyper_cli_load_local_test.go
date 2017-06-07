@@ -69,6 +69,32 @@ func (s *DockerSuite) TestLoadFromLocalTar(c *check.C) {
 	c.Assert(images, checker.Contains, "hello-world")
 }
 
+func (s *DockerSuite) TestLoadFromLocalTarNoTag(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/busybox-notag.gz"
+	imagePath := fmt.Sprintf("%s/busybox-notag.gz", os.Getenv("IMAGE_DIR"))
+
+	//download image tar
+	wgetCmd := exec.Command("wget", "-cO", imagePath, publicURL)
+	output, exitCode, err := runCommandWithOutput(wgetCmd)
+	c.Assert(pathExist(imagePath), checker.Equals, true)
+	c.Assert(exitCode, checker.Equals, 0)
+	c.Assert(err, checker.IsNil)
+
+	//load image tar
+	output, exitCode, err = dockerCmdWithError("load", "-i", imagePath)
+	c.Assert(output, checker.Contains, "sha256:c75bebcdd211f41b3a460c7bf82970ed6c75acaab9cd4c9a4e125b03ca113798 has been loaded.")
+	c.Assert(err, checker.IsNil)
+	c.Assert(exitCode, checker.Equals, 0)
+
+	//check image
+	images, _ := dockerCmd(c, "images")
+	c.Assert(images, checker.Contains, "c75bebcdd211")
+}
+
 func (s *DockerSuite) TestLoadFromLocalTarDelta(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
