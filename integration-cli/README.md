@@ -334,11 +334,17 @@ SECRET_KEY="<hyper secret key>"
 
 ```
 // run all test cases
-$ ./util.sh test
+$ ./util.sh test all
+
+// run test case with timeout
+$ ./util.sh test all -timout 20m
 
 // run specified test case
-$ ./util.sh test TestLoadFromLocalTar$
+$ ./util.sh test -check.f ^TestLoadFromLocalTar$
 
 // run test cases start with specified prefix
-$ ./util.sh test TestLoadFromLocalTar
+$ ./util.sh test -check.f TestLoadFromLocalTar
+
+// combined use
+$ ./util.sh test -check.f 'TestLoadFromLocalTarEmpty|TestLoadFromLocalPullAndLoad' -timeout 20m
 ```

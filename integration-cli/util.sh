@@ -14,6 +14,19 @@ Usage: ./util.sh <action>
 EOF
 }
 
+function show_test_usage() {
+    cat <<EOF
+---------------------------------------------------------------------------------------------------------------
+Usage:
+  ./util.sh test all                                     # run all test case
+  ./util.sh test all -timeout 20m                        # run all test case with specified timeout(default 10m)
+  ./util.sh test -check.f <case prefix>                  # run specified test case
+  ./util.sh test -check.f ^<case name>$                  # run specified prefix of test case
+  ./util.sh test -check.f <case prefix> -timeout 20m     # combined use
+----------------------------------------------------------------------------------------------------------------
+EOF
+}
+
 #############################################################################
 WORKDIR=$(cd `dirname $0`; pwd)
 cd ${WORKDIR}
@@ -111,9 +124,16 @@ case $1 in
     mkdir -p ${IMAGE_DIR} 
     shift
     if [ $# -ne 0 ];then
-        go test -check.f $@
+      if [ $1 == "all" ];then
+        shift
+        go test $@
+      elif [ $1 == "-check.f" ];then
+        go test $@
+      else
+        show_test_usage
+      fi
     else
-        go test
+      show_test_usage
     fi
     ;;
   *) show_usage

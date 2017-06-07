@@ -74,10 +74,10 @@ func (s *DockerSuite) TestLoadFromLocalTarDelta(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	baseURL := "https://image-tarball.s3.amazonaws.com/test/public/debian_stretch-slim.tar.gz"
+	baseURL := "http://image-tarball.s3.amazonaws.com/test/public/debian_stretch-slim.tar.gz"
 	basePath := fmt.Sprintf("%s/debian_stretch-slim.tar.gz", os.Getenv("IMAGE_DIR"))
 
-	publicURL := "https://image-tarball.s3.amazonaws.com/test/public/nginx_stable.tar.gz"
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/nginx_stable.tar.gz"
 	imagePath := fmt.Sprintf("%s/nginx_stable.tar.gz", os.Getenv("IMAGE_DIR"))
 
 	//download base image tar
@@ -173,7 +173,7 @@ func (s *DockerSuite) TestLoadFromLocalTarSize100MB(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	publicURL := "https://image-tarball.s3.amazonaws.com/test/public/nginx_stable.tar"
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/nginx_stable.tar"
 	imagePath := fmt.Sprintf("%s/nginx_stable.tar", os.Getenv("IMAGE_DIR"))
 
 	//download image tar
@@ -197,6 +197,68 @@ func (s *DockerSuite) TestLoadFromLocalTarSize100MB(c *check.C) {
 	//check image
 	images, _ = dockerCmd(c, "images", "nginx:stable")
 	c.Assert(images, checker.Contains, "nginx")
+}
+
+func (s *DockerSuite) TestLoadFromLocalTarSize600MB(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/jenkins.tar"
+	imagePath := fmt.Sprintf("%s/jenkins.tar", os.Getenv("IMAGE_DIR"))
+
+	//download image tar
+	wgetCmd := exec.Command("wget", "-cO", imagePath, publicURL)
+	output, exitCode, err := runCommandWithOutput(wgetCmd)
+	c.Assert(exitCode, checker.Equals, 0)
+	c.Assert(err, checker.IsNil)
+	c.Assert(pathExist(imagePath), checker.Equals, true)
+
+	//ensure jenkins:latest not exist
+	dockerCmdWithError("rmi", "jenkins:latest")
+	images, _ := dockerCmd(c, "images", "jenkins:latest")
+	c.Assert(images, checker.Not(checker.Contains), "jenkins")
+
+	//load image tar
+	output, exitCode, err = dockerCmdWithError("load", "-i", imagePath)
+	c.Assert(output, checker.Contains, "has been loaded.")
+	c.Assert(err, checker.IsNil)
+	c.Assert(exitCode, checker.Equals, 0)
+
+	//check image
+	images, _ = dockerCmd(c, "images", "jenkins:latest")
+	c.Assert(images, checker.Contains, "jenkins")
+}
+
+func (s *DockerSuite) TestLoadFromLocalPullAndLoad(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/debian-8_5.tar.gz"
+	imagePath := fmt.Sprintf("%s/debian-8_5.tar.gz", os.Getenv("IMAGE_DIR"))
+
+	//download image tar
+	wgetCmd := exec.Command("wget", "-cO", imagePath, publicURL)
+	output, exitCode, err := runCommandWithOutput(wgetCmd)
+	c.Assert(exitCode, checker.Equals, 0)
+	c.Assert(err, checker.IsNil)
+	c.Assert(pathExist(imagePath), checker.Equals, true)
+
+	//ensure debian:8.5 exist
+	dockerCmdWithError("pull", "debian:8.5")
+	images, _ := dockerCmd(c, "images", "debian:8.5")
+	c.Assert(images, checker.Contains, "debian")
+
+	//load image tar
+	output, exitCode, err = dockerCmdWithError("load", "-i", imagePath)
+	c.Assert(output, checker.Contains, "has been loaded.")
+	c.Assert(err, checker.IsNil)
+	c.Assert(exitCode, checker.Equals, 0)
+
+	//check image
+	images, _ = dockerCmd(c, "images", "debian:8.5")
+	c.Assert(images, checker.Contains, "debian")
 }
 
 //test abnormal///////////////////////////////////////////////////////////////////////////
@@ -227,6 +289,47 @@ func (s *DockerSuite) TestLoadFromLocalMultipeImage(c *check.C) {
 
 	images, _ = dockerCmd(c, "images", "alpine")
 	c.Assert(images, checker.Not(checker.Contains), "alpine")
+}
+
+func (s *DockerSuite) TestLoadFromLocalTarEmpty(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	//generate empty image tar
+	imagePath := fmt.Sprintf("%s/empty.tar", os.Getenv("IMAGE_DIR"))
+	os.OpenFile(imagePath, os.O_RDONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(imagePath, os.O_CREATE, 0600)
+	c.Assert(err, checker.IsNil)
+	f.Close()
+
+	//load image tar
+	output, exitCode, err := dockerCmdWithError("load", "-i", imagePath)
+	c.Assert(output, checker.Contains, "manifest.json: no such file or directory")
+	c.Assert(err, checker.NotNil)
+	c.Assert(exitCode, checker.Not(checker.Equals), 0)
+}
+
+func (s *DockerSuite) TestLoadFromLocalTarLegacy(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/old/ubuntu_1.8.tar.gz"
+	imagePath := fmt.Sprintf("%s/ubuntu_1.8.tar.gz", os.Getenv("IMAGE_DIR"))
+
+	//download image tar
+	wgetCmd := exec.Command("wget", "-cO", imagePath, publicURL)
+	output, exitCode, err := runCommandWithOutput(wgetCmd)
+	c.Assert(pathExist(imagePath), checker.Equals, true)
+	c.Assert(exitCode, checker.Equals, 0)
+	c.Assert(err, checker.IsNil)
+
+	//load image tar
+	output, exitCode, err = dockerCmdWithError("load", "-i", imagePath)
+	c.Assert(output, checker.Contains, "manifest.json: no such file or directory")
+	c.Assert(err, checker.NotNil)
+	c.Assert(exitCode, checker.Not(checker.Equals), 0)
 }
 
 /*
