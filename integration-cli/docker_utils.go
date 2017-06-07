@@ -1934,6 +1934,11 @@ func ensureImageExist(c *check.C, imageName string) {
 	}
 }
 
+func ensureImageIDExist(c *check.C, imageName, imageID string) {
+	realImgID := inspectField(c, imageName, "Id")
+	c.Assert(realImgID, checker.Equals, imageID)
+}
+
 //get containerId or imageId from hyper command output
 func getIDfromOutput(c *check.C, output string) string {
 	outAry := strings.Split(output, "\n")

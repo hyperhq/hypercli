@@ -74,11 +74,11 @@ func (s *DockerSuite) TestLoadFromLocalTarDelta(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	baseURL := "http://image-tarball.s3.amazonaws.com/test/public/debian_stretch-slim.tar.gz"
-	basePath := fmt.Sprintf("%s/debian_stretch-slim.tar.gz", os.Getenv("IMAGE_DIR"))
+	baseURL := "http://image-tarball.s3.amazonaws.com/test/public/busybox.gz"
+	basePath := fmt.Sprintf("%s/busybox.gz", os.Getenv("IMAGE_DIR"))
 
-	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/nginx_stable.tar.gz"
-	imagePath := fmt.Sprintf("%s/nginx_stable.tar.gz", os.Getenv("IMAGE_DIR"))
+	deltaURL := "https://image-tarball.s3.amazonaws.com/test/public/busybox2.gz"
+	deltaPath := fmt.Sprintf("%s/buxybox2.gz", os.Getenv("IMAGE_DIR"))
 
 	//download base image tar
 	wgetCmd := exec.Command("wget", "-cO", basePath, baseURL)
@@ -87,11 +87,11 @@ func (s *DockerSuite) TestLoadFromLocalTarDelta(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	c.Assert(pathExist(basePath), checker.Equals, true)
 
-	wgetCmd = exec.Command("wget", "-cO", imagePath, publicURL)
+	wgetCmd = exec.Command("wget", "-cO", deltaPath, deltaURL)
 	output, exitCode, err = runCommandWithOutput(wgetCmd)
 	c.Assert(exitCode, checker.Equals, 0)
 	c.Assert(err, checker.IsNil)
-	c.Assert(pathExist(imagePath), checker.Equals, true)
+	c.Assert(pathExist(deltaPath), checker.Equals, true)
 
 	//load image tar
 	output, exitCode, err = dockerCmdWithError("load", "-i", basePath)
@@ -99,18 +99,14 @@ func (s *DockerSuite) TestLoadFromLocalTarDelta(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	c.Assert(exitCode, checker.Equals, 0)
 
-	output, exitCode, err = dockerCmdWithError("load", "-i", imagePath)
+	output, exitCode, err = dockerCmdWithError("load", "-i", deltaPath)
 	c.Assert(output, checker.Contains, "has been loaded.")
 	c.Assert(err, checker.IsNil)
 	c.Assert(exitCode, checker.Equals, 0)
 
-	//check image
-	images, _ := dockerCmd(c, "images", "debian:stretch-slim")
-	c.Assert(images, checker.Contains, "debian")
-
-	//check image
-	images, _ = dockerCmd(c, "images", "nginx:stable")
-	c.Assert(images, checker.Contains, "nginx")
+	// //check image
+	ensureImageIDExist(c, "busybox", "sha256:c75bebcdd211f41b3a460c7bf82970ed6c75acaab9cd4c9a4e125b03ca113798")
+	ensureImageIDExist(c, "busybox2", "sha256:50a48a50d85a126c96d01528bb836e62ad08555e740b44f299abf3416656bdb5")
 }
 
 func (s *DockerSuite) TestLoadFromLocalCompressedArchive(c *check.C) {
