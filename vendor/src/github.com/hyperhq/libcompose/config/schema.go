@@ -42,7 +42,7 @@ var schemaV1 = `{
             {"type": "array", "items": {"type": "string"}}
           ]
         },
-        "env_file": {"$ref": "#/definitions/string_or_list"},
+        "env_file": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "environment": {"$ref": "#/definitions/list_or_dict"},
 
         "extends": {
@@ -78,6 +78,7 @@ var schemaV1 = `{
         "links": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "mem_limit": {"type": ["number", "string"]},
         "memswap_limit": {"type": ["number", "string"]},
+        "noauto_volume": {"type": "boolean"},
 
         "ports": {
           "type": "array",
@@ -88,6 +89,7 @@ var schemaV1 = `{
         },
 
         "stop_signal": {"type": "string"},
+        "security_groups": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "restart": {"type": "string"},
         "stdin_open": {"type": "boolean"},
         "tty": {"type": "boolean"},
@@ -187,7 +189,7 @@ var schemaV2 = `{
             {"type": "array", "items": {"type": "string"}}
           ]
         },
-        "env_file": {"$ref": "#/definitions/string_or_list"},
+        "env_file": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "environment": {"$ref": "#/definitions/list_or_dict"},
         "extends": {
           "oneOf": [
@@ -223,6 +225,7 @@ var schemaV2 = `{
         "mem_limit": {"type": ["number", "string"]},
         "memswap_limit": {"type": ["number", "string"]},
         "network_mode": {"type": "string"},
+        "noauto_volume": {"type": "boolean"},
 
         "networks": {
           "oneOf": [
@@ -261,6 +264,7 @@ var schemaV2 = `{
         "restart": {"type": "string"},
         "stdin_open": {"type": "boolean"},
         "stop_signal": {"type": "string"},
+        "security_groups": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "tty": {"type": "boolean"},
         "user": {"type": "string"},
         "volumes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},

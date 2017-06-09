@@ -269,7 +269,10 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	var results []error
 	pool, err := pb.StartPool()
 	if err != nil {
-		return err
+		// Ignore progress bar failures
+		fmt.Fprintf(cli.err, "Warning: do not show upload progress: %s\n", err.Error())
+		pool = nil
+		err = nil
 	}
 	for _, desc := range req.Volume {
 		if url, ok := resp.Uploaders[desc.Name]; ok {
@@ -279,7 +282,9 @@ func (cli *DockerCli) initVolumes(vols []string, reload bool) error {
 	}
 
 	wg.Wait()
-	pool.Stop()
+	if pool != nil {
+		pool.Stop()
+	}
 	for _, err = range results {
 		fmt.Fprintf(cli.err, "Upload local volume failed: %s\n", err.Error())
 	}
@@ -346,7 +351,9 @@ func uploadLocalVolume(source, url, cookie string, results *[]error, wg *sync.Wa
 	if err != nil {
 		return
 	}
-	tar.AllocBar(pool)
+	if pool != nil {
+		tar.AllocBar(pool)
+	}
 
 	resp, err = sendTarball(url, cookie, tar)
 	if err != nil {

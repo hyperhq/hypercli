@@ -6,7 +6,7 @@ import (
 )
 
 // ErrConnectionFailed is an error raised when the connection between the client and the server failed.
-var ErrConnectionFailed = errors.New("Cannot connect to the Hyper_ server.")
+var ErrConnectionFailed = errors.New("Cannot connect to the Hyper.sh server.")
 
 // imageNotFoundError implements an error returned when an image is not in the docker host.
 type imageNotFoundError struct {
@@ -83,6 +83,40 @@ func (e volumeNotFoundError) Error() string {
 // when a volume is not found in the docker host.
 func IsErrVolumeNotFound(err error) bool {
 	_, ok := err.(volumeNotFoundError)
+	return ok
+}
+
+// serviceNotFoundError implements an error returned when a service is not in the docker host.
+type serviceNotFoundError struct {
+	serviceID string
+}
+
+// Error returns a string representation of a networkNotFoundError
+func (e serviceNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such service: %s", e.serviceID)
+}
+
+// IsErrVolumeNotFound returns true if the error is caused
+// when a volume is not found in the docker host.
+func IsErrServiceNotFound(err error) bool {
+	_, ok := err.(serviceNotFoundError)
+	return ok
+}
+
+// cronNotFoundError implements an error returned when a cron is not in the docker host.
+type cronNotFoundError struct {
+	cronID string
+}
+
+// Error returns a string representation of a networkNotFoundError
+func (e cronNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such cron job: %s", e.cronID)
+}
+
+// IsErrVolumeNotFound returns true if the error is caused
+// when a volume is not found in the docker host.
+func IsErrCronNotFound(err error) bool {
+	_, ok := err.(cronNotFoundError)
 	return ok
 }
 
