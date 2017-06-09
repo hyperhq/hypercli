@@ -3,14 +3,13 @@ package client
 import (
 	"io"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/registry"
 	"github.com/hyperhq/libcompose/config"
+	"golang.org/x/net/context"
 )
 
 // APIClient is an interface that clients that talk with a docker server must implement.
@@ -56,7 +55,10 @@ type APIClient interface {
 	ImageImport(ctx context.Context, source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error)
 	ImageInspectWithRaw(ctx context.Context, image string, getSize bool) (types.ImageInspect, []byte, error)
 	ImageList(ctx context.Context, options types.ImageListOptions) ([]types.Image, error)
-	ImageLoad(ctx context.Context, input interface{}) (types.ImageLoadResponse, error)
+	ImageLoad(ctx context.Context, input interface{}) (*types.ImageLoadResponse, error)
+	ImageSaveTarFromDaemon(ctx context.Context, imageIDs []string) (io.ReadCloser, error)
+	ImageDiff(ctx context.Context, allLayers [][]string, repoTags [][]string) (*types.ImageDiffResponse, error)
+	ImageLoadLocal(ctx context.Context, quiet bool, size int64) (*types.HijackedResponse, error)
 	ImagePull(ctx context.Context, ref string, options types.ImagePullOptions) (io.ReadCloser, error)
 	ImagePush(ctx context.Context, ref string, options types.ImagePushOptions) (io.ReadCloser, error)
 	ImageRemove(ctx context.Context, image string, options types.ImageRemoveOptions) ([]types.ImageDelete, error)
