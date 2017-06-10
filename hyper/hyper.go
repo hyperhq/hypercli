@@ -98,8 +98,10 @@ func main() {
 		fmt.Fprintln(os.Stdout, "Found a newer version, downloading...")
 		select {
 		case <-time.After(20 * time.Second):
+			updater.WriteTimeWithError(fmt.Errorf("network connection timeout"))
 			break
-		case <-errChan:
+		case e := <-errChan:
+			updater.WriteTimeWithError(e)
 			break
 		}
 	}

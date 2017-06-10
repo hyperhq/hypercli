@@ -57,7 +57,8 @@ var up = update.New()
 var defaultHTTPRequester = HTTPRequester{}
 
 type updateTimeRecord struct {
-	LastUpdate time.Time `json:"lastUpdate"`
+	NextUpdate time.Time `json:"nextUpdate"`
+	Message    string    `json:"lastError"`
 }
 
 // Updater is the configuration and runtime data for doing an update.
@@ -127,10 +128,6 @@ func (u *Updater) WantUpdate() bool {
 		//log.Println("not update")
 		return false
 	}
-	defer func() {
-		wait := 24*time.Hour + randDuration(24*time.Hour)
-		writeTime(path, time.Now().Add(wait))
-	}()
 	if u.fetchInfo() != nil {
 		return false
 	}
@@ -139,6 +136,17 @@ func (u *Updater) WantUpdate() bool {
 	}
 
 	return true
+}
+
+func (u *Updater) WriteTimeWithError(err error) {
+	path := filepath.Join(u.Dir, upcktimePath)
+	msg := ""
+	wait := 24*time.Hour + randDuration(24*time.Hour)
+	if err != nil {
+		wait = 1*time.Hour + randDuration(1*time.Hour)
+		msg = fmt.Sprintf("binary update failed: %v", err)
+	}
+	writeTime(path, time.Now().Add(wait), msg)
 }
 
 func (u *Updater) update() error {
@@ -299,7 +307,7 @@ func readTime(path string) time.Time {
 	if err = json.NewDecoder(p).Decode(&update); err != nil {
 		return time.Now().Add(1000 * time.Hour)
 	}
-	return update.LastUpdate
+	return update.NextUpdate
 }
 
 func verifySha(bin []byte, sha []byte) bool {
@@ -308,8 +316,8 @@ func verifySha(bin []byte, sha []byte) bool {
 	return bytes.Equal(h.Sum(nil), sha)
 }
 
-func writeTime(path string, t time.Time) bool {
-	data, err := json.Marshal(updateTimeRecord{t})
+func writeTime(path string, t time.Time, msg string) bool {
+	data, err := json.MarshalIndent(updateTimeRecord{t, msg}, "", "\t")
 	if err != nil {
 		return false
 	}
