@@ -29,6 +29,8 @@ type Context struct {
 	LoggerFactory       logger.Factory
 	IgnoreMissingConfig bool
 	Project             *Project
+
+	Autoremove bool
 }
 
 func (c *Context) readComposeFiles() error {

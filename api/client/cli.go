@@ -83,6 +83,12 @@ func (cli *DockerCli) ImagesFormat() string {
 	return cli.configFile.ImagesFormat
 }
 
+// VolumesFormat returns the format string specified in the configuration.
+// String contains columns and format specification, for example {{ID}}\t{{Name}}.
+func (cli *DockerCli) VolumesFormat() string {
+	return cli.configFile.VolumesFormat
+}
+
 func (cli *DockerCli) setRawTerminal() error {
 	if cli.isTerminalIn && os.Getenv("NORAW") == "" {
 		state, err := term.SetRawTerminal(cli.inFd)
@@ -153,6 +159,9 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		if ok {
 			cloudConfig.AccessKey = cc.AccessKey
 			cloudConfig.SecretKey = cc.SecretKey
+		} else {
+			cloudConfig.AccessKey = os.Getenv("HYPER_ACCESS")
+			cloudConfig.SecretKey = os.Getenv("HYPER_SECRET")
 		}
 		if cloudConfig.AccessKey == "" || cloudConfig.SecretKey == "" {
 			fmt.Fprintf(cli.err, "WARNING: null cloud config\n")

@@ -17,7 +17,7 @@ import (
 //
 // Usage: docker snapshot <COMMAND> <OPTS>
 func (cli *DockerCli) CmdSnapshot(args ...string) error {
-	description := Cli.DockerCommands["snaphot"].Description + "\n\nSnapshots:\n"
+	description := Cli.DockerCommands["snapshot"].Description + "\n\nSnapshots:\n"
 	commands := [][]string{
 		{"create", "Create a snapshot"},
 		{"inspect", "Return low-level information on a snapshot"},
@@ -29,7 +29,7 @@ func (cli *DockerCli) CmdSnapshot(args ...string) error {
 		description += fmt.Sprintf("  %-25.25s%s\n", cmd[0], cmd[1])
 	}
 
-	description += "\nRun 'docker snapshot COMMAND --help' for more information on a command"
+	description += "\nRun 'hyper snapshot COMMAND --help' for more information on a command"
 	cmd := Cli.Subcmd("snapshot", []string{"[COMMAND]"}, description, false)
 
 	cmd.Require(flag.Exact, 0)
@@ -40,7 +40,7 @@ func (cli *DockerCli) CmdSnapshot(args ...string) error {
 
 // CmdSnapshotLs outputs a list of Docker snapshots.
 //
-// Usage: docker snapshot ls [OPTIONS]
+// Usage: hyper snapshot ls [OPTIONS]
 func (cli *DockerCli) CmdSnapshotLs(args ...string) error {
 	cmd := Cli.Subcmd("snapshot ls", nil, "List snapshots", true)
 
@@ -111,8 +111,8 @@ func (cli *DockerCli) CmdSnapshotInspect(args ...string) error {
 //
 // Usage: docker snapshot create [OPTIONS]
 func (cli *DockerCli) CmdSnapshotCreate(args ...string) error {
-	cmd := Cli.Subcmd("snapshot create", nil, "Create a snapshot", true)
-	flForce := cmd.Bool([]string{"f", "-force"}, false, "Force to create snapshot")
+	cmd := Cli.Subcmd("snapshot create", []string{"-v volume"}, "Create a snapshot", true)
+	flForce := cmd.Bool([]string{"f", "-force"}, false, "Force to create snapshot, needed if volume is in use")
 	flVolume := cmd.String([]string{"v", "-volume"}, "", "Specify volume to create snapshot")
 	flName := cmd.String([]string{"-name"}, "", "Specify snapshot name")
 

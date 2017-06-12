@@ -55,6 +55,7 @@ func (cli *Cli) command(args ...string) (func(...string) error, error) {
 			if len(s) == 0 {
 				return nil, errors.New("empty command")
 			}
+			s = strings.Replace(s, "-", "_", -1)
 			camelArgs[i] = strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
 		}
 		methodName := "Cmd" + strings.Join(camelArgs, "")

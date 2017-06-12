@@ -216,7 +216,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from kill' -s s -l signal -d
 complete -c docker -A -f -n '__fish_seen_subcommand_from kill' -a '(__fish_print_docker_containers running)' -d "Container"
 
 # load
-complete -c docker -f -n '__fish_docker_no_subcommand' -a load -d 'Load an image from a tar archive'
+complete -c docker -f -n '__fish_docker_no_subcommand' -a load -d 'Load a local image or a tar file'
 complete -c docker -A -f -n '__fish_seen_subcommand_from load' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from load' -s i -l input -d 'Read from a tar archive file, instead of STDIN'
 

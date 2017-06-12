@@ -3,20 +3,19 @@ package client
 import (
 	"io"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/engine-api/types"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/pkg/jsonmessage"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 	"github.com/hyperhq/hypercli/reference"
 	"github.com/hyperhq/hypercli/registry"
+	"golang.org/x/net/context"
 )
 
 // CmdPush pushes an image or repository to the registry.
 //
-// Usage: docker push NAME[:TAG]
-func (cli *DockerCli) Push(args ...string) error {
+// Usage: hyper push NAME[:TAG]
+func (cli *DockerCli) CmdPush(args ...string) error {
 	cmd := Cli.Subcmd("push", []string{"NAME[:TAG]"}, Cli.DockerCommands["push"].Description, true)
 	addTrustedFlags(cmd, false)
 	cmd.Require(flag.Exact, 1)

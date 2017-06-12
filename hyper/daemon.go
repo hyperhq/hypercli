@@ -13,6 +13,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/uuid"
+	"github.com/docker/go-connections/tlsconfig"
 	apiserver "github.com/hyperhq/hypercli/api/server"
 	"github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/cliconfig"
@@ -27,7 +28,6 @@ import (
 	"github.com/hyperhq/hypercli/pkg/system"
 	"github.com/hyperhq/hypercli/registry"
 	"github.com/hyperhq/hypercli/utils"
-	"github.com/docker/go-connections/tlsconfig"
 )
 
 const (
@@ -268,7 +268,7 @@ func (cli *DaemonCli) CmdDaemon(args ...string) error {
 		"commit":      dockerversion.GitCommit,
 		"execdriver":  d.ExecutionDriver().Name(),
 		"graphdriver": d.GraphDriverName(),
-	}).Info("Hyper_ Cloud")
+	}).Info("Hyper.sh Cloud")
 
 	api.InitRouters(d)
 

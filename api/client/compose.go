@@ -11,6 +11,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/engine-api/client"
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/filters"
 	Cli "github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/pkg/jsonmessage"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
@@ -20,6 +22,8 @@ import (
 	"github.com/hyperhq/libcompose/project/options"
 	"golang.org/x/net/context"
 )
+
+const ComposeFipAuto = "auto"
 
 // CmdCompose is the parent subcommand for all compose commands
 //
@@ -53,6 +57,7 @@ func (cli *DockerCli) CmdComposeRun(args ...string) error {
 		Context: project.Context{
 			ComposeFiles: []string{*composeFile},
 			ProjectName:  *projectName,
+			Autoremove:   *rm,
 		},
 		ClientFactory: cli,
 	})
@@ -65,14 +70,14 @@ func (cli *DockerCli) CmdComposeRun(args ...string) error {
 	if err != nil {
 		return err
 	}
-	if status != 0 {
-		return Cli.StatusError{StatusCode: status}
-	}
 	if *rm {
 		opts := options.Delete{RemoveVolume: true}
 		if err = project.Delete(opts, service); err != nil {
 			return err
 		}
+	}
+	if status != 0 {
+		return Cli.StatusError{StatusCode: status}
 	}
 
 	return nil
@@ -151,6 +156,45 @@ func (cli *DockerCli) CmdComposeUp(args ...string) error {
 	c, vc, nc := project.GetConfig()
 	if *projectName == "" {
 		*projectName = getBaseDir()
+	}
+	var fips = []string{}
+	var newFipNum = 0
+	for _, svconfig := range c.M {
+		if svconfig.Fip == ComposeFipAuto {
+			newFipNum++
+		}
+	}
+	fipFilterArgs, _ := filters.FromParam("dangling=true")
+	options := types.NetworkListOptions{
+		Filters: fipFilterArgs,
+	}
+	fipList, err := cli.client.FipList(context.Background(), options)
+	if err == nil {
+		for _, fip := range fipList {
+			if fip["container"] == "" && fip["service"] == "" {
+				fips = append(fips, fip["fip"])
+			}
+		}
+	}
+	if newFipNum > len(fips) {
+		if askForConfirmation(warnMessage) == true {
+			newFips, err := cli.client.FipAllocate(context.Background(), fmt.Sprintf("%d", newFipNum-len(fips)))
+			if err != nil {
+				return err
+			}
+			fips = append(fips, newFips...)
+		}
+	}
+	i := 0
+	for _, svconfig := range c.M {
+		if svconfig.Fip == ComposeFipAuto {
+			if i >= newFipNum {
+				svconfig.Fip = ""
+			} else {
+				svconfig.Fip = fips[i]
+				i++
+			}
+		}
 	}
 	body, err := cli.client.ComposeUp(*projectName, services, c, vc, nc, cli.configFile.AuthConfigs, *forcerecreate, *norecreate)
 	if err != nil {
@@ -409,12 +453,41 @@ func (cli *DockerCli) CmdComposeScale(args ...string) error {
 	return nil
 }
 
+// CmdComposePull
+//
+// Usage: hyper compose pull [OPTIONS]
+func (cli *DockerCli) CmdComposePull(args ...string) error {
+	cmd := Cli.Subcmd("compose pull", []string{"[SERVICE...]"}, "Pull images of services.", false)
+	composeFile := cmd.String([]string{"f", "-file"}, "docker-compose.yml", "Specify an alternate compose file")
+	cmd.Require(flag.Min, 0)
+	err := cmd.ParseFlags(args, true)
+	if err != nil {
+		return err
+	}
+	project, err := docker.NewProject(&docker.Context{
+		Context: project.Context{
+			ComposeFiles: []string{*composeFile},
+		},
+		ClientFactory: cli,
+	})
+
+	if err != nil {
+		return err
+	}
+	err = project.Pull(cmd.Args()...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func composeUsage() string {
 	composeCommands := [][]string{
 		{"create", "Creates containers for a service"},
 		{"down", "Stop and remove containers, images, and volumes"},
 		{"kill", "Force stop service containers"},
 		{"ps", "List containers"},
+		{"pull", "Pull images of services"},
 		{"rm", "Remove stopped service containers"},
 		{"run", "Run a one-off command"},
 		{"scale", "Set number of containers for a service"},

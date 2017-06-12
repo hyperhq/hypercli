@@ -76,3 +76,15 @@ func (cli *Client) FipList(ctx context.Context, options types.NetworkListOptions
 	ensureReaderClosed(resp)
 	return fips, err
 }
+
+func (cli *Client) FipName(ctx context.Context, ip, name string) error {
+	var v = url.Values{}
+	v.Set("ip", ip)
+	v.Set("name", name)
+	resp, err := cli.post(ctx, "/fips/name", v, nil, nil)
+	if err != nil {
+		return err
+	}
+	ensureReaderClosed(resp)
+	return nil
+}

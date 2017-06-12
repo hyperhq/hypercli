@@ -3,14 +3,13 @@ package client
 import (
 	"io"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/registry"
 	"github.com/hyperhq/libcompose/config"
+	"golang.org/x/net/context"
 )
 
 // APIClient is an interface that clients that talk with a docker server must implement.
@@ -56,7 +55,10 @@ type APIClient interface {
 	ImageImport(ctx context.Context, source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error)
 	ImageInspectWithRaw(ctx context.Context, image string, getSize bool) (types.ImageInspect, []byte, error)
 	ImageList(ctx context.Context, options types.ImageListOptions) ([]types.Image, error)
-	ImageLoad(ctx context.Context, input interface{}) (types.ImageLoadResponse, error)
+	ImageLoad(ctx context.Context, input interface{}) (*types.ImageLoadResponse, error)
+	ImageSaveTarFromDaemon(ctx context.Context, imageIDs []string) (io.ReadCloser, error)
+	ImageDiff(ctx context.Context, allLayers [][]string, repoTags [][]string) (*types.ImageDiffResponse, error)
+	ImageLoadLocal(ctx context.Context, quiet bool, size int64) (*types.HijackedResponse, error)
 	ImagePull(ctx context.Context, ref string, options types.ImagePullOptions) (io.ReadCloser, error)
 	ImagePush(ctx context.Context, ref string, options types.ImagePushOptions) (io.ReadCloser, error)
 	ImageRemove(ctx context.Context, image string, options types.ImageRemoveOptions) ([]types.ImageDelete, error)
@@ -91,6 +93,7 @@ type APIClient interface {
 	FipAttach(ctx context.Context, ip, container string) error
 	FipDetach(ctx context.Context, container string) (string, error)
 	FipList(ctx context.Context, opts types.NetworkListOptions) ([]map[string]string, error)
+	FipName(ctx context.Context, ip, name string) error
 
 	SgCreate(ctx context.Context, name string, data io.Reader) error
 	SgRm(ctx context.Context, name string) error
@@ -105,6 +108,31 @@ type APIClient interface {
 	ComposeStart(p string, services []string) (io.ReadCloser, error)
 	ComposeStop(p string, services []string, timeout int) (io.ReadCloser, error)
 	ComposeKill(p string, services []string, signal string) (io.ReadCloser, error)
+
+	ServiceCreate(ctx context.Context, sv types.Service) (types.Service, error)
+	ServiceUpdate(ctx context.Context, name string, sv types.ServiceUpdate) (types.Service, error)
+	ServiceDelete(ctx context.Context, id string, keep bool) error
+	ServiceList(ctx context.Context, opts types.ServiceListOptions) ([]types.Service, error)
+	ServiceInspect(ctx context.Context, serviceID string) (types.Service, error)
+	ServiceInspectWithRaw(ctx context.Context, serviceID string) (types.Service, []byte, error)
+
+	CronCreate(ctx context.Context, n string, j types.Cron) (types.Cron, error)
+	CronDelete(ctx context.Context, id string) error
+	CronHistory(ctx context.Context, id, since, tail string) ([]types.Event, error)
+	CronList(ctx context.Context, opts types.CronListOptions) ([]types.Cron, error)
+	CronInspect(ctx context.Context, id string) (types.Cron, error)
+	CronInspectWithRaw(ctx context.Context, serviceID string) (types.Cron, []byte, error)
+
+	FuncCreate(ctx context.Context, opts types.Func) (types.Func, error)
+	FuncUpdate(ctx context.Context, name string, opts types.Func) (types.Func, error)
+	FuncDelete(ctx context.Context, name string) error
+	FuncList(ctx context.Context, opts types.FuncListOptions) ([]types.Func, error)
+	FuncInspect(ctx context.Context, name string) (types.Func, error)
+	FuncInspectWithRaw(ctx context.Context, name string) (types.Func, []byte, error)
+	FuncCall(ctx context.Context, name string, stdin io.Reader, sync bool) (io.ReadCloser, error)
+	FuncGet(ctx context.Context, callId string, wait bool) (io.ReadCloser, error)
+	FuncLogs(ctx context.Context, name, callId string, follow bool, tail string) (io.ReadCloser, error)
+	FuncStatus(ctx context.Context, name string) (*types.FuncStatusResponse, error)
 }
 
 // Ensure that Client always implements APIClient.

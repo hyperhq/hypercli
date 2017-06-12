@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"net"
+	"net/http"
 
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/filters"
@@ -95,6 +96,7 @@ type NetworkListOptions struct {
 type HijackedResponse struct {
 	Conn   net.Conn
 	Reader *bufio.Reader
+	Resp   *http.Response
 }
 
 // Close closes the hijacked connection and reader.
@@ -182,6 +184,12 @@ type ImageLoadResponse struct {
 	// Body must be closed to avoid a resource leak
 	Body io.ReadCloser
 	JSON bool
+}
+
+// ImageDiffResponse returns information to the client about image diff.
+type ImageDiffResponse struct {
+	// Body must be closed to avoid a resource leak
+	ExistLayers []string `json:"existLayers"`
 }
 
 // ImagePullOptions holds information to pull images.

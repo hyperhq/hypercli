@@ -54,13 +54,14 @@ type CloudConfig struct {
 
 // ConfigFile ~/.docker/config.json file info
 type ConfigFile struct {
-	AuthConfigs  map[string]types.AuthConfig `json:"auths"`
-	CloudConfig  map[string]CloudConfig      `json:"clouds"`
-	HTTPHeaders  map[string]string           `json:"HttpHeaders,omitempty"`
-	PsFormat     string                      `json:"psFormat,omitempty"`
-	ImagesFormat string                      `json:"imagesFormat,omitempty"`
-	DetachKeys   string                      `json:"detachKeys,omitempty"`
-	filename     string                      // Note: not serialized - for internal use only
+	AuthConfigs   map[string]types.AuthConfig `json:"auths"`
+	CloudConfig   map[string]CloudConfig      `json:"clouds"`
+	HTTPHeaders   map[string]string           `json:"HttpHeaders,omitempty"`
+	PsFormat      string                      `json:"psFormat,omitempty"`
+	ImagesFormat  string                      `json:"imagesFormat,omitempty"`
+	VolumesFormat string                      `json:"volumesFormat,omitempty"`
+	DetachKeys    string                      `json:"detachKeys,omitempty"`
+	filename      string                      // Note: not serialized - for internal use only
 }
 
 // NewConfigFile initializes an empty configuration file for the given filename 'fn'
