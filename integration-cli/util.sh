@@ -35,7 +35,7 @@ cd ${WORKDIR}
 # ensure util.conf
 if [ ! -s ${WORKDIR}/util.conf ];then
     cat > ${WORKDIR}/util.conf <<EOF
-export GOPATH=\$(pwd)/../vendor:$GOPATH
+export GOPATH=\$(pwd)/vendor:\$(pwd)/../vendor:$GOPATH
 export HYPER_CONFIG=\$HOME/.hyperpkt1
 export IMAGE_DIR=/tmp/image
 export LOCAL_DOCKER_HOST="unix:///var/run/docker.sock"
