@@ -90,8 +90,10 @@ func (cli *DockerCli) CmdServiceCreate(args ...string) error {
 		image      = cmd.Arg(0)
 	)
 
-	if err := cli.pullImage(context.Background(), image); err != nil {
-		return err
+	if _, _, err = cli.client.ImageInspectWithRaw(context.Background(), image, false); err != nil {
+		if err := cli.pullImage(context.Background(), image); err != nil {
+			return err
+		}
 	}
 
 	if len(parsedArgs) > 1 {

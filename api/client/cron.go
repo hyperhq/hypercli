@@ -103,8 +103,10 @@ func (cli *DockerCli) CmdCronCreate(args ...string) error {
 		entrypoint = strslice.StrSlice{*flEntrypoint}
 	}
 
-	if err := cli.pullImage(context.Background(), image); err != nil {
-		return err
+	if _, _, err = cli.client.ImageInspectWithRaw(context.Background(), image, false); err != nil {
+		if err := cli.pullImage(context.Background(), image); err != nil {
+			return err
+		}
 	}
 
 	// collect all the environment variables for the container
