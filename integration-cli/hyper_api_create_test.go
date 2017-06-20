@@ -3,12 +3,16 @@ package main
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 func (s *DockerSuite) TestApiCreateWithNotExistImage(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	name := "test"
 	config := map[string]interface{}{
 		"Image":   "test456:v1",

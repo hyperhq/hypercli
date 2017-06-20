@@ -28,6 +28,7 @@ EOF
 }
 
 #############################################################################
+IMAGE_NAME="hyperhq/hypercli-auto-test:latest"
 WORKDIR=$(cd `dirname $0`; pwd)
 cd ${WORKDIR}
 
@@ -53,13 +54,13 @@ fi
 case $1 in
   build)
     cd ${WORKDIR}/..
-    docker build -t hyperhq/hypercli -f Dockerfile.centos .
+    docker build -t ${IMAGE_NAME} -f Dockerfile.centos .
     ;;
   make)
     echo "Start compile hyper client, please wait..."
     docker run -it --rm \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
-        hyperhq/hypercli ./build.sh
+        ${IMAGE_NAME} ./build.sh
     ;;
   enter)
     docker run -it --rm \
@@ -71,7 +72,7 @@ case $1 in
         -e URL_WITH_BASIC_AUTH=${URL_WITH_BASIC_AUTH} \
         -e MONGODB_URL=${MONGODB_URL} \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
-        hyperhq/hypercli bash
+        ${IMAGE_NAME} zsh
     ;;
   test)
     export DOCKER_HOST=${HYPER_HOST}

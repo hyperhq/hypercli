@@ -49,7 +49,7 @@ ENTRYPOINT ["hack/generate-hyper-conf.sh"]
 # install on-my-zsh
 RUN yum install -y zsh
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-RUN sed -i "s/^ZSH_THEME=.*/ZSH_THEME=agnoster/g" /root/.zshrc
+RUN sed -i "s/^ZSH_THEME=.*/ZSH_THEME=\"gianu\"/g" /root/.zshrc
 RUN echo alias hypercli=\"hyper -H \${DOCKER_HOST}\" >> /root/.zshrc
 
 # config git
@@ -66,4 +66,3 @@ RUN git config --global color.ui true; \
     git config --global alias.cm '!sh -c "br_name=`git symbolic-ref HEAD|sed s#refs/heads/##`; git commit -em \"[\${br_name}] \""'; \
     git config --global alias.lg "log --graph --pretty=format:'[%ci] %Cgreen(%cr) %Cred%h%Creset -%x09%C(yellow)%Creset %C(cyan)[%an]%Creset %x09 %s%Creset' --abbrev-commit --date=short"; \
     git config --global push.default current
-

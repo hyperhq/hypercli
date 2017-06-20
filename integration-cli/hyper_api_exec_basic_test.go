@@ -15,7 +15,7 @@ import (
 )
 
 // Regression test for #9414
-func (s *DockerSuite) TestApiExecCreateNoCmd(c *check.C) {
+func (s *DockerSuite) TestApiExecBasicCreateNoCmd(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
@@ -30,7 +30,7 @@ func (s *DockerSuite) TestApiExecCreateNoCmd(c *check.C) {
 	c.Assert(string(body), checker.Contains, "No exec command specified", comment)
 }
 
-func (s *DockerSuite) TestApiExecCreateNoValidContentType(c *check.C) {
+func (s *DockerSuite) TestApiExecBasicCreateNoValidContentType(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
@@ -54,7 +54,7 @@ func (s *DockerSuite) TestApiExecCreateNoValidContentType(c *check.C) {
 }
 
 //TODO: fix #86
-/*func (s *DockerSuite) TestApiExecApiStart(c *check.C) {
+/*func (s *DockerSuite) TestApiExecBasicApiStart(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
@@ -73,7 +73,7 @@ func (s *DockerSuite) TestApiExecCreateNoValidContentType(c *check.C) {
 	startExec(c, id, http.StatusNotFound)
 }
 
-func (s *DockerSuite) TestApiExecApiStartMultipleTimesError(c *check.C) {
+func (s *DockerSuite) TestApiExecBasicApiStartMultipleTimesError(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 

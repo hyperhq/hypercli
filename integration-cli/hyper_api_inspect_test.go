@@ -3,12 +3,17 @@ package main
 import (
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 func (s *DockerSuite) TestApiInspectContainerResponse(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
+	ensureImageExist(c, "busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "true")
 
 	cleanedContainerID := strings.TrimSpace(out)

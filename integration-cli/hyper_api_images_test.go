@@ -36,7 +36,7 @@ func (s *DockerSuite) TestApiImagesLoad(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(status, check.Equals, http.StatusOK)
 
-	expected := "{\"status\":\"Start to download and load the image archive, please wait...\"}"
+	expected := "{\"status\":\"Starting to download and load the image archive, please wait...\"}"
 	c.Assert(strings.TrimSpace(string(resp)), checker.Contains, expected)
 
 	expected = "has been loaded.\"}"

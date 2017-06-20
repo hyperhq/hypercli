@@ -244,11 +244,11 @@ $ ./util.sh test all
 $ ./util.sh test all -timout 20m
 
 // run specified test case
-$ ./util.sh test -check.f ^TestLoadFromLocalTar$
+$ ./util.sh test -check.f ^TestCliLoadFromLocalTar$
 
 // run test cases start with specified prefix
-$ ./util.sh test -check.f TestLoadFromLocalTar
+$ ./util.sh test -check.f TestCliLoadFromLocalTar
 
 // combined use
-$ ./util.sh test -check.f 'TestLoadFromLocalTarEmpty|TestLoadFromLocalPullAndLoad' -timeout 20m
+$ ./util.sh test -check.f 'TestCliLoadFromLocalTarEmpty|TestCliLoadFromLocalPullAndLoad' -timeout 20m
 ```

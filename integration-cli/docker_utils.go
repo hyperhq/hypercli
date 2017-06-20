@@ -1854,6 +1854,14 @@ func getInspectBody(c *check.C, version, id string) []byte {
 	return body
 }
 
+func getInspectBodyWithoutVersion(c *check.C, id string) []byte {
+	endpoint := fmt.Sprintf("/containers/%s/json", id)
+	status, body, err := sockRequest("GET", endpoint, nil)
+	c.Assert(err, check.IsNil)
+	c.Assert(status, check.Equals, http.StatusOK)
+	return body
+}
+
 // Run a long running idle task in a background container using the
 // system-specific default image and command.
 func runSleepingContainer(c *check.C, extraArgs ...string) (string, int) {
