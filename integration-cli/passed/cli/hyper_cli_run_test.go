@@ -129,6 +129,7 @@ func (s *DockerSuite) TestRunDetachedContainerIDPrinting(c *check.C) {
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "true")
 
 	out = strings.TrimSpace(out)
+	time.Sleep(2 * time.Second)
 	dockerCmd(c, "stop", out)
 
 	rmOut, _ := dockerCmd(c, "rm", out)
@@ -1005,6 +1006,7 @@ func (s *DockerSuite) TestRunUnknownCommand(c *check.C) {
 		waitExited(cID, 30*time.Second)
 		c.Assert(err, check.IsNil)
 	} else {
+		waitExited(cID, 30*time.Second)
 		c.Assert(err, check.IsNil)
 	}
 

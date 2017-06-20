@@ -32,6 +32,7 @@ func (s *DockerSuite) TestKillofStoppedContainer(c *check.C) {
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 	cleanedContainerID := strings.TrimSpace(out)
 
+	time.Sleep(2 * time.Second)
 	dockerCmd(c, "stop", cleanedContainerID)
 
 	_, _, err := dockerCmdWithError("kill", "-s", "30", cleanedContainerID)

@@ -41,9 +41,8 @@ func (s *DockerSuite) TestRestartRunningContainer(c *check.C) {
 
 	dockerCmd(c, "restart", "-t", "1", cleanedContainerID)
 
-	out, _ = dockerCmd(c, "logs", cleanedContainerID)
-
 	c.Assert(waitRun(cleanedContainerID), checker.IsNil)
+	out, _ = dockerCmd(c, "logs", cleanedContainerID)
 
 	c.Assert(out, checker.Equals, "foobar\n")
 }
