@@ -64,8 +64,10 @@ func init() {
 	// intelligent decisions about how to configure themselves, and validate
 	// that the target platform is valid.
 	res, _, err := sockRequestRaw("GET", "/version", nil, "application/json")
-	if err != nil || res == nil || (res != nil && res.StatusCode != http.StatusOK) {
-		panic(fmt.Errorf("Init failed to get version: %s. Res=%v", err.Error(), res))
+	if err != nil {
+		panic(fmt.Errorf("Init failed to get version: %s.", err.Error()))
+	} else if res == nil || (res != nil && res.StatusCode != http.StatusOK) {
+		panic(fmt.Errorf("Init failed to get version: Res=%v", res))
 	}
 	var version types.Version
 	err = json.NewDecoder(res.Body).Decode(&version)
