@@ -19,14 +19,16 @@ EOF
     #show config for hyper cli
     echo "Current hyper config: ~/.hyper/config.json"
     echo "----------------------------------------------------------------------------------------------"
-    cat ~/.hyper/config.json
+    cat ~/.hyper/config.json \
+      | sed 's/"secretkey":.*/"secretkey": "******************************"/g' \
+      | sed 's/"auth":.*/"auth": "******************************"/g'
     echo "----------------------------------------------------------------------------------------------"
 
     #show example
     cat <<EOF
 
 Run in container(example):
-  ./build-hyperserve-client.sh              # build hyper cli
+  ./build.sh                                # build hyper cli
   -----------------------------------------------------------
   hypercli info | grep "ID"                 # get tennat id
   hypercli pull busybox                     # pull image
