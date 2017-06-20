@@ -1,4 +1,4 @@
-FROM centos:7.2.1511
+FROM centos:7.3.1611
 
 #REF: integration-cli/README.md
 
@@ -12,8 +12,8 @@ RUN yum install -y\
 
 
 ## Install Go
-ENV GO_VERSION 1.5.3
-RUN wget http://golangtc.com/static/go/1.5.3/go1.5.3.linux-amd64.tar.gz
+ENV GO_VERSION 1.7.4
+RUN wget http://golangtc.com/static/go/${GO_VERSION}/go${GO_VERSION}.linux-amd64.tar.gz
 #RUN wget http://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
 RUN tar -xzf go${GO_VERSION}.linux-amd64.tar.gz -C /usr/local
 
@@ -66,3 +66,4 @@ RUN git config --global color.ui true; \
     git config --global alias.cm '!sh -c "br_name=`git symbolic-ref HEAD|sed s#refs/heads/##`; git commit -em \"[\${br_name}] \""'; \
     git config --global alias.lg "log --graph --pretty=format:'[%ci] %Cgreen(%cr) %Cred%h%Creset -%x09%C(yellow)%Creset %C(cyan)[%an]%Creset %x09 %s%Creset' --abbrev-commit --date=short"; \
     git config --global push.default current
+
