@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/docker/pkg/stringid"
@@ -9,6 +10,8 @@ import (
 )
 
 func (s *DockerSuite) TestCliRenameStoppedContainer(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "--name", "first-name", "-d", "busybox", "sh")
 
@@ -25,6 +28,8 @@ func (s *DockerSuite) TestCliRenameStoppedContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliRenameRunningContainer(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "--name", "first-name", "-d", "busybox", "sh")
 
@@ -37,6 +42,8 @@ func (s *DockerSuite) TestCliRenameRunningContainer(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliRenameRunningContainerAndReuse(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
 	out, _ := runSleepingContainer(c, "--name", "first-name")
 	c.Assert(waitRun("first-name"), check.IsNil)
@@ -56,6 +63,8 @@ func (s *DockerSuite) TestCliRenameRunningContainerAndReuse(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliRenameCheckNames(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	dockerCmd(c, "run", "--name", "first-name", "-d", "busybox", "sh")
 
 	newName := "new-name" + stringid.GenerateNonCryptoID()[:32]
@@ -70,6 +79,8 @@ func (s *DockerSuite) TestCliRenameCheckNames(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliRenameInvalidName(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
 	runSleepingContainer(c, "--name", "myname")
 

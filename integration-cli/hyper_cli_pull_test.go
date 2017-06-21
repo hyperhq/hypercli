@@ -63,7 +63,7 @@ func (s *DockerHubPullSuite) TestCliPullNonExistingImage(c *check.C) {
 
 		// pull -a on a nonexistent registry should fall back as well
 		if !strings.ContainsRune(e.Alias, ':') {
-			out, err := s.CmdWithError("pull", "-a", e.Alias)
+			out, err := s.CmdWithError("pull", e.Alias)
 			c.Assert(err, checker.NotNil, check.Commentf("expected non-zero exit status when pulling non-existing image: %s", out))
 			c.Assert(out, checker.Contains, fmt.Sprintf("Error: image %s not found", e.Repo), check.Commentf("expected image not found error messages"))
 			c.Assert(out, checker.Not(checker.Contains), "unauthorized", check.Commentf(`message should not contain "unauthorized"`))

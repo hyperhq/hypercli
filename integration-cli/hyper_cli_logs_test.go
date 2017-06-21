@@ -6,13 +6,13 @@ import (
 	//"io"
 	"os"
 	"os/exec"
-	//"regexp"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
-	//"github.com/docker/docker/pkg/jsonlog"
+	"github.com/docker/docker/pkg/jsonlog"
 	"github.com/go-check/check"
 )
 
@@ -62,9 +62,12 @@ func (s *DockerSuite) TestCliLogsContainerMuchBiggerThanPage(c *check.C) {
 }*/
 
 //TODO: get exited container log
-/*func (s *DockerSuite) TestCliLogsTimestamps(c *check.C) {
+func (s *DockerSuite) TestCliLogsTimestamps(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	testLen := 100
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", fmt.Sprintf("for i in $(seq 1 %d); do echo =; done;", testLen))
 
 	id := strings.TrimSpace(out)
@@ -86,11 +89,14 @@ func (s *DockerSuite) TestCliLogsContainerMuchBiggerThanPage(c *check.C) {
 			c.Assert(l[29], checker.Equals, uint8('Z'))
 		}
 	}
-}*/
+}
 
 //TODO: get exited container log
-/*func (s *DockerSuite) TestCliLogsSeparateStderr(c *check.C) {
+func (s *DockerSuite) TestCliLogsSeparateStderr(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	msg := "stderr_log"
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", fmt.Sprintf("echo %s 1>&2", msg))
 
@@ -104,11 +110,14 @@ func (s *DockerSuite) TestCliLogsContainerMuchBiggerThanPage(c *check.C) {
 	stderr = strings.TrimSpace(stderr)
 
 	c.Assert(stderr, checker.Equals, msg)
-}*/
+}
 
 //TODO: get exited container log
-/*func (s *DockerSuite) TestCliLogsStderrInStdout(c *check.C) {
+func (s *DockerSuite) TestCliLogsStderrInStdout(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	msg := "stderr_log"
 	out, _ := dockerCmd(c, "run", "-d", "-t", "busybox", "sh", "-c", fmt.Sprintf("echo %s 1>&2", msg))
 
@@ -120,12 +129,15 @@ func (s *DockerSuite) TestCliLogsContainerMuchBiggerThanPage(c *check.C) {
 
 	stdout = strings.TrimSpace(stdout)
 	c.Assert(stdout, checker.Equals, msg)
-}*/
+}
 
 //TODO: get exited container log
-/*func (s *DockerSuite) TestCliLogsTail(c *check.C) {
+func (s *DockerSuite) TestCliLogsTail(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	testLen := 100
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", fmt.Sprintf("for i in $(seq 1 %d); do echo =; done;", testLen))
 
 	id := strings.TrimSpace(out)
@@ -148,11 +160,14 @@ func (s *DockerSuite) TestCliLogsContainerMuchBiggerThanPage(c *check.C) {
 	lines = strings.Split(out, "\n")
 
 	c.Assert(lines, checker.HasLen, testLen+1)
-}*/
+}
 
 //TODO: get exited container log
-/*func (s *DockerSuite) TestCliLogsFollowStopped(c *check.C) {
+func (s *DockerSuite) TestCliLogsFollowStopped(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "echo", "hello")
 
 	id := strings.TrimSpace(out)
@@ -170,22 +185,20 @@ func (s *DockerSuite) TestCliLogsContainerMuchBiggerThanPage(c *check.C) {
 	select {
 	case err := <-errChan:
 		c.Assert(err, checker.IsNil)
-	case <-time.After(1 * time.Second):
+	case <-time.After(10 * time.Second):
 		c.Fatal("Following logs is hanged")
 	}
-}*/
+}
 
 //TODO: fix #46
 func (s *DockerSuite) TestCliLogsSince(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-
 	testRequires(c, DaemonIsLinux)
 	pullImageIfNotExist("busybox")
 	name := "testlogssince"
 	dockerCmd(c, "run", "--name="+name, "-d", "busybox", "/bin/sh", "-c", "for i in $(seq 1 30); do sleep 2; echo log$i; done")
-	//wait for container running
-	time.Sleep(5 * time.Second)
+	time.Sleep(5*time.Second)
 	out, _ := dockerCmd(c, "logs", "-t", name)
 
 	log2Line := strings.Split(strings.Split(out, "\n")[1], " ")
@@ -241,8 +254,11 @@ func (s *DockerSuite) TestCliLogsSinceFutureFollow(c *check.C) {
 
 //TODO: get exited container log
 // Regression test for #8832
-/*func (s *DockerSuite) TestCliLogsFollowSlowStdoutConsumer(c *check.C) {
+func (s *DockerSuite) TestCliLogsFollowSlowStdoutConsumer(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", `usleep 600000;yes X | head -c 200000`)
 
 	id := strings.TrimSpace(out)
@@ -270,7 +286,7 @@ func (s *DockerSuite) TestCliLogsSinceFutureFollow(c *check.C) {
 	actual := bytes1 + bytes2
 	expected := 200000
 	c.Assert(actual, checker.Equals, expected)
-}*/
+}
 
 //TODO: fix Goroutine in multi-tenancy environment
 /*func (s *DockerSuite) TestCliLogsFollowGoroutinesWithStdout(c *check.C) {
@@ -333,6 +349,7 @@ func (s *DockerSuite) TestCliLogsFollowGoroutinesNoOutput(c *check.C) {
 	defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", "while true; do sleep 2; done")
 	id := strings.TrimSpace(out)
 	c.Assert(waitRun(id), checker.IsNil)

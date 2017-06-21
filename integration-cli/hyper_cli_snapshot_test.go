@@ -204,7 +204,7 @@ func (s *DockerSuite) TestCliSnapshotRmBasedVol(c *check.C) {
 
 	out, _, err := dockerCmdWithError("volume", "rm", "test")
 	c.Assert(err, checker.NotNil)
-	c.Assert(out, checker.Contains, "Volume(test) has one or more snapshots")
+	c.Assert(out, checker.Contains, "Volume(test) has (1) snapshots")
 
 	dockerCmd(c, "snapshot", "rm", "test-snap")
 	_, _, err = dockerCmdWithError("volume", "rm", "test")
