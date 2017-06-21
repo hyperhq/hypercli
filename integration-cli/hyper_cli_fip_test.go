@@ -12,7 +12,7 @@ func (s *DockerSuite) TestCliFipAssociateUsedIP(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
-	out, _ := dockerCmd(c, "fip", "allocate", "1")
+	out, _ := dockerCmd(c, "fip", "allocate", "-y", "1")
 	firstIP := strings.TrimSpace(out)
 	fipList := []string{firstIP}
 	defer releaseFip(c, fipList)
@@ -24,10 +24,10 @@ func (s *DockerSuite) TestCliFipAssociateUsedIP(c *check.C) {
 	out, _ = runSleepingContainer(c, "-d")
 	secondContainerID := strings.TrimSpace(out)
 
-	dockerCmd(c, "fip", "associate", firstIP, firstContainerID)
-	out, _, err := dockerCmdWithError("fip", "associate", firstIP, secondContainerID)
+	dockerCmd(c, "fip", "attach", firstIP, firstContainerID)
+	out, _, err := dockerCmdWithError("fip", "attach", firstIP, secondContainerID)
 	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
-	out, _ = dockerCmd(c, "fip", "disassociate", firstContainerID)
+	out, _ = dockerCmd(c, "fip", "detach", firstContainerID)
 	c.Assert(out, checker.Equals, firstIP+"\n")
 }
 
@@ -35,11 +35,11 @@ func (s *DockerSuite) TestCliFipAssociateConfedContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
-	out, _ := dockerCmd(c, "fip", "allocate", "1")
+	out, _ := dockerCmd(c, "fip", "allocate", "-y", "1")
 	firstIP := strings.TrimSpace(out)
 	fipList := []string{firstIP}
 
-	out, _ = dockerCmd(c, "fip", "allocate", "1")
+	out, _ = dockerCmd(c, "fip", "allocate", "-y", "1")
 	secondIP := strings.TrimSpace(out)
 	fipList = append(fipList, secondIP)
 	defer releaseFip(c, fipList)
@@ -48,14 +48,14 @@ func (s *DockerSuite) TestCliFipAssociateConfedContainer(c *check.C) {
 	out, _ = runSleepingContainer(c, "-d")
 	firstContainerID := strings.TrimSpace(out)
 
-	dockerCmd(c, "fip", "associate", firstIP, firstContainerID)
-	out, _, err := dockerCmdWithError("fip", "associate", secondIP, firstContainerID)
+	dockerCmd(c, "fip", "attach", firstIP, firstContainerID)
+	out, _, err := dockerCmdWithError("fip", "attach", secondIP, firstContainerID)
 	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
-	out, _ = dockerCmd(c, "fip", "disassociate", firstContainerID)
+	out, _ = dockerCmd(c, "fip", "detach", firstContainerID)
 	c.Assert(out, checker.Equals, firstIP+"\n")
 }
 
-func (s *DockerSuite) TestCliFipDisassociateUnconfedContainer(c *check.C) {
+func (s *DockerSuite) TestCliFipDisattachUnconfedContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
@@ -63,7 +63,7 @@ func (s *DockerSuite) TestCliFipDisassociateUnconfedContainer(c *check.C) {
 	out, _ := runSleepingContainer(c, "-d")
 	firstContainerID := strings.TrimSpace(out)
 
-	out, _, err := dockerCmdWithError("fip", "disassociate", firstContainerID)
+	out, _, err := dockerCmdWithError("fip", "detach", firstContainerID)
 	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
 }
 
@@ -71,7 +71,7 @@ func (s *DockerSuite) TestCliFipReleaseUsedIP(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
-	out, _ := dockerCmd(c, "fip", "allocate", "1")
+	out, _ := dockerCmd(c, "fip", "allocate", "-y", "1")
 	firstIP := strings.TrimSpace(out)
 	fipList := []string{firstIP}
 	defer releaseFip(c, fipList)
@@ -80,10 +80,10 @@ func (s *DockerSuite) TestCliFipReleaseUsedIP(c *check.C) {
 	out, _ = runSleepingContainer(c, "-d")
 	firstContainerID := strings.TrimSpace(out)
 
-	dockerCmd(c, "fip", "associate", firstIP, firstContainerID)
+	dockerCmd(c, "fip", "attach", firstIP, firstContainerID)
 	out, _, err := dockerCmdWithError("fip", "release", firstIP)
 	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
-	out, _ = dockerCmd(c, "fip", "disassociate", firstContainerID)
+	out, _ = dockerCmd(c, "fip", "detach", firstContainerID)
 	c.Assert(out, checker.Equals, firstIP+"\n")
 }
 
