@@ -9,7 +9,7 @@ import (
 	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliVolumeCliCreate(c *check.C) {
+func (s *DockerSuite) TestCliVolumeCreate(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	dockerCmd(c, "volume", "create")
@@ -22,7 +22,7 @@ func (s *DockerSuite) TestCliVolumeCliCreate(c *check.C) {
 	c.Assert(name, check.Equals, "test")
 }
 
-func (s *DockerSuite) TestCliVolumeCliInspect(c *check.C) {
+func (s *DockerSuite) TestCliVolumeInspect(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	c.Assert(
@@ -41,7 +41,7 @@ func (s *DockerSuite) TestCliVolumeCliInspect(c *check.C) {
 	c.Assert(strings.TrimSpace(out), check.Equals, "test")
 }
 
-func (s *DockerSuite) TestCliVolumeCliInspectMulti(c *check.C) {
+func (s *DockerSuite) TestCliVolumeInspectMulti(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	dockerCmd(c, "volume", "create", "--name", "test1")
@@ -59,7 +59,7 @@ func (s *DockerSuite) TestCliVolumeCliInspectMulti(c *check.C) {
 	c.Assert(out, checker.Not(checker.Contains), "not-shown")
 }
 
-func (s *DockerSuite) TestCliVolumeCliLs(c *check.C) {
+func (s *DockerSuite) TestCliVolumeLs(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
@@ -78,7 +78,7 @@ func (s *DockerSuite) TestCliVolumeCliLs(c *check.C) {
 	c.Assert(strings.Contains(out, "test"), check.Equals, true)
 }
 
-func (s *DockerSuite) TestCliVolumeCliLsFilterDangling(c *check.C) {
+func (s *DockerSuite) TestCliVolumeLsFilterDangling(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
@@ -125,7 +125,7 @@ func (s *DockerSuite) TestCliVolumeCliLsFilterDangling(c *check.C) {
 	c.Assert(out, checker.Contains, "testisinuse2", check.Commentf("expected volume 'testisinuse2' in output"))
 }
 
-func (s *DockerSuite) TestCliVolumeCliRm(c *check.C) {
+func (s *DockerSuite) TestCliVolumeRm(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
@@ -163,7 +163,7 @@ func (s *DockerSuite) TestCliVolumeCliRm(c *check.C) {
 	)
 }
 
-func (s *DockerSuite) TestCliVolumeCliLsWithIncorrectFilterValue(c *check.C) {
+func (s *DockerSuite) TestCliVolumeLsWithIncorrectFilterValue(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	out, _, err := dockerCmdWithError("volume", "ls", "-f", "dangling=invalid")
@@ -171,7 +171,7 @@ func (s *DockerSuite) TestCliVolumeCliLsWithIncorrectFilterValue(c *check.C) {
 	c.Assert(out, checker.Contains, "Invalid filter")
 }
 
-func (s *DockerSuite) TestCliVolumeCliNoArgs(c *check.C) {
+func (s *DockerSuite) TestCliVolumeNoArgs(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "volume")
@@ -191,7 +191,7 @@ func (s *DockerSuite) TestCliVolumeCliNoArgs(c *check.C) {
 	c.Assert(stderr, checker.Contains, "flag provided but not defined: --no-such-flag")
 }
 
-func (s *DockerSuite) TestCliVolumeCliInspectTmplError(c *check.C) {
+func (s *DockerSuite) TestCliVolumeInspectTmplError(c *check.C) {
 	out, _ := dockerCmd(c, "volume", "create")
 	name := strings.TrimSpace(out)
 

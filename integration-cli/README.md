@@ -3,7 +3,6 @@ Integration test for hyper cli
 
 > functional test for hyper cli
 > use apirouter service on packet(dev env) as backend
-
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Project status](#project-status)
@@ -25,6 +24,7 @@ Integration test for hyper cli
 	- [Run test on localhost](#run-test-on-localhost)
 		- [prepare](#prepare)
 		- [run test case](#run-test-case)
+		- [test case name](#test-case-name)
 
 <!-- /TOC -->
 
@@ -252,3 +252,33 @@ $ ./util.sh test -check.f TestCliLoadFromLocalTar
 // combined use
 $ ./util.sh test -check.f 'TestCliLoadFromLocalTarEmpty|TestCliLoadFromLocalPullAndLoad' -timeout 20m
 ```
+
+### test case name
+
+- TestCliConfig
+- TestCliCreate
+- TestCliExec
+- TestCliFip
+- TestCliHelp
+- TestCliHistory
+- TestCliInfo
+- TestCliInspect
+- TestCliKill
+- TestCliLinks
+- TestCliLoadFromUrl
+- TestCliLoadFromLocal
+- TestCliLogin
+- TestCliLogs
+- TestCliPort
+- TestCliPs
+- TestCliPull
+- TestCliRename
+- TestCliRestart
+- TestCliRmi
+- TestCliRm
+- TestCliRun
+- TestCliSearch
+- TestCliSnapshot
+- TestCliStart
+- TestCliVersion
+- TestCliVolume

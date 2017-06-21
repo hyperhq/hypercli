@@ -9,7 +9,7 @@ import (
 	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliSnapshotCliCreate(c *check.C) {
+func (s *DockerSuite) TestCliSnapshotCreate(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
@@ -27,7 +27,7 @@ func (s *DockerSuite) TestCliSnapshotCliCreate(c *check.C) {
 	dockerCmd(c, "volume", "rm", "test")
 }
 
-func (s *DockerSuite) TestCliSnapshotCliInspect(c *check.C) {
+func (s *DockerSuite) TestCliSnapshotInspect(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	c.Assert(
@@ -53,7 +53,7 @@ func (s *DockerSuite) TestCliSnapshotCliInspect(c *check.C) {
 	dockerCmd(c, "volume", "rm", "test")
 }
 
-func (s *DockerSuite) TestCliSnapshotCliInspectMulti(c *check.C) {
+func (s *DockerSuite) TestCliSnapshotInspectMulti(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
@@ -79,7 +79,7 @@ func (s *DockerSuite) TestCliSnapshotCliInspectMulti(c *check.C) {
 	dockerCmd(c, "volume", "rm", "test")
 }
 
-func (s *DockerSuite) TestCliSnapshotCliLs(c *check.C) {
+func (s *DockerSuite) TestCliSnapshotLs(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
@@ -103,7 +103,7 @@ func (s *DockerSuite) TestCliSnapshotCliLs(c *check.C) {
 	dockerCmd(c, "volume", "rm", "test")
 }
 
-func (s *DockerSuite) TestCliSnapshotCliRm(c *check.C) {
+func (s *DockerSuite) TestCliSnapshotRm(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
@@ -128,7 +128,7 @@ func (s *DockerSuite) TestCliSnapshotCliRm(c *check.C) {
 	)
 }
 
-func (s *DockerSuite) TestCliSnapshotCliNoArgs(c *check.C) {
+func (s *DockerSuite) TestCliSnapshotNoArgs(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "snapshot")
@@ -148,7 +148,7 @@ func (s *DockerSuite) TestCliSnapshotCliNoArgs(c *check.C) {
 	c.Assert(stderr, checker.Contains, "flag provided but not defined: --no-such-flag")
 }
 
-func (s *DockerSuite) TestCliSnapshotCliInspectTmplError(c *check.C) {
+func (s *DockerSuite) TestCliSnapshotInspectTmplError(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")

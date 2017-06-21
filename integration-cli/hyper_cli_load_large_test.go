@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-
 func (s *DockerSuite) TestCliLoadFromUrlLargeImageArchiveFile(c *check.C) {
 	printTestCaseName(); defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
@@ -16,7 +15,7 @@ func (s *DockerSuite) TestCliLoadFromUrlLargeImageArchiveFile(c *check.C) {
 	imageUrl := "http://image-tarball.s3.amazonaws.com/test/public/consol_centos-xfce-vnc.tar"; //1.53GB
 
 	output, exitCode, err := dockerCmdWithError("load", "-i", imageUrl)
-	c.Assert(output, checker.Contains, "Start to download and load the image archive, please wait...\n")
+	c.Assert(output, checker.Contains, "Starting to download and load the image archive, please wait...\n")
 	c.Assert(output, checker.Contains, "has been loaded.\n")
 	c.Assert(exitCode, checker.Equals, 0)
 	c.Assert(err, checker.IsNil)

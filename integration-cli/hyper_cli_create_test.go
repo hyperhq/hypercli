@@ -125,7 +125,7 @@ func (s *DockerSuite) TestCliCreateLabels(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	name := "test-create-labels"
-	expected := map[string]string{"k1": "v1", "k2": "v2", "sh.hyper.fip": "", "sh_hyper_instancetype": "xs"}
+	expected := map[string]string{"k1": "v1", "k2": "v2", "sh.hyper.fip": "", "sh_hyper_instancetype": "s4"}
 	dockerCmd(c, "create", "--name", name, "-l", "k1=v1", "--label", "k2=v2", "busybox")
 
 	actual := make(map[string]string)

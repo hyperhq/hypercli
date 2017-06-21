@@ -22,7 +22,7 @@ func (s *DockerSuite) TestCliInspectImage(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
-	imageTest := "busybox"
+	imageTest := "busybox:1.26.2"
 	ensureImageExist(c, imageTest)
 	// It is important that this ID remain stable. If a code change causes
 	// it to be different, this is equivalent to a cache bust when pulling
@@ -30,7 +30,7 @@ func (s *DockerSuite) TestCliInspectImage(c *check.C) {
 	// fails, fix the difference in the image serialization instead of
 	// updating this hash.
 	// Warning: before test , make sure imageTest and imageTestId are match
-	imageTestID := "sha256:2b8fd9751c4c0f5dd266fcae00707e67a2545ef34f9a29354585f93dac906749"
+	imageTestID := "sha256:c30178c5239f2937c21c261b0365efcda25be4921ccb95acd63beeeb78786f27"
 	id := inspectField(c, imageTest, "Id")
 
 	c.Assert(id, checker.Equals, imageTestID)
