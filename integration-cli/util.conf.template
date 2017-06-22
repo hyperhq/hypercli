@@ -7,7 +7,7 @@ export DOCKER_REMOTE_DAEMON=1
 #########################################
 #packet env
 #########################################
-#export HYPER_HOST="tcp://147.75.195.39:6443"     #packet
+#export HYPER_HOST="tcp://147.75.x.x:6443"     #packet
 export HYPER_HOST="tcp://us-west-1.hyper.sh:443"  #zenlayer
 
 #Hyper Credentials

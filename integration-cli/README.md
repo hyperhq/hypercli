@@ -322,6 +322,9 @@ $ ./util.sh qa
 
 //test integration-test branch
 $ ./util.sh qa integration-test
+
+//test PR
+$ ./util.sh qa "#222"
 ```
 
 #### run test via docker cli
@@ -337,13 +340,23 @@ $ docker run -it --rm \
     -e SECRET_KEY=${SECRET_KEY} \
     hyperhq/hypercli-auto-test:qa go test -check.f TestCli -timeout 180m
 
+
+//test `specified PR`
+$ docker run -it --rm \
+    -e ACCESS_KEY=${ACCESS_KEY} \
+    -e SECRET_KEY=${SECRET_KEY} \
+		-e BRANCH="#221" \
+    hyperhq/hypercli-auto-test:qa go test -check.f TestCli -timeout 180m
+
+
 //test `specified branch` with `packet` apirouter
 $ docker run -it --rm \
     -e ACCESS_KEY=${ACCESS_KEY} \
     -e SECRET_KEY=${SECRET_KEY} \
     -e BRANCH=integration-test \
-    -e DOCKER_HOST=tcp://147.75.195.39:6443 \
+    -e DOCKER_HOST=tcp://147.75.x.x:6443 \
     hyperhq/hypercli-auto-test:qa go test -check.f TestCli -timeout 180m
+
 
 //test with http proxy
 $ docker run -it --rm \

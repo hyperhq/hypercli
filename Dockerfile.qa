@@ -28,6 +28,7 @@ ENV DOCKER_CERT_PATH=fixtures/hyper_ssl
 ENV DOCKER_TLS_VERIFY=
 
 ENV DOCKER_HOST="tcp://us-west-1.hyper.sh:443"
+## if BRANCH start with '#', then it means PR number, otherwise it means branch name
 ENV BRANCH="master"
 
 ENV ACCESS_KEY=
