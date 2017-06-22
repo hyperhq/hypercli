@@ -1,8 +1,9 @@
 Integration test for hyper cli
 ==================================
 
-> functional test for hyper cli
-> use apirouter service on packet(dev env) as backend
+Functional test for hyper cli.  
+> use apirouter service on packet(dev env) or zenlayer(online env) as backend.
+
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Project status](#project-status)
@@ -10,23 +11,29 @@ Integration test for hyper cli
 	- [api test case](#api-test-case)
 	- [extra](#extra)
 	- [skip](#skip)
+- [Test case name](#test-case-name)
 - [Command list](#command-list)
 	- [hyper only](#hyper-only)
 	- [both](#both)
 	- [docker only](#docker-only)
 - [Run test case](#run-test-case)
-	- [clone hypercli repo](#clone-hypercli-repo)
-	- [run test in docker container](#run-test-in-docker-container)
-		- [build docker image](#build-docker-image)
+	- [Clone hypercli repo](#clone-hypercli-repo)
+	- [Run test in docker container for dev](#run-test-in-docker-container-for-dev)
+		- [build docker image for dev](#build-docker-image-for-dev)
 		- [make hyper cli](#make-hyper-cli)
 		- [enter container](#enter-container)
 		- [run test in container](#run-test-in-container)
-	- [Run test on localhost](#run-test-on-localhost)
+	- [Run test on localhost for dev](#run-test-on-localhost-for-dev)
 		- [prepare](#prepare)
 		- [run test case](#run-test-case)
-		- [test case name](#test-case-name)
+	- [Run test in docker container for qa](#run-test-in-docker-container-for-qa)
+		- [build docker image for qa](#build-docker-image-for-qa)
+		- [run test in docker container](#run-test-in-docker-container)
+			- [run test via util.sh](#run-test-via-utilsh)
+			- [run test via docker cli](#run-test-via-docker-cli)
 
 <!-- /TOC -->
+
 
 # Project status
 
@@ -38,6 +45,7 @@ Integration test for hyper cli
 - [x] cli_create_test
 - [x] cli_exec_test
 - [x] cli_exec_unix_test
+- [x] cli_fip_test
 - [x] cli_help_test
 - [x] cli_history_test
 - [x] cli_images_test
@@ -45,20 +53,26 @@ Integration test for hyper cli
 - [x] cli_inspect_experimental_test
 - [x] cli_inspect_test
 - [x] cli_kill_test
-- [ ] cli_links_test
+- [x] cli_links_test
 - [ ] cli_links_unix_test
+- [x] cli_load_basic_test
+- [x] cli_load_large_test
+- [x] cli_load_legacy_test
+- [x] cli_load_local_test
 - [x] cli_login_test
 - [x] cli_logs_test
 - [x] cli_port_test
 - [x] cli_ps_test
 - [x] cli_pull_test
 - [x] cli_rename_test
-- [ ] cli_restart_test
+- [x] cli_restart_test
 - [x] cli_rm_test
 - [x] cli_rmi_test
-- [ ] cli_run_test
-- [ ] cli_run_unix_test
+- [x] cli_run_test
+- [x] cli_run_unix_test
 - [x] cli_search_test
+- [x] cli_share_volume_test
+- [x] cli_snapshot_test
 - [x] cli_start_test
 - [ ] cli_stats_test
 - [x] cli_version_test
@@ -80,6 +94,7 @@ Integration test for hyper cli
 - [x] api_snapshots_test
 - [x] api_version_test
 - [x] api_volumes_test
+
 
 ## extra
 
@@ -128,11 +143,38 @@ Integration test for hyper cli
 - [ ] cli_wait_test
 
 
-# Command list
+# Test case name
 
-| hyper only | both | docker only |
-| --- | --- | --- |
-| 3 | 25 | 17 |
+- TestCliConfig
+- TestCliCreate
+- TestCliExec
+- TestCliFip
+- TestCliHelp
+- TestCliHistory
+- TestCliInfo
+- TestCliInspect
+- TestCliKill
+- TestCliLinks
+- TestCliLoadFromUrl
+- TestCliLoadFromLocal
+- TestCliLogin
+- TestCliLogs
+- TestCliPort
+- TestCliPs
+- TestCliPull
+- TestCliRename
+- TestCliRestart
+- TestCliRmi
+- TestCliRm
+- TestCliRun
+- TestCliSearch
+- TestCliSnapshot
+- TestCliStart
+- TestCliVersion
+- TestCliVolume
+
+
+# Command list
 
 ## hyper only
 ```
@@ -161,21 +203,22 @@ update  wait
 
 # Run test case
 
-## clone hypercli repo
+## Clone hypercli repo
 ```
 $ git clone https://github.com/hyperhq/hypercli.git
 ```
 
-## run test in docker container
+## Run test in docker container for dev
 
-### build docker image
+### build docker image for dev
 
 > build docker image in host OS
 > Use `CentOS` as test env
+> Image name is `hyperhq/hypercli-auto-test:dev`
 
 ```
 // run in dir hypercli/integration-cli on host os
-$ ./util.sh build
+$ ./util.sh build-dev
 ```
 
 ### make hyper cli
@@ -201,7 +244,7 @@ $ ./util.sh enter
 $ ./util.sh test all
 ```
 
-## Run test on localhost
+## Run test on localhost for dev
 
 ### prepare
 
@@ -253,32 +296,60 @@ $ ./util.sh test -check.f TestCliLoadFromLocalTar
 $ ./util.sh test -check.f 'TestCliLoadFromLocalTarEmpty|TestCliLoadFromLocalPullAndLoad' -timeout 20m
 ```
 
-### test case name
+## Run test in docker container for qa
 
-- TestCliConfig
-- TestCliCreate
-- TestCliExec
-- TestCliFip
-- TestCliHelp
-- TestCliHistory
-- TestCliInfo
-- TestCliInspect
-- TestCliKill
-- TestCliLinks
-- TestCliLoadFromUrl
-- TestCliLoadFromLocal
-- TestCliLogin
-- TestCliLogs
-- TestCliPort
-- TestCliPs
-- TestCliPull
-- TestCliRename
-- TestCliRestart
-- TestCliRmi
-- TestCliRm
-- TestCliRun
-- TestCliSearch
-- TestCliSnapshot
-- TestCliStart
-- TestCliVersion
-- TestCliVolume
+### build docker image for qa
+
+> build docker image in host OS
+> Use `CentOS` as test env
+> Image name is `hyperhq/hypercli-auto-test:qa`
+
+```
+// run in dir hypercli/integration-cli on host os
+$ ./util.sh build-qa
+```
+
+### run test in docker container
+
+> run all test case for qa
+
+#### run test via util.sh
+```
+$ cd integration-cli
+
+//test master branch
+$ ./util.sh qa
+
+//test integration-test branch
+$ ./util.sh qa integration-test
+```
+
+#### run test via docker cli
+
+> ACCESS_KEY and SECRET_KEY are required
+
+```
+//test `master` branch with `zenlayer` apirouter
+$ export ACCESS_KEY="xxxxxxxx"
+$ export SECRET_KEY="xxxxxxxxxxxxxxxxxxxx"
+$ docker run -it --rm \
+    -e ACCESS_KEY=${ACCESS_KEY} \
+    -e SECRET_KEY=${SECRET_KEY} \
+    hyperhq/hypercli-auto-test:qa go test -check.f TestCli -timeout 180m
+
+//test `specified branch` with `packet` apirouter
+$ docker run -it --rm \
+    -e ACCESS_KEY=${ACCESS_KEY} \
+    -e SECRET_KEY=${SECRET_KEY} \
+    -e BRANCH=integration-test \
+    -e DOCKER_HOST=tcp://147.75.195.39:6443 \
+    hyperhq/hypercli-auto-test:qa go test -check.f TestCli -timeout 180m
+
+//test with http proxy
+$ docker run -it --rm \
+    -e ACCESS_KEY=${ACCESS_KEY} \
+    -e SECRET_KEY=${SECRET_KEY} \
+    -e http_proxy=${http_proxy} \
+    -e https_proxy=${https_proxy} \
+    hyperhq/hypercli-auto-test:qa go test -check.f TestCliInfo
+```

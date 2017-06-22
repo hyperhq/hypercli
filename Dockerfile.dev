@@ -1,5 +1,6 @@
 FROM centos:7.3.1611
 
+#This Dockerfile is used for dev hypercli
 #REF: integration-cli/README.md
 
 ##########################################################################
@@ -42,7 +43,7 @@ RUN ln -s /go/src/github.com/hyperhq/hypercli /go/src/github.com/docker/docker
 
 WORKDIR /go/src/github.com/hyperhq/hypercli
 VOLUME ["/go/src/github.com/hyperhq/hypercli"]
-ENTRYPOINT ["hack/generate-hyper-conf.sh"]
+ENTRYPOINT ["hack/generate-hyper-conf-dev.sh"]
 
 
 ##########################################################################

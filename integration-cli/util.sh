@@ -7,10 +7,12 @@ function show_usage() {
     cat <<EOF
 Usage: ./util.sh <action>
 <action>:
-    build      # build docker image 'hyperhq/hypercl' from Dockerfile.centos
-    make       # make hyper cli in container
-    enter      # enter container
-    test       # test on host
+    build-dev    # build docker image 'hyperhq/hypercl' from Dockerfile.dev
+    build-qa     # build docker image 'hyperhq/hypercl' from Dockerfile.qa
+    make         # make hyper cli in container
+    enter        # enter container from hyperhq/hhypercli-auto-test:dev
+    qa <branch>  # run test case in hyperhq/hhypercli-auto-test:qa, default branch is 'master'
+    test         # test on host
 EOF
 }
 
@@ -28,7 +30,7 @@ EOF
 }
 
 #############################################################################
-IMAGE_NAME="hyperhq/hypercli-auto-test:latest"
+IMAGE_NAME="hyperhq/hypercli-auto-test"
 WORKDIR=$(cd `dirname $0`; pwd)
 cd ${WORKDIR}
 
@@ -52,15 +54,19 @@ fi
 # main
 #############################################################################
 case $1 in
-  build)
+  "build-dev")
     cd ${WORKDIR}/..
-    docker build -t ${IMAGE_NAME} -f Dockerfile.centos .
+    docker build -t ${IMAGE_NAME}:dev -f Dockerfile.dev .
+    ;;
+  "build-qa")
+    cd ${WORKDIR}/..
+    docker build -t ${IMAGE_NAME}:qa -f Dockerfile.qa .
     ;;
   make)
     echo "Start compile hyper client, please wait..."
     docker run -it --rm \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
-        ${IMAGE_NAME} ./build.sh
+        ${IMAGE_NAME}:dev ./build.sh
     ;;
   enter)
     docker run -it --rm \
@@ -72,7 +78,21 @@ case $1 in
         -e URL_WITH_BASIC_AUTH=${URL_WITH_BASIC_AUTH} \
         -e MONGODB_URL=${MONGODB_URL} \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
-        ${IMAGE_NAME} zsh
+        ${IMAGE_NAME}:dev zsh
+    ;;
+  qa)
+    BRANCH=$2
+    if [ "$BRANCH" == "" ];then
+      BRANCH="master"
+    fi
+    docker run -it --rm \
+        -e http_proxy=${http_proxy} \
+        -e https_proxy=${https_proxy} \
+        -e BRANCH=${BRANCH} \
+        -e DOCKER_HOST=${HYPER_HOST} \
+        -e ACCESS_KEY=${ACCESS_KEY} \
+        -e SECRET_KEY=${SECRET_KEY} \
+        ${IMAGE_NAME}:qa go test -check.f TestCli -timeout 180m
     ;;
   test)
     export DOCKER_HOST=${HYPER_HOST}
