@@ -1540,3 +1540,67 @@ func (s *DockerSuite) TestCliRunNamedVolumeNotRemoved(c *check.C) {
 	out, _ = dockerCmd(c, "volume", "ls", "-q")
 	c.Assert(strings.TrimSpace(out), checker.Equals, "test")
 }
+
+func (s *DockerSuite) TestRunProtectionContainer(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	pullImageIfNotExist("busybox")
+	out, _ := dockerCmd(c, "run", "--protection=true", "-d", "busybox", "top")
+	id := strings.TrimSpace(out)
+
+	out = inspectField(c, id, "Config.Labels")
+	c.Assert(out, checker.Contains, "sh_hyper_container_protection")
+
+	_, exitcode, _ := dockerCmdWithError("rm", "-f", id)
+	if exitcode == 0 {
+		c.Fatalf("expected non-zero exit code; received %d", exitcode)
+	}
+
+	dockerCmd(c, "update", "--protection=false", id)
+
+	out = inspectField(c, id, "Config.Labels")
+	c.Assert(out, checker.Not(checker.Contains), "sh_hyper_container_protection")
+
+	dockerCmd(c, "rm", "-f", id)
+
+	out, err := getAllContainers()
+	if err != nil {
+		c.Fatal(out, err)
+	}
+
+	if out != "" {
+		c.Fatal("Expected not to have containers", out)
+	}
+}
+
+func (s *DockerSuite) TestCreateProtectionContainer(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	pullImageIfNotExist("busybox")
+	out, _ := dockerCmd(c, "create", "--protection=true", "busybox", "top")
+	id := strings.TrimSpace(out)
+
+	out = inspectField(c, id, "Config.Labels")
+	c.Assert(out, checker.Contains, "sh_hyper_container_protection")
+
+	_, exitcode, _ := dockerCmdWithError("rm", id)
+	if exitcode == 0 {
+		c.Fatalf("expected non-zero exit code; received %d", exitcode)
+	}
+
+	dockerCmd(c, "update", "--protection=false", id)
+
+	out = inspectField(c, id, "Config.Labels")
+	c.Assert(out, checker.Not(checker.Contains), "sh_hyper_container_protection")
+
+	dockerCmd(c, "rm", "-f", id)
+
+	out, err := getAllContainers()
+	if err != nil {
+		c.Fatal(out, err)
+	}
+
+	if out != "" {
+		c.Fatal("Expected not to have containers", out)
+	}
+}
