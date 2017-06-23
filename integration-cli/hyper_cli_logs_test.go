@@ -249,18 +249,19 @@ func (s *DockerSuite) TestCliLogsSinceFutureFollow(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", `for i in $(seq 1 50); do date +%s; sleep 1; done`)
-	time.Sleep(20 * time.Second)
+	time.Sleep(5 * time.Second)
 	id := strings.TrimSpace(out)
 
 	now := daemonTime(c).Unix()
 	since := now - 5
+
 	out, _ = dockerCmd(c, "logs", "-f", fmt.Sprintf("--since=%v", since), id)
 	lines := strings.Split(strings.TrimSpace(out), "\n")
 	c.Assert(lines, checker.Not(checker.HasLen), 0)
 	for _, v := range lines {
 		ts, err := strconv.ParseInt(v, 10, 64)
 		c.Assert(err, checker.IsNil, check.Commentf("cannot parse timestamp output from log: '%v'\nout=%s", v, out))
-		c.Assert(ts >= since, checker.Equals, true, check.Commentf("earlier log found. since=%v logdate=%v", since, ts))
+		c.Assert( (ts+1) >= since, checker.Equals, true, check.Commentf("earlier log found. since=%v logdate=%v", since, ts))
 	}
 }
 

@@ -1110,23 +1110,22 @@ func (s *DockerSuite) TestCliRunRestartMaxRetries(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
-	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:3", "busybox", "sh", "-c", "sleep 20; false")
-	timeout := 100 * time.Second
-	if daemonPlatform == "windows" {
-		timeout = 45 * time.Second
-	}
+
+	RETRY_COUNT := "3"
+	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:" + RETRY_COUNT, "busybox", "sh", "-c", "sleep 35; false")
+	timeout := 120 * time.Second
 
 	time.Sleep(timeout)
 	id := strings.TrimSpace(string(out))
 
 	count := inspectField(c, id, "RestartCount")
-	if count != "3" {
-		c.Fatalf("Container was restarted %s times, expected %d", count, 3)
+	if count != RETRY_COUNT {
+		c.Fatalf("Container was restarted %s times, expected %d", count, RETRY_COUNT)
 	}
 
 	MaximumRetryCount := inspectField(c, id, "HostConfig.RestartPolicy.MaximumRetryCount")
-	if MaximumRetryCount != "3" {
-		c.Fatalf("Container Maximum Retry Count is %s, expected %s", MaximumRetryCount, "3")
+	if MaximumRetryCount != RETRY_COUNT {
+		c.Fatalf("Container Maximum Retry Count is %s, expected %s", MaximumRetryCount, RETRY_COUNT)
 	}
 }
 
