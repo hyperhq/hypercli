@@ -117,8 +117,6 @@ func (s *DockerSuite) TestCliPsListContainersBase(c *check.C) {
 }
 
 func assertContainerList(out string, expected []string) bool {
-	printTestCaseName()
-	defer printTestDuration(time.Now())
 
 	lines := strings.Split(strings.Trim(out, "\n "), "\n")
 	if len(lines)-1 != len(expected) {

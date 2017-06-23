@@ -192,6 +192,7 @@ func (s *DockerSuite) TestCliLinksEnvs(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "-e", "e1=", "-e", "e2=v2", "-e", "e3=v3=v3", "--name=first", "busybox", "top")
 	out, _ := dockerCmd(c, "run", "--name=second", "--link=first:first", "busybox", "env")
 	/* FIXME

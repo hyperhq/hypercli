@@ -35,6 +35,7 @@ func (s *DockerSuite) TearDownTest(c *check.C) {
 	deleteAllImages()
 	deleteAllSnapshots()
 	deleteAllVolumes()
+	deleteAllFips()
 	//deleteAllNetworks()
 }
 
@@ -42,6 +43,15 @@ func init() {
 	check.Suite(&DockerRegistrySuite{
 		ds: &DockerSuite{},
 	})
+
+	fmt.Printf("INFO: clear resources(containers, images, snapshots, volumes, fips)\n")
+	deleteAllContainers()
+	deleteAllImages()
+	deleteAllSnapshots()
+	deleteAllVolumes()
+	deleteAllFips()
+
+	fmt.Println("INFO: finish init")
 }
 
 type DockerRegistrySuite struct {

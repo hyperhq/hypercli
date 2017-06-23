@@ -208,7 +208,7 @@ func (s *DockerSuite) TestCliLogsSince(c *check.C) {
 	pullImageIfNotExist("busybox")
 	name := "testlogssince"
 	dockerCmd(c, "run", "--name="+name, "-d", "busybox", "/bin/sh", "-c", "for i in $(seq 1 30); do sleep 2; echo log$i; done")
-	time.Sleep(5*time.Second)
+	time.Sleep(10*time.Second)
 
 	out, _ := dockerCmd(c, "logs", "-t", name)
 
@@ -249,7 +249,7 @@ func (s *DockerSuite) TestCliLogsSinceFutureFollow(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", `for i in $(seq 1 50); do date +%s; sleep 1; done`)
-	time.Sleep(5 * time.Second)
+	time.Sleep(20 * time.Second)
 	id := strings.TrimSpace(out)
 
 	now := daemonTime(c).Unix()

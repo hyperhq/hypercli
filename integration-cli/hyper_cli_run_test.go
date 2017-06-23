@@ -1110,8 +1110,8 @@ func (s *DockerSuite) TestCliRunRestartMaxRetries(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
-	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:3", "busybox", "sh", "-c", "sleep 15; false")
-	timeout := 90 * time.Second
+	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:3", "busybox", "sh", "-c", "sleep 20; false")
+	timeout := 100 * time.Second
 	if daemonPlatform == "windows" {
 		timeout = 45 * time.Second
 	}
