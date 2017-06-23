@@ -19,6 +19,10 @@ else
   echo "========== Task: test BRANCH ${BRANCH} =========="
 fi
 
+if [[ "${ACCESS_KEY}" == "" ]] || [[ "${SECRET_KEY}" == "" ]];then
+  echo "Error: Please set ACCESS_KEY and SECRET_KEY"
+  exit 1
+fi
 
 if [[ "$@" != "./build.sh" ]];then
     #ensure config for hyper cli
@@ -88,7 +92,7 @@ fi
 #execute command
 if [[ $# -ne 0 ]];then
     echo "========== Test Cmd: $@ =========="
-    cd /go/src/github.com/hyperhq/hypercli/integration-cli && eval $@
+    cd /go/src/github.com/hyperhq/hypercli/integration-cli && $@
     if [[ "$@" == "./build.sh" ]];then
     #show make result
         if [[ $? -eq 0 ]];then
