@@ -38,3 +38,5 @@ man/man8
 pyenv
 vendor/pkg/
 *.yml
+.idea
+integration-cli/util.conf

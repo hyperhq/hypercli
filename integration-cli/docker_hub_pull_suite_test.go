@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -38,10 +39,11 @@ func newDockerHubPullSuite() *DockerHubPullSuite {
 
 // SetUpSuite starts the suite daemon.
 func (s *DockerHubPullSuite) SetUpSuite(c *check.C) {
+	/*
 	testRequires(c, DaemonIsLinux)
-	s.d = NewDaemon(c)
 	err := s.d.Start()
 	c.Assert(err, checker.IsNil, check.Commentf("starting push/pull test daemon: %v", err))
+	*/
 }
 
 // TearDownSuite stops the suite daemon.
@@ -84,7 +86,8 @@ func (s *DockerHubPullSuite) CmdWithError(name string, arg ...string) (string, e
 
 // MakeCmd returns a exec.Cmd command to run against the suite daemon.
 func (s *DockerHubPullSuite) MakeCmd(name string, arg ...string) *exec.Cmd {
-	args := []string{"--host", s.d.sock(), name}
+	//args := []string{"--host", s.d.sock(), name}
+	args := []string{"--host", os.Getenv("DOCKER_HOST"), name}
 	args = append(args, arg...)
 	return exec.Command(dockerBinary, args...)
 }

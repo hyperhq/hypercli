@@ -11,10 +11,19 @@ import (
 
 var (
 	// the docker binary to use
-	dockerBinary = "docker"
+	dockerBinary = "hyper"
+
+	//debugEndpoint = "/version"
+	debugEndpoint = ""
 
 	// the private registry image to use for tests involving the registry
 	registryImageName = "registry"
+
+	//image for testing port related test case
+	singlePortImage      = "hyperhq/test-port-single"
+	multiPortImage       = "hyperhq/test-port-list"
+	rangePortImage       = "hyperhq/test-port-range"
+	mixPortocalPortImage = "hyperhq/test-port-mix"
 
 	// the private registry to use for tests
 	privateRegistryURL = "127.0.0.1:5000"
