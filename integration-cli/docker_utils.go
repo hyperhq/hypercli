@@ -114,7 +114,6 @@ func init() {
 	if os.Getenv("DOCKER_HOST") != "" {
 		flag_host = "--host=" + os.Getenv("DOCKER_HOST")
 	}
-	fmt.Println("finish init")
 }
 
 // Daemon represents a Docker daemon for the testing framework.
@@ -843,6 +842,44 @@ func deleteAllImages() error {
 		return err
 	}
 	return nil
+}
+
+func deleteAllFips() error {
+	fips, err := getAllFips()
+	if err != nil {
+		return err
+	}
+
+	for _, v := range strings.Split(fips,"\n") {
+		if v == "" {
+			continue
+		}
+		fip := strings.Trim(v, " ")
+		releaseFipCmd := exec.Command(dockerBinary, flag_host, "fip", "release", fip)
+		out, exitCode, err := runCommandWithOutput(releaseFipCmd)
+		if exitCode != 0 && err == nil {
+			err = fmt.Errorf("failed to release fip: %v\n", out)
+			return err
+		}
+	}
+	return nil
+}
+
+func getAllFips() (string, error) {
+	//load via pipe
+	getFipsCmd := exec.Command(dockerBinary, flag_host, "fip", "ls")
+	grepCmd := exec.Command("grep", "-v", "^Floating IP")
+
+	getFipOut, err := getFipsCmd.StdoutPipe()
+	getFipsCmd.Start()
+
+	grepCmd.Stdin = getFipOut
+	output, err := grepCmd.Output()
+
+	if err != nil {
+		err = fmt.Errorf("failed to get a list of fips: %v\n", output)
+	}
+	return string(output), err
 }
 
 //status only support : created, restarting, running, exited (https://github.com/getdvm/hyper-api-router/blob/master/pkg/apiserver/router/local/container.go#L204)

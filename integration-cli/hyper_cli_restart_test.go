@@ -16,7 +16,7 @@ func (s *DockerSuite) TestCliRestartStoppedContainer(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "echo", "foobar")
-
+	time.Sleep(5 * time.Second)
 	cleanedContainerID := strings.TrimSpace(out)
 	c.Assert(waitExited(cleanedContainerID, 30*time.Second), checker.IsNil)
 
@@ -24,6 +24,7 @@ func (s *DockerSuite) TestCliRestartStoppedContainer(c *check.C) {
 	c.Assert(out, checker.Equals, "foobar\n")
 
 	dockerCmd(c, "restart", cleanedContainerID)
+	time.Sleep(5 * time.Second)
 
 	out, _ = dockerCmd(c, "logs", cleanedContainerID)
 	c.Assert(out, checker.Equals, "foobar\n")
@@ -35,7 +36,7 @@ func (s *DockerSuite) TestCliRestartRunningContainer(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", "echo foobar && sleep 30 && echo 'should not print this'")
-
+	time.Sleep(5 * time.Second)
 	cleanedContainerID := strings.TrimSpace(out)
 
 	c.Assert(waitRun(cleanedContainerID), checker.IsNil)
@@ -44,6 +45,7 @@ func (s *DockerSuite) TestCliRestartRunningContainer(c *check.C) {
 	c.Assert(out, checker.Equals, "foobar\n")
 
 	dockerCmd(c, "restart", "-t", "1", cleanedContainerID)
+	time.Sleep(5 * time.Second)
 
 	out, _ = dockerCmd(c, "logs", cleanedContainerID)
 

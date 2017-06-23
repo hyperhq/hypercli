@@ -345,8 +345,15 @@ $ docker run -it --rm \
 $ docker run -it --rm \
     -e ACCESS_KEY=${ACCESS_KEY} \
     -e SECRET_KEY=${SECRET_KEY} \
-		-e BRANCH="#221" \
+    -e BRANCH="#221" \
     hyperhq/hypercli-auto-test:qa go test -check.f TestCli -timeout 180m
+
+
+//test `specified case name`
+$ docker run -it --rm \
+    -e ACCESS_KEY="${ACCESS_KEY}" \
+    -e SECRET_KEY="${SECRET_KEY}" \
+    hyperhq/hypercli-auto-test:qa go test -check.f 'TestCliInfo|TestCliFip' -timeout 180m
 
 
 //test `specified branch` with `packet` apirouter

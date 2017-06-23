@@ -69,9 +69,11 @@ func (s *DockerSuite) TestCliLogsTimestamps(c *check.C) {
 	testLen := 100
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", fmt.Sprintf("for i in $(seq 1 %d); do echo =; done;", testLen))
+	time.Sleep(5 * time.Second)
 
 	id := strings.TrimSpace(out)
 	dockerCmd(c, "stop", id)
+	time.Sleep(5 * time.Second)
 
 	out, _ = dockerCmd(c, "logs", "-t", id)
 
@@ -99,9 +101,11 @@ func (s *DockerSuite) TestCliLogsSeparateStderr(c *check.C) {
 	pullImageIfNotExist("busybox")
 	msg := "stderr_log"
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", fmt.Sprintf("echo %s 1>&2", msg))
+	time.Sleep(5 * time.Second)
 
 	id := strings.TrimSpace(out)
 	dockerCmd(c, "stop", id)
+	time.Sleep(5 * time.Second)
 
 	stdout, stderr, _ := dockerCmdWithStdoutStderr(c, "logs", id)
 
@@ -120,9 +124,11 @@ func (s *DockerSuite) TestCliLogsStderrInStdout(c *check.C) {
 	pullImageIfNotExist("busybox")
 	msg := "stderr_log"
 	out, _ := dockerCmd(c, "run", "-d", "-t", "busybox", "sh", "-c", fmt.Sprintf("echo %s 1>&2", msg))
+	time.Sleep(5 * time.Second)
 
 	id := strings.TrimSpace(out)
 	dockerCmd(c, "stop", id)
+	time.Sleep(5 * time.Second)
 
 	stdout, stderr, _ := dockerCmdWithStdoutStderr(c, "logs", id)
 	c.Assert(stderr, checker.Equals, "")
@@ -139,9 +145,11 @@ func (s *DockerSuite) TestCliLogsTail(c *check.C) {
 	testLen := 100
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", fmt.Sprintf("for i in $(seq 1 %d); do echo =; done;", testLen))
+	time.Sleep(5 * time.Second)
 
 	id := strings.TrimSpace(out)
 	dockerCmd(c, "stop", id)
+	time.Sleep(5 * time.Second)
 
 	out, _ = dockerCmd(c, "logs", "--tail", "5", id)
 
@@ -169,9 +177,11 @@ func (s *DockerSuite) TestCliLogsFollowStopped(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "echo", "hello")
+	time.Sleep(5 * time.Second)
 
 	id := strings.TrimSpace(out)
 	dockerCmd(c, "stop", id)
+	time.Sleep(5 * time.Second)
 
 	logsCmd := exec.Command(dockerBinary, "logs", "-f", id)
 	c.Assert(logsCmd.Start(), checker.IsNil)
@@ -198,7 +208,8 @@ func (s *DockerSuite) TestCliLogsSince(c *check.C) {
 	pullImageIfNotExist("busybox")
 	name := "testlogssince"
 	dockerCmd(c, "run", "--name="+name, "-d", "busybox", "/bin/sh", "-c", "for i in $(seq 1 30); do sleep 2; echo log$i; done")
-	time.Sleep(5*time.Second)
+	time.Sleep(10*time.Second)
+
 	out, _ := dockerCmd(c, "logs", "-t", name)
 
 	log2Line := strings.Split(strings.Split(out, "\n")[1], " ")
@@ -238,17 +249,19 @@ func (s *DockerSuite) TestCliLogsSinceFutureFollow(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", `for i in $(seq 1 50); do date +%s; sleep 1; done`)
+	time.Sleep(5 * time.Second)
 	id := strings.TrimSpace(out)
 
 	now := daemonTime(c).Unix()
 	since := now - 5
+
 	out, _ = dockerCmd(c, "logs", "-f", fmt.Sprintf("--since=%v", since), id)
 	lines := strings.Split(strings.TrimSpace(out), "\n")
 	c.Assert(lines, checker.Not(checker.HasLen), 0)
 	for _, v := range lines {
 		ts, err := strconv.ParseInt(v, 10, 64)
 		c.Assert(err, checker.IsNil, check.Commentf("cannot parse timestamp output from log: '%v'\nout=%s", v, out))
-		c.Assert(ts >= since, checker.Equals, true, check.Commentf("earlier log found. since=%v logdate=%v", since, ts))
+		c.Assert( (ts+1) >= since, checker.Equals, true, check.Commentf("earlier log found. since=%v logdate=%v", since, ts))
 	}
 }
 
@@ -260,13 +273,14 @@ func (s *DockerSuite) TestCliLogsFollowSlowStdoutConsumer(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", `usleep 600000;yes X | head -c 200000`)
-
+	time.Sleep(5 * time.Second)
 	id := strings.TrimSpace(out)
 
 	stopSlowRead := make(chan bool)
 
 	go func() {
 		exec.Command(dockerBinary, "stop", id).Run()
+		time.Sleep(5 * time.Second)
 		stopSlowRead <- true
 	}()
 
