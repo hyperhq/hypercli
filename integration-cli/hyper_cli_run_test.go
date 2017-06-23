@@ -995,6 +995,7 @@ func (s *DockerSuite) TestCliRunUnknownCommand(c *check.C) {
 
 	cID := strings.TrimSpace(out)
 	_, _, err := dockerCmdWithError("start", cID)
+	time.Sleep(5 * time.Second)
 
 	// Windows and Linux are different here by architectural design. Linux will
 	// fail to start the container, so an error is expected. Windows will
@@ -1107,7 +1108,7 @@ func (s *DockerSuite) TestCliRunRestartMaxRetries(c *check.C) {
 	defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:3", "busybox", "sh", "-c", "sleep 15; false")
-	timeout := 60 * time.Second
+	timeout := 90 * time.Second
 	if daemonPlatform == "windows" {
 		timeout = 45 * time.Second
 	}
