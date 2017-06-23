@@ -88,7 +88,7 @@ fi
 #execute command
 if [[ $# -ne 0 ]];then
     echo "========== Test Cmd: $@ =========="
-    cd /go/src/github.com/hyperhq/hypercli/integration-cli && eval $@
+    cd /go/src/github.com/hyperhq/hypercli/integration-cli && $@
     if [[ "$@" == "./build.sh" ]];then
     #show make result
         if [[ $? -eq 0 ]];then
