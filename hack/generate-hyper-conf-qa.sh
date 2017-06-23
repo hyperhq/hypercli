@@ -19,6 +19,10 @@ else
   echo "========== Task: test BRANCH ${BRANCH} =========="
 fi
 
+if [[ "${ACCESS_KEY}" == "" ]] || [[ "${SECRET_KEY}" == "" ]];then
+  echo "Error: Please set ACCESS_KEY and SECRET_KEY"
+  exit 1
+fi
 
 if [[ "$@" != "./build.sh" ]];then
     #ensure config for hyper cli
