@@ -96,6 +96,7 @@ case $1 in
     ;;
   test)
     export DOCKER_HOST=${HYPER_HOST}
+    export GOPATH=$GOPATH:`pwd`/../vendor
     mkdir -p ${IMAGE_DIR}
     shift
     if [ $# -ne 0 ];then

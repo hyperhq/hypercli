@@ -26,7 +26,8 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidUrlHost(c *check.C) {
 	invalidHost := "invalidhost"
 	invalidURL := "http://" + invalidHost + "/test/public/helloworld.tar"
 	output, exitCode, err := dockerCmdWithError("load", "-i", invalidURL)
-	c.Assert(output, checker.Equals, "Error response from daemon: Bad request parameters: Get "+invalidURL+": dial tcp: lookup invalidhost: no such host\n")
+	c.Assert(output, checker.Contains, "Error response from daemon: Bad request parameters: Get "+invalidURL+": dial tcp: lookup invalidhost")
+	c.Assert(output, checker.Contains, "no such host\n")
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 }
