@@ -43,6 +43,7 @@ Functional test for hyper cli.
 - [ ] cli_attach_unix_test
 - [x] cli_config_test
 - [x] cli_create_test
+- [x] cli_commit_test
 - [x] cli_exec_test
 - [x] cli_exec_unix_test
 - [x] cli_fip_test
@@ -64,6 +65,7 @@ Functional test for hyper cli.
 - [x] cli_port_test
 - [x] cli_ps_test
 - [x] cli_pull_test
+- [x] cli_push_test
 - [x] cli_rename_test
 - [x] cli_restart_test
 - [x] cli_rm_test
@@ -103,13 +105,12 @@ Functional test for hyper cli.
 
 ## skip
 
-> not support build, commit, push, tag
+> not support build, tag
 
 - [ ] cli_authz_unix_test
 - [ ] cli_build_test
 - [ ] cli_build_unix_test
 - [ ] cli_by_digest_test
-- [ ] cli_commit_test
 - [ ] cli_cp_from_container_test
 - [ ] cli_cp_test
 - [ ] cli_cp_to_container_test
@@ -130,7 +131,6 @@ Functional test for hyper cli.
 - [ ] cli_proxy_test
 - [ ] cli_pull_local_test
 - [ ] cli_pull_trusted_test
-- [ ] cli_push_test
 - [ ] cli_save_load_test
 - [ ] cli_save_load_unix_test
 - [ ] cli_sni_test
@@ -147,6 +147,7 @@ Functional test for hyper cli.
 
 - TestCliConfig
 - TestCliCreate
+- TestCliCommit
 - TestCliExec
 - TestCliFip
 - TestCliHelp
@@ -162,6 +163,7 @@ Functional test for hyper cli.
 - TestCliPort
 - TestCliPs
 - TestCliPull
+- TestCliPush
 - TestCliRename
 - TestCliRestart
 - TestCliRmi
