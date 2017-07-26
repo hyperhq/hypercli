@@ -33,17 +33,22 @@ func (s *DockerSuite) TestCliRmContainerWithRemovedVolume(c *check.C) {
 func (s *DockerSuite) TestCliRmContainerWithVolume(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	deleteAllContainers()
 	prefix, slash := getPrefixAndSlashFromDaemonPlatform()
 
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "--name", "foo", "-v", prefix+slash+"srv", "busybox", "true")
 
 	dockerCmd(c, "rm", "-v", "foo")
 }
 
-func (s *DockerSuite) TestCliRmContainerRunning(c *check.C) {
+func (s *DockerSuite) TestCliRmContainerRunningBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	deleteAllContainers()
 	createRunningContainer(c, "foo")
 
@@ -51,9 +56,11 @@ func (s *DockerSuite) TestCliRmContainerRunning(c *check.C) {
 	c.Assert(err, checker.NotNil, check.Commentf("Expected error, can't rm a running container"))
 }
 
-func (s *DockerSuite) TestCliRmContainerForceRemoveRunning(c *check.C) {
+func (s *DockerSuite) TestCliRmContainerForceRemoveRunningBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	deleteAllContainers()
 	createRunningContainer(c, "foo")
 
@@ -64,6 +71,8 @@ func (s *DockerSuite) TestCliRmContainerForceRemoveRunning(c *check.C) {
 func (s *DockerSuite) TestCliRmInvalidContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, _, err := dockerCmdWithError("rm", "unknown")
 	c.Assert(err, checker.NotNil, check.Commentf("Expected error on rm unknown container, got none"))
 	c.Assert(out, checker.Contains, "No such container")

@@ -13,10 +13,11 @@ import (
 
 // TestPullFromCentralRegistry pulls an image from the central registry and verifies that the client
 // prints all expected output.
-func (s *DockerHubPullSuite) TestCliPullFromCentralRegistry(c *check.C) {
+func (s *DockerHubPullSuite) TestCliPullFromCentralRegistryBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	out := s.Cmd(c, "pull", "hello-world")
 	defer deleteImages("hello-world")
 
@@ -43,6 +44,7 @@ func (s *DockerHubPullSuite) TestCliPullNonExistingImage(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	for _, e := range []struct {
 		Repo  string
 		Alias string
@@ -80,6 +82,7 @@ func (s *DockerHubPullSuite) TestCliPullFromCentralRegistryImplicitRefParts(c *c
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	s.Cmd(c, "pull", "hello-world")
 	defer deleteImages("hello-world")
 
@@ -107,6 +110,7 @@ func (s *DockerHubPullSuite) TestCliPullScratchNotAllowed(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	out, err := s.CmdWithError("pull", "scratch")
 	c.Assert(err, checker.NotNil, check.Commentf("expected pull of scratch to fail"))
 	c.Assert(out, checker.Contains, "'scratch' is a reserved name")

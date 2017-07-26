@@ -8,10 +8,11 @@ import (
 	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliKillContainer(c *check.C) {
+func (s *DockerSuite) TestCliKillContainerBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 	cleanedContainerID := strings.TrimSpace(out)
@@ -21,13 +22,13 @@ func (s *DockerSuite) TestCliKillContainer(c *check.C) {
 
 	out, _ = dockerCmd(c, "ps", "-q")
 	c.Assert(out, checker.Not(checker.Contains), cleanedContainerID, check.Commentf("killed container is still running"))
-
 }
 
 func (s *DockerSuite) TestCliKillofStoppedContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 	cleanedContainerID := strings.TrimSpace(out)

@@ -1,16 +1,18 @@
 package main
 
 import (
-	"time"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 
 // ensure docker version works
-func (s *DockerSuite) TestCliVersionEnsureSucceeds(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+func (s *DockerSuite) TestCliVersionEnsureSucceedsBasic(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
 	out, _ := dockerCmd(c, "version")
 	stringsToCheck := map[string]int{
 		"Client:":       1,
@@ -30,15 +32,18 @@ func (s *DockerSuite) TestCliVersionEnsureSucceeds(c *check.C) {
 
 // ensure the Windows daemon return the correct platform string
 func (s *DockerSuite) TestCliVersionPlatform_w(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsWindows)
 	testVersionPlatform(c, "windows/amd64")
 }
 
 // ensure the Linux daemon return the correct platform string
 func (s *DockerSuite) TestCliVersionPlatform_l(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	testVersionPlatform(c, "linux")
 }
 

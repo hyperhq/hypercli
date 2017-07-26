@@ -11,9 +11,11 @@ import (
 )
 
 func (s *DockerSuite) TestCliLinksPingUnlinkedContainers(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	_, exitCode, err := dockerCmdWithError("run", "--rm", "busybox", "sh", "-c", "ping -c 1 alias1 -W 5 && ping -c 1 alias2 -W 5")
 
 	// run ping failed with error
@@ -22,9 +24,11 @@ func (s *DockerSuite) TestCliLinksPingUnlinkedContainers(c *check.C) {
 
 // Test for appropriate error when calling --link with an invalid target container
 func (s *DockerSuite) TestCliLinksInvalidContainerTarget(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	out, _, err := dockerCmdWithError("run", "--link", "bogus:alias", "busybox", "true")
 
 	// an invalid container target should produce an error
@@ -33,10 +37,12 @@ func (s *DockerSuite) TestCliLinksInvalidContainerTarget(c *check.C) {
 	c.Assert(out, checker.Contains, "No such container")
 }
 
-func (s *DockerSuite) TestCliLinksPingLinkedContainers(c *check.C) {
-	testRequires(c, DaemonIsLinux)
+func (s *DockerSuite) TestCliLinksPingLinkedContainersBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "--name", "container1", "--hostname", "fred", "busybox", "top")
 	dockerCmd(c, "run", "-d", "--name", "container2", "--hostname", "wilma", "busybox", "top")
 
@@ -56,9 +62,10 @@ func (s *DockerSuite) TestCliLinksPingLinkedContainers(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliLinksPingLinkedContainersAfterRename(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "--name", "container1", "busybox", "top")
 	idA := strings.TrimSpace(out)
@@ -74,8 +81,7 @@ func (s *DockerSuite) TestCliLinksPingLinkedContainersAfterRename(c *check.C) {
 func (s *DockerSuite) TestCliLinksInspectLinksStarted(c *check.C) {
 	/* FIXME https://github.com/hyperhq/hypercli/issues/76
 	testRequires(c, DaemonIsLinux)
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	var (
 		expected = map[string]struct{}{"/container1:/testinspectlink/alias1": {}, "/container2:/testinspectlink/alias2": {}}
 		result   []string
@@ -97,8 +103,7 @@ func (s *DockerSuite) TestCliLinksInspectLinksStarted(c *check.C) {
 func (s *DockerSuite) TestCliLinksInspectLinksStopped(c *check.C) {
 	/* FIXME https://github.com/hyperhq/hypercli/issues/76
 	testRequires(c, DaemonIsLinux)
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	var (
 		expected = map[string]struct{}{"/container1:/testinspectlink/alias1": {}, "/container2:/testinspectlink/alias2": {}}
 		result   []string
@@ -118,22 +123,23 @@ func (s *DockerSuite) TestCliLinksInspectLinksStopped(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliLinksNotStartedParentNotFail(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "create", "--name=first", "busybox", "top")
 	dockerCmd(c, "create", "--name=second", "--link=first:first", "busybox", "top")
 	dockerCmd(c, "start", "first")
-
 }
 
 func (s *DockerSuite) TestCliLinksHostsFilesInject(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 	testRequires(c, SameHostDaemon, ExecSupport)
 
-	printTestCaseName()
-	defer printTestDuration(time.Now())
-
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-itd", "--name", "one", "busybox", "top")
 	idOne := strings.TrimSpace(out)
 
@@ -152,10 +158,12 @@ func (s *DockerSuite) TestCliLinksHostsFilesInject(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliLinksUpdateOnRestart(c *check.C) {
-	testRequires(c, DaemonIsLinux)
-	testRequires(c, SameHostDaemon, ExecSupport)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+	testRequires(c, SameHostDaemon, ExecSupport)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "--name", "one", "busybox", "top")
 	out, _ := dockerCmd(c, "run", "-d", "--name", "two", "--link", "one:onetwo", "--link", "one:one", "busybox", "top")
 	id := strings.TrimSpace(string(out))
@@ -189,9 +197,10 @@ func (s *DockerSuite) TestCliLinksUpdateOnRestart(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliLinksEnvs(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "-e", "e1=", "-e", "e2=v2", "-e", "e3=v3=v3", "--name=first", "busybox", "top")
 	out, _ := dockerCmd(c, "run", "--name=second", "--link=first:first", "busybox", "env")
@@ -203,9 +212,10 @@ func (s *DockerSuite) TestCliLinksEnvs(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliLinkShortDefinition(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "--name", "shortlinkdef", "busybox", "top")
 
@@ -227,6 +237,8 @@ func (s *DockerSuite) TestCliLinksMultipleWithSameName(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "--name=upstream-a", "busybox", "top")
 	dockerCmd(c, "run", "-d", "--name=upstream-b", "busybox", "top")
 	dockerCmd(c, "run", "--link", "upstream-a:upstream", "--link", "upstream-b:upstream", "busybox", "sh", "-c", "ping -c 1 upstream")

@@ -14,6 +14,7 @@ func (s *DockerSuite) TestCliRestartStoppedContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "echo", "foobar")
 	time.Sleep(5 * time.Second)
@@ -34,6 +35,7 @@ func (s *DockerSuite) TestCliRestartRunningContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", "echo foobar && sleep 30 && echo 'should not print this'")
 	time.Sleep(5 * time.Second)
@@ -55,10 +57,11 @@ func (s *DockerSuite) TestCliRestartRunningContainer(c *check.C) {
 }
 
 // Test that restarting a container with a volume does not create a new volume on restart. Regression test for #819.
-func (s *DockerSuite) TestCliRestartWithVolumes(c *check.C) {
+func (s *DockerSuite) TestCliRestartWithVolumesBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "-v", "/test", "busybox", "top")
 
@@ -87,6 +90,7 @@ func (s *DockerSuite) TestCliRestartPolicyNO(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "--restart=no", "busybox", "false")
 
@@ -95,10 +99,11 @@ func (s *DockerSuite) TestCliRestartPolicyNO(c *check.C) {
 	c.Assert(name, checker.Equals, "no")
 }
 
-func (s *DockerSuite) TestCliRestartPolicyAlways(c *check.C) {
+func (s *DockerSuite) TestCliRestartPolicyAlwaysBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "--restart=always", "busybox", "false")
 
@@ -116,6 +121,7 @@ func (s *DockerSuite) TestCliRestartPolicyOnFailure(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:1", "busybox", "false")
 
@@ -131,6 +137,7 @@ func (s *DockerSuite) TestCliRestartContainerRestartwithGoodContainer(c *check.C
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:3", "busybox", "true")
 

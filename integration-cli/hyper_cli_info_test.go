@@ -2,18 +2,17 @@ package main
 
 import (
 	"fmt"
-//	"net"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
-//	"github.com/docker/docker/utils"
 	"github.com/go-check/check"
 )
 
 // ensure docker info succeeds
-func (s *DockerSuite) TestCliInfoEnsureSucceeds(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+func (s *DockerSuite) TestCliInfoEnsureSucceedsBasic(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	out, _ := dockerCmd(c, "info")
 
 	// always shown fields
@@ -47,7 +46,6 @@ func (s *DockerSuite) TestCliInfoEnsureSucceeds(c *check.C) {
 	}
 }
 
-
 //comment: not support discoveryBackend
 //// TestInfoDiscoveryBackend verifies that a daemon run with `--cluster-advertise` and
 //// `--cluster-store` properly show the backend's endpoint in info output.
@@ -68,7 +66,6 @@ func (s *DockerSuite) TestCliInfoEnsureSucceeds(c *check.C) {
 //	c.Assert(out, checker.Contains, fmt.Sprintf("Cluster advertise: %s\n", discoveryAdvertise))
 //}
 
-
 //comment: not support discoveryBackend
 //// TestInfoDiscoveryInvalidAdvertise verifies that a daemon run with
 //// an invalid `--cluster-advertise` configuration
@@ -87,7 +84,6 @@ func (s *DockerSuite) TestCliInfoEnsureSucceeds(c *check.C) {
 //	err = d.Start("--cluster-advertise=1.1.1.1:2375")
 //	c.Assert(err, checker.Not(checker.IsNil))
 //}
-
 
 //comment: not support discoveryBackend
 //// TestInfoDiscoveryAdvertiseInterfaceName verifies that a daemon run with `--cluster-advertise`
@@ -118,10 +114,12 @@ func (s *DockerSuite) TestCliInfoEnsureSucceeds(c *check.C) {
 //	c.Assert(out, checker.Contains, fmt.Sprintf("Cluster advertise: %s:2375\n", ip.String()))
 //}
 
-func (s *DockerSuite) TestCliInfoDisplaysRunningContainers(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+func (s *DockerSuite) TestCliInfoDisplaysRunningContainersBasic(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "busybox", "top")
 	out, _ := dockerCmd(c, "info")
 	c.Assert(out, checker.Contains, fmt.Sprintf("Containers: %d\n", 1))
@@ -148,12 +146,14 @@ func (s *DockerSuite) TestCliInfoDisplaysRunningContainers(c *check.C) {
 //}
 
 func (s *DockerSuite) TestCliInfoDisplaysStoppedContainers(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 	outAry := strings.Split(out, "\n")
-	c.Assert(len(outAry), checker.GreaterOrEqualThan,2)
+	c.Assert(len(outAry), checker.GreaterOrEqualThan, 2)
 	cleanedContainerID := outAry[len(outAry)-2]
 
 	dockerCmd(c, "stop", cleanedContainerID)

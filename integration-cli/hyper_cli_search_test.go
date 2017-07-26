@@ -12,16 +12,16 @@ import (
 func (s *DockerSuite) TestCliSearchOnCentralRegistry(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-
 	testRequires(c, Network, DaemonIsLinux)
 
 	out, _ := dockerCmd(c, "search", "busybox")
 	c.Assert(out, checker.Contains, "Busybox base image.", check.Commentf("couldn't find any repository named (or containing) 'Busybox base image.'"))
 }
 
-func (s *DockerSuite) TestCliSearchStarsOptionWithWrongParameter(c *check.C) {
+func (s *DockerSuite) TestCliSearchStarsOptionWithWrongParameterBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	out, _, err := dockerCmdWithError("search", "--stars=a", "busybox")
 	c.Assert(err, check.NotNil, check.Commentf(out))
@@ -35,7 +35,6 @@ func (s *DockerSuite) TestCliSearchStarsOptionWithWrongParameter(c *check.C) {
 func (s *DockerSuite) TestCliSearchCmdOptions(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-
 	testRequires(c, Network)
 
 	out, _ := dockerCmd(c, "search", "--help")
@@ -61,7 +60,6 @@ func (s *DockerSuite) TestCliSearchCmdOptions(c *check.C) {
 func (s *DockerSuite) TestCliSearchOnCentralRegistryWithDash(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-
 	testRequires(c, Network, DaemonIsLinux)
 
 	dockerCmd(c, "search", "ubuntu-")

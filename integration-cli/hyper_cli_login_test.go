@@ -2,15 +2,16 @@ package main
 
 import (
 	"bytes"
+	"github.com/docker/docker/pkg/integration/checker"
+	"github.com/go-check/check"
 	"os"
 	"os/exec"
 	"time"
-	"github.com/docker/docker/pkg/integration/checker"
-	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliLoginWithoutTTY(c *check.C) {
-	printTestCaseName(); defer printTestDuration(time.Now())
+func (s *DockerSuite) TestCliLoginWithoutTTYBasic(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "login")
 
 	// Send to stdin so the process does not get the TTY

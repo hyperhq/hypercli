@@ -23,6 +23,7 @@ func (s *DockerSuite) TestCliExecBasic(c *check.C) {
 	defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "--name", "test", "busybox", "sh", "-c", "echo test > /tmp/file && top")
 
 	out, _ := dockerCmd(c, "exec", "test", "cat", "/tmp/file")

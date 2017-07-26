@@ -58,7 +58,7 @@ func (s *DockerSuite) TestCliCreateArgs(c *check.C) {
 }
 
 // Make sure we can set hostconfig options too
-func (s *DockerSuite) TestCliCreateHostConfig(c *check.C) {
+func (s *DockerSuite) TestCliCreateHostConfigBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
@@ -84,7 +84,7 @@ func (s *DockerSuite) TestCliCreateHostConfig(c *check.C) {
 }
 
 // "test123" should be printed by docker create + start
-func (s *DockerSuite) TestCliCreateEchoStdout(c *check.C) {
+func (s *DockerSuite) TestCliCreateEchoStdoutBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")

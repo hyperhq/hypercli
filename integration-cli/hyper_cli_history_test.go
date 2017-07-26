@@ -63,12 +63,13 @@ RUN echo "Z"`,
 
 }*/
 
-func (s *DockerSuite) TestCliHistoryExistentImage(c *check.C) {
+func (s *DockerSuite) TestCliHistoryExistentImageBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
 	pullImageIfNotExist("busybox")
-	dockerCmd(c, "history", "busybox")
+	_, _, err := dockerCmdWithError("history", "busybox")
+	c.Assert(err, check.IsNil, check.Commentf("history on a existent image should not fail."))
 }
 
 func (s *DockerSuite) TestCliHistoryNonExistentImage(c *check.C) {
