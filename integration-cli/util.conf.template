@@ -27,3 +27,8 @@ export MONGODB_URL="xxxxxx"
 
 ##For test load image from basic auth url
 export URL_WITH_BASIC_AUTH="http://xxxxxx:xxxxxx@test.hyper.sh/ubuntu.tar.gz"
+
+## dockerhub account
+export DOCKERHUB_EMAIL="xxx@xx.xx"
+export DOCKERHUB_USERNAME="xxx"
+export DOCKERHUB_PASSWD="xxx"

@@ -7,9 +7,14 @@ import (
 	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliShareVolumeNamedVolume(c *check.C) {
+func (s *DockerSuite) TestCliShareVolumeNamedVolumeBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("hyperhq/nfs-server")
+	pullImageIfNotExist("busybox")
+
 	volName := "testvolume"
 	_, err := dockerCmd(c, "run", "-d", "--name=volserver", "-v", volName+":/data", "hyperhq/nfs-server")
 	c.Assert(err, checker.Equals, 0)
@@ -22,6 +27,11 @@ func (s *DockerSuite) TestCliShareVolumeNamedVolume(c *check.C) {
 func (s *DockerSuite) TestCliShareVolumeImplicitVolume(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("hyperhq/nfs-server")
+	pullImageIfNotExist("busybox")
+
 	_, err := dockerCmd(c, "run", "-d", "--name=volserver", "-v", "/data", "hyperhq/nfs-server")
 	c.Assert(err, checker.Equals, 0)
 	_, err = dockerCmd(c, "run", "-d", "--name=volclient", "--volumes-from", "volserver", "busybox")
@@ -33,6 +43,11 @@ func (s *DockerSuite) TestCliShareVolumeImplicitVolume(c *check.C) {
 func (s *DockerSuite) TestCliShareVolumePopulatedVolume(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("hyperhq/nfs-server")
+	pullImageIfNotExist("busybox")
+
 	_, err := dockerCmd(c, "run", "-d", "--name=volserver", "-v", "https://github.com/hyperhq/hypercli.git:/data", "hyperhq/nfs-server")
 	c.Assert(err, checker.Equals, 0)
 	_, err = dockerCmd(c, "run", "-d", "--name=volclient", "--volumes-from", "volserver", "busybox")
@@ -45,6 +60,10 @@ func (s *DockerSuite) TestCliShareVolumePopulatedVolume(c *check.C) {
 func (s *DockerSuite) TestCliShareVolumeBadSource(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
+
 	_, err := dockerCmd(c, "run", "-d", "--name=volserver", "-v", "/data", "busybox")
 	c.Assert(err, checker.Equals, 0)
 	_, _, failErr := dockerCmdWithError("run", "-d", "--name=volclient", "--volumes-from", "volserver", "busybox")
@@ -54,6 +73,10 @@ func (s *DockerSuite) TestCliShareVolumeBadSource(c *check.C) {
 func (s *DockerSuite) TestCliShareVolumeNoSource(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
+
 	_, _, err := dockerCmdWithError("run", "-d", "--name=volclient", "--volumes-from", "volserver", "busybox")
 	c.Assert(err, checker.NotNil)
 }
@@ -61,6 +84,11 @@ func (s *DockerSuite) TestCliShareVolumeNoSource(c *check.C) {
 func (s *DockerSuite) TestCliShareVolumeNoVolume(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("hyperhq/nfs-server")
+	pullImageIfNotExist("busybox")
+
 	_, err := dockerCmd(c, "run", "-d", "--name=volserver", "hyperhq/nfs-server")
 	c.Assert(err, checker.Equals, 0)
 	_, err = dockerCmd(c, "run", "-d", "--name=volclient", "--volumes-from", "volserver", "busybox")

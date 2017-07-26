@@ -15,7 +15,7 @@ func (s *DockerSuite) TestCliConfigAndRewrite(c *check.C) {
 	defer printTestDuration(time.Now())
 
 	out, _ := dockerCmd(c, "config", "--accesskey", "xx", "--secretkey", "xxxx", "tcp://127.0.0.1:6443")
-	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in " + homedir.Get() + "/.hyper/config.json")
+	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in "+homedir.Get()+"/.hyper/config.json")
 
 	configDir := filepath.Join(homedir.Get(), ".hyper")
 	conf, err := cliconfig.Load(configDir)
@@ -24,7 +24,7 @@ func (s *DockerSuite) TestCliConfigAndRewrite(c *check.C) {
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey, checker.Equals, "xxxx", check.Commentf("Should get xxxx, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey))
 
 	out, _ = dockerCmd(c, "config", "--accesskey", "yy", "--secretkey", "yyyy", "tcp://127.0.0.1:6443")
-	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in " + homedir.Get() + "/.hyper/config.json")
+	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in "+homedir.Get()+"/.hyper/config.json")
 
 	conf, err = cliconfig.Load(configDir)
 	c.Assert(err, checker.IsNil)
@@ -32,12 +32,12 @@ func (s *DockerSuite) TestCliConfigAndRewrite(c *check.C) {
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey, checker.Equals, "yyyy", check.Commentf("Should get yyyy, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey))
 }
 
-func (s *DockerSuite) TestCliConfigMultiHost(c *check.C) {
+func (s *DockerSuite) TestCliConfigMultiHostBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
 	out, _ := dockerCmd(c, "config", "--accesskey", "xx", "--secretkey", "xxxx", "tcp://127.0.0.1:6443")
-	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in " + homedir.Get() + "/.hyper/config.json")
+	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in "+homedir.Get()+"/.hyper/config.json")
 
 	configDir := filepath.Join(homedir.Get(), ".hyper")
 	conf, err := cliconfig.Load(configDir)
@@ -46,7 +46,7 @@ func (s *DockerSuite) TestCliConfigMultiHost(c *check.C) {
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey, checker.Equals, "xxxx", check.Commentf("Should get xxxx, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey))
 
 	out, _ = dockerCmd(c, "config", "--accesskey", "yy", "--secretkey", "yyyy", "tcp://127.0.0.1:6444")
-	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in " + homedir.Get() + "/.hyper/config.json")
+	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in "+homedir.Get()+"/.hyper/config.json")
 
 	conf, err = cliconfig.Load(configDir)
 	c.Assert(err, checker.IsNil)

@@ -15,9 +15,10 @@ import (
 	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliPsListContainersBase(c *check.C) {
+func (s *DockerSuite) TestCliPsListContainersBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
 	out, _ := runSleepingContainer(c, "-d")
@@ -117,12 +118,10 @@ func (s *DockerSuite) TestCliPsListContainersBase(c *check.C) {
 }
 
 func assertContainerList(out string, expected []string) bool {
-
 	lines := strings.Split(strings.Trim(out, "\n "), "\n")
 	if len(lines)-1 != len(expected) {
 		return false
 	}
-
 	containerIDIndex := strings.Index(lines[0], "CONTAINER ID")
 	for i := 0; i < len(expected); i++ {
 		foundID := lines[i+1][containerIDIndex : containerIDIndex+12]
@@ -130,15 +129,13 @@ func assertContainerList(out string, expected []string) bool {
 			return false
 		}
 	}
-
 	return true
 }
 
 //TODO: fix container size
 /*func (s *DockerSuite) TestCliPsListContainersSize(c *check.C) {
 	// Problematic on Windows as it doesn't report the size correctly @swernli
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "busybox", "echo", "hello")
@@ -180,10 +177,11 @@ func assertContainerList(out string, expected []string) bool {
 
 }*/
 
-func (s *DockerSuite) TestCliPsListContainersFilterStatus(c *check.C) {
+func (s *DockerSuite) TestCliPsListContainersFilterStatusBasic(c *check.C) {
 	// start exited container
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox")
@@ -213,6 +211,7 @@ func (s *DockerSuite) TestCliPsListContainersFilterID(c *check.C) {
 	// start container
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox")
@@ -228,10 +227,11 @@ func (s *DockerSuite) TestCliPsListContainersFilterID(c *check.C) {
 
 }
 
-func (s *DockerSuite) TestCliPsListContainersFilterName(c *check.C) {
+func (s *DockerSuite) TestCliPsListContainersFilterNameBasic(c *check.C) {
 	// start container
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "--name=a-name-to-match", "busybox")
@@ -250,6 +250,7 @@ func (s *DockerSuite) TestCliPsListContainersFilterName(c *check.C) {
 func checkPsAncestorFilterOutput(c *check.C, out string, filterName string, expectedIDs []string) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	actualIDs := []string{}
 	if out != "" {
@@ -275,6 +276,7 @@ func checkPsAncestorFilterOutput(c *check.C, out string, filterName string, expe
 func (s *DockerSuite) TestCliPsListContainersFilterLabel(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
 	// start container
@@ -315,6 +317,7 @@ func (s *DockerSuite) TestCliPsListContainersFilterLabel(c *check.C) {
 func (s *DockerSuite) TestCliPsListContainersFilterExited(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
 	runSleepingContainer(c, "--name=sleep")
@@ -358,8 +361,7 @@ func (s *DockerSuite) TestCliPsListContainersFilterExited(c *check.C) {
 //TODO: SAME AS ps format multi names
 /*func (s *DockerSuite) TestCliPsLinkedWithNoTrunc(c *check.C) {
 	// Problematic on Windows as it doesn't support links as of Jan 2016
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
 	runSleepingContainer(c, "--name=first")
@@ -382,8 +384,9 @@ func (s *DockerSuite) TestCliPsWithSize(c *check.C) {
 	// Problematic on Windows as it doesn't report the size correctly @swernli
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-
 	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "--name", "sizetest", "busybox", "top")
 
 	out, _ := dockerCmd(c, "ps", "--size")
@@ -394,6 +397,7 @@ func (s *DockerSuite) TestCliPsListContainersFilterCreated(c *check.C) {
 	// create a container
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "create", "busybox")
@@ -427,8 +431,7 @@ func (s *DockerSuite) TestCliPsListContainersFilterCreated(c *check.C) {
 //TODO: fix ps format multi names
 /*func (s *DockerSuite) TestCliPsFormatMultiNames(c *check.C) {
 	// Problematic on Windows as it doesn't support link as of Jan 2016
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 
 	testRequires(c, DaemonIsLinux)
 	//create 2 containers and link them
@@ -461,6 +464,7 @@ func (s *DockerSuite) TestCliPsFormatHeaders(c *check.C) {
 	// make sure no-container "docker ps" still prints the header row
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
 
 	out, _ := dockerCmd(c, "ps", "--format", "table {{.ID}}")
 	c.Assert(out, checker.Equals, "CONTAINER ID\n", check.Commentf(`Expected 'CONTAINER ID\n', got %v`, out))

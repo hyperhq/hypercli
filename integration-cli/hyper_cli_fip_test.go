@@ -8,7 +8,7 @@ import (
 	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliFipAssociateUsedIP(c *check.C) {
+func (s *DockerSuite) TestCliFipAssociateUsedIPBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 

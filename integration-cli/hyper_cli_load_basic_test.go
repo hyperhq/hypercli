@@ -8,10 +8,11 @@ import (
 )
 
 /// test invalid url //////////////////////////////////////////////////////////////////////////
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidUrlProtocal(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlInvalidUrlProtocal(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	invalidURL := "ftp://image-tarball.s3.amazonaws.com/test/public/helloworld.tar"
 	output, exitCode, err := dockerCmdWithError("load", "-i", invalidURL)
 	c.Assert(output, checker.Equals, "Error response from daemon: Bad request parameters: Get "+invalidURL+": unsupported protocol scheme \"ftp\"\n")
@@ -19,10 +20,11 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidUrlProtocal(c *check.C) 
 	c.Assert(err, checker.NotNil)
 }
 
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidUrlHost(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlInvalidUrlHost(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	invalidHost := "invalidhost"
 	invalidURL := "http://" + invalidHost + "/test/public/helloworld.tar"
 	output, exitCode, err := dockerCmdWithError("load", "-i", invalidURL)
@@ -32,10 +34,11 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidUrlHost(c *check.C) {
 	c.Assert(err, checker.NotNil)
 }
 
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidUrlPath(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlInvalidUrlPath(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/notexist.tar")
 	c.Assert(output, checker.Equals, "Error response from daemon: Bad request parameters: Got HTTP status code >= 400: 403 Forbidden\n")
 	c.Assert(exitCode, checker.Equals, 1)
@@ -43,42 +46,43 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidUrlPath(c *check.C) {
 }
 
 //test invalid ContentType and ContentLength///////////////////////////////////////////////////////////////////////////
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidContentType(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlInvalidContentType(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/readme.txt")
 	c.Assert(output, checker.Equals, "Error response from daemon: Download failed: URL MIME type should be one of: binary/octet-stream, application/octet-stream, application/x-tar, application/x-gzip, application/x-bzip, application/x-xz, but now is text/plain\n")
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 }
 
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidContentLengthTooLarge(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlInvalidContentLengthTooLarge(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	const MAX_LENGTH = 4294967295
+	const MaxLength = 4294967295
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/largefile.tar")
-	c.Assert(output, checker.Contains, fmt.Sprintf("should be greater than zero and less than or equal to %v\n", MAX_LENGTH))
+	c.Assert(output, checker.Contains, fmt.Sprintf("should be greater than zero and less than or equal to %v\n", MaxLength))
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 }
 
 //test invalid content///////////////////////////////////////////////////////////////////////////
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidContentLengthZero(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlInvalidContentLengthZero(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	const MAX_LENGTH = 4294967295
+	const MaxLength = 4294967295
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/emptyfile.tar")
-	c.Assert(output, checker.Equals, fmt.Sprintf("Error response from daemon: Bad request parameters: The size of the image archive file is 0, should be greater than zero and less than or equal to %v\n", MAX_LENGTH))
+	c.Assert(output, checker.Equals, fmt.Sprintf("Error response from daemon: Bad request parameters: The size of the image archive file is 0, should be greater than zero and less than or equal to %v\n", MaxLength))
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 }
 
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidContentUnrelated(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlInvalidContentUnrelated(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
@@ -89,7 +93,7 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidContentUnrelated(c *chec
 	c.Assert(err, checker.NotNil)
 }
 
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidUntarFail(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlInvalidUntarFail(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
@@ -100,7 +104,7 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidUntarFail(c *check.C) {
 	c.Assert(err, checker.NotNil)
 }
 
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidContentIncomplete(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlInvalidContentIncomplete(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
@@ -142,7 +146,7 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromInvalidContentIncomplete(c *che
 }
 
 //test normal///////////////////////////////////////////////////////////////////////////
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromPublicURL(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlValidBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
@@ -158,7 +162,7 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromPublicURL(c *check.C) {
 	c.Assert(images, checker.Contains, "hello-world")
 }
 
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromCompressedArchive(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlValidCompressedArchiveBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
@@ -177,7 +181,7 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromCompressedArchive(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromPublicURLWithQuiet(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlWithQuiet(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
@@ -190,7 +194,7 @@ func (s *DockerSuite) TestCliLoadFromUrlBasicFromPublicURLWithQuiet(c *check.C) 
 	c.Assert(images, checker.Contains, "hello-world")
 }
 
-func (s *DockerSuite) TestCliLoadFromUrlBasicFromPublicURLMultipeImage(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromUrlMultipeImageBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)

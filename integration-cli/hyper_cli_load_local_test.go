@@ -11,7 +11,7 @@ import (
 )
 
 //test normal///////////////////////////////////////////////////////////////////////////
-func (s *DockerSuite) TestCliLoadFromLocalTarPipe(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromLocalTarPipeBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
@@ -197,7 +197,7 @@ func (s *DockerSuite) TestCliLoadFromLocalTarSize100MB(c *check.C) {
 	c.Assert(images, checker.Contains, "nginx")
 }
 
-func (s *DockerSuite) TestCliLoadFromLocalPullAndLoad(c *check.C) {
+func (s *DockerSuite) TestCliLoadFromLocalPullAndLoadBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)

@@ -23,9 +23,11 @@ import (
 )
 
 // "test123" should be printed by docker run
-func (s *DockerSuite) TestCliRunEchoStdout(c *check.C) {
+func (s *DockerSuite) TestCliRunEchoStdoutBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "busybox", "echo", "test123")
 	if out != "test123\n" {
@@ -37,6 +39,8 @@ func (s *DockerSuite) TestCliRunEchoStdout(c *check.C) {
 func (s *DockerSuite) TestCliRunEchoNamedContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "--name", "testfoonamedcontainer", "busybox", "echo", "test")
 	if out != "test\n" {
@@ -47,9 +51,10 @@ func (s *DockerSuite) TestCliRunEchoNamedContainer(c *check.C) {
 // docker run should not leak file descriptors. This test relies on Unix
 // specific functionality and cannot run on Windows.
 func (s *DockerSuite) TestCliRunLeakyFileDescriptors(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "busybox", "ls", "-C", "/proc/self/fd")
 
@@ -62,9 +67,10 @@ func (s *DockerSuite) TestCliRunLeakyFileDescriptors(c *check.C) {
 // it should be possible to lookup Google DNS
 // this will fail when Internet access is unavailable
 func (s *DockerSuite) TestCliRunLookupGoogleDns(c *check.C) {
-	testRequires(c, Network, NotArm)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, Network, NotArm)
+
 	image := DefaultImage
 	if daemonPlatform == "windows" {
 		// nslookup isn't present in Windows busybox. Is built-in.
@@ -77,6 +83,9 @@ func (s *DockerSuite) TestCliRunLookupGoogleDns(c *check.C) {
 func (s *DockerSuite) TestCliRunExitCodeZero(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "busybox", "true")
 }
 
@@ -84,6 +93,9 @@ func (s *DockerSuite) TestCliRunExitCodeZero(c *check.C) {
 func (s *DockerSuite) TestCliRunExitCodeOne(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	_, exitCode, err := dockerCmdWithError("run", "busybox", "false")
 	if err != nil && !strings.Contains("exit status 1", fmt.Sprintf("%s", err)) {
 		c.Fatal(err)
@@ -98,8 +110,7 @@ func (s *DockerSuite) TestCliRunStdinPipe(c *check.C) {
 	/* FIXME https://github.com/hyperhq/hypercli/issues/14
 	// TODO Windows: This needs some work to make compatible.
 	testRequires(c, DaemonIsLinux)
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-i", "-a", "stdin", "busybox", "cat")
 	runCmd.Stdin = strings.NewReader("blahblah")
 	out, _, _, err := runCommandWithStdoutStderr(runCmd)
@@ -125,6 +136,8 @@ func (s *DockerSuite) TestCliRunStdinPipe(c *check.C) {
 func (s *DockerSuite) TestCliRunDetachedContainerIDPrinting(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "true")
 	time.Sleep(5 * time.Second)
@@ -145,9 +158,10 @@ func (s *DockerSuite) TestCliRunDetachedContainerIDPrinting(c *check.C) {
 // the working directory should be set correctly
 func (s *DockerSuite) TestCliRunWorkingDirectory(c *check.C) {
 	// TODO Windows: There's a Windows bug stopping this from working.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	dir := "/root"
 	image := "busybox"
@@ -171,12 +185,14 @@ func (s *DockerSuite) TestCliRunWorkingDirectory(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestCliRunLinksContainerWithContainerName(c *check.C) {
+func (s *DockerSuite) TestCliRunLinksContainerWithContainerNameBasic(c *check.C) {
 	// TODO Windows: This test cannot run on a Windows daemon as the networking
 	// settings are not populated back yet on inspect.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-i", "-t", "-d", "--name", "parent", "busybox")
 
 	ip := inspectField(c, "parent", "NetworkSettings.Networks.bridge.IPAddress")
@@ -191,9 +207,10 @@ func (s *DockerSuite) TestCliRunLinksContainerWithContainerName(c *check.C) {
 func (s *DockerSuite) TestCliRunLinksContainerWithContainerId(c *check.C) {
 	// TODO Windows: This test cannot run on a Windows daemon as the networking
 	// settings are not populated back yet on inspect.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	cID, _ := dockerCmd(c, "run", "-i", "-t", "-d", "busybox")
 
@@ -210,6 +227,8 @@ func (s *DockerSuite) TestCliRunLinksContainerWithContainerId(c *check.C) {
 func (s *DockerSuite) TestCliRunVerifyContainerID(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, exit, err := dockerCmdWithError("run", "-d", "busybox", "true")
 	if err != nil {
@@ -231,11 +250,13 @@ func (s *DockerSuite) TestCliRunVerifyContainerID(c *check.C) {
 func (s *DockerSuite) TestCliRunExitCode(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	var (
 		exit int
 		err  error
 	)
-
+	pullImageIfNotExist("busybox")
 	_, exit, err = dockerCmdWithError("run", "busybox", "/bin/sh", "-c", "exit 72")
 
 	if err == nil {
@@ -249,17 +270,20 @@ func (s *DockerSuite) TestCliRunExitCode(c *check.C) {
 func (s *DockerSuite) TestCliRunUserDefaults(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	expected := "uid=0(root) gid=0(root)"
 	if daemonPlatform == "windows" {
 		expected = "uid=1000(SYSTEM) gid=1000(SYSTEM)"
 	}
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "busybox", "id")
 	if !strings.Contains(out, expected) {
 		c.Fatalf("expected '%s' got %s", expected, out)
 	}
 }
 
-func (s *DockerSuite) TestCliRunTwoConcurrentContainers(c *check.C) {
+func (s *DockerSuite) TestCliRunTwoConcurrentContainersBasic(c *check.C) {
 	// TODO Windows. There are two bugs in TP4 which means this test cannot
 	// be reliably enabled. The first is a race condition where sometimes
 	// HCS CreateComputeSystem() will fail "Invalid class string". #4985252 and
@@ -268,9 +292,11 @@ func (s *DockerSuite) TestCliRunTwoConcurrentContainers(c *check.C) {
 	// The second, which is seen more readily by increasing the number of concurrent
 	// containers to 5 or more, is that CSRSS hangs. This may fixed in the TP4 ZDP.
 	// #4898773.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	sleepTime := "10"
 	if daemonPlatform == "windows" {
 		sleepTime = "5" // Make more reliable on Windows
@@ -300,8 +326,7 @@ func (s *DockerSuite) TestCliRunEnvironment(c *check.C) {
 	// TODO Windows: Environment handling is different between Linux and
 	// Windows and this test relies currently on unix functionality.
 	testRequires(c, DaemonIsLinux)
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
 	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-h", "testing", "-e=FALSE=true", "-e=TRUE=", "-e=TRICKY=", "-e=HOME=", "busybox", "env")
 	cmd.Env = append(os.Environ(),
@@ -344,8 +369,7 @@ func (s *DockerSuite) TestCliRunEnvironmentErase(c *check.C) {
 	// TODO Windows: Environment handling is different between Linux and
 	// Windows and this test relies currently on unix functionality.
 	testRequires(c, DaemonIsLinux)
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
 
 	// Test to make sure that when we use -e on env vars that are
@@ -382,9 +406,10 @@ func (s *DockerSuite) TestCliRunEnvironmentErase(c *check.C) {
 func (s *DockerSuite) TestCliRunEnvironmentOverride(c *check.C) {
 	// TODO Windows: Environment handling is different between Linux and
 	// Windows and this test relies currently on unix functionality.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 
 	// Test to make sure that when we use -e on env vars that are
@@ -417,9 +442,12 @@ func (s *DockerSuite) TestCliRunEnvironmentOverride(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestCliRunContainerNetwork(c *check.C) {
+func (s *DockerSuite) TestCliRunContainerNetworkBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	if daemonPlatform == "windows" {
 		// Windows busybox does not have ping. Use built in ping instead.
 		dockerCmd(c, "run", WindowsBaseImage, "ping", "-n", "1", "127.0.0.1")
@@ -435,10 +463,11 @@ func (s *DockerSuite) TestCliRunContainerNetwork(c *check.C) {
 // tested, but this testcase takes the simpler path of using "run -h .."
 func (s *DockerSuite) TestCliRunFullHostnameSet(c *check.C) {
 	// TODO Windows: -h is not yet functional.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
-	pullImageIfNotExist("busybox")
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-h", "foo.bar.baz", "busybox", "hostname")
 	if actual := strings.Trim(out, "\r\n"); actual != "foo.bar.baz" {
 		c.Fatalf("expected hostname 'foo.bar.baz', received %s", actual)
@@ -448,9 +477,10 @@ func (s *DockerSuite) TestCliRunFullHostnameSet(c *check.C) {
 func (s *DockerSuite) TestCliRunDeviceNumbers(c *check.C) {
 	// Not applicable on Windows as /dev/ is a Unix specific concept
 	// TODO: NotUserNamespace could be removed here if "root" "root" is replaced w user
-	testRequires(c, DaemonIsLinux, NotUserNamespace)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux, NotUserNamespace)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "busybox", "sh", "-c", "ls -l /dev/null")
 	deviceLineFields := strings.Fields(out)
@@ -466,9 +496,10 @@ func (s *DockerSuite) TestCliRunDeviceNumbers(c *check.C) {
 
 func (s *DockerSuite) TestCliRunThatCharacterDevicesActLikeCharacterDevices(c *check.C) {
 	// Not applicable on Windows as /dev/ is a Unix specific concept
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "busybox", "sh", "-c", "dd if=/dev/zero of=/zero bs=1k count=5 2> /dev/null ; du -h /zero")
 	if actual := strings.Trim(out, "\r\n"); actual[0] == '0' {
@@ -479,6 +510,8 @@ func (s *DockerSuite) TestCliRunThatCharacterDevicesActLikeCharacterDevices(c *c
 func (s *DockerSuite) TestCliRunRootWorkdir(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "--workdir", "/", "busybox", "pwd")
 	expected := "/\n"
@@ -493,9 +526,11 @@ func (s *DockerSuite) TestCliRunRootWorkdir(c *check.C) {
 // Verify that a container gets default DNS when only localhost resolvers exist
 func (s *DockerSuite) TestCliRunDnsDefaultOptions(c *check.C) {
 	// Not applicable on Windows as this is testing Unix specific functionality
-	testRequires(c, SameHostDaemon, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, SameHostDaemon, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 
 	// preserve original resolv.conf for restoring after test
 	origResolvConf, err := ioutil.ReadFile("/etc/resolv.conf")
@@ -531,6 +566,9 @@ func (s *DockerSuite) TestCliRunDnsDefaultOptions(c *check.C) {
 func (s *DockerSuite) TestCliRunAttachStdErrOnlyTTYMode(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	_, exitCode := dockerCmd(c, "run", "-t", "-a", "stderr", "busybox", "true")
 	if exitCode != 0 {
 		c.Fatalf("Container should have exited with error code 0")
@@ -541,6 +579,9 @@ func (s *DockerSuite) TestCliRunAttachStdErrOnlyTTYMode(c *check.C) {
 func (s *DockerSuite) TestCliRunAttachStdOutOnlyTTYMode(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	_, exitCode := dockerCmd(c, "run", "-t", "-a", "stdout", "busybox", "true")
 	if exitCode != 0 {
 		c.Fatalf("Container should have exited with error code 0")
@@ -551,6 +592,9 @@ func (s *DockerSuite) TestCliRunAttachStdOutOnlyTTYMode(c *check.C) {
 func (s *DockerSuite) TestCliRunAttachStdOutAndErrTTYMode(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	_, exitCode := dockerCmd(c, "run", "-t", "-a", "stdout", "-a", "stderr", "busybox", "true")
 	if exitCode != 0 {
 		c.Fatalf("Container should have exited with error code 0")
@@ -562,6 +606,9 @@ func (s *DockerSuite) TestCliRunAttachStdOutAndErrTTYMode(c *check.C) {
 func (s *DockerSuite) TestCliRunAttachWithDetach(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	cmd := exec.Command(dockerBinary, "run", "-d", "--attach", "stdout", "busybox", "true")
 	_, stderr, _, err := runCommandWithStdoutStderr(cmd)
 	if err == nil {
@@ -573,10 +620,11 @@ func (s *DockerSuite) TestCliRunAttachWithDetach(c *check.C) {
 
 func (s *DockerSuite) TestCliRunState(c *check.C) {
 	// TODO Windows: This needs some rework as Windows busybox does not support top
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
-	pullImageIfNotExist("busybox")
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
 
 	id := strings.TrimSpace(out)
@@ -619,8 +667,7 @@ func (s *DockerSuite) TestCliRunState(c *check.C) {
 // TestRunWorkdirExistsAndIsFile checks that if 'docker run -w' with existing file can be detected
 func (s *DockerSuite) TestCliRunWorkdirExistsAndIsFile(c *check.C) {
 	/* FIXME
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	existingFile := "/bin/cat"
 	expected := "Cannot mkdir: /bin/cat is not a directory"
 	if daemonPlatform == "windows" {
@@ -637,8 +684,7 @@ func (s *DockerSuite) TestCliRunWorkdirExistsAndIsFile(c *check.C) {
 
 func (s *DockerSuite) TestCliRunExitOnStdinClose(c *check.C) {
 	/* FIXME
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	name := "testrunexitonstdinclose"
 
 	meow := "/bin/cat"
@@ -699,9 +745,10 @@ func (s *DockerSuite) TestCliRunExitOnStdinClose(c *check.C) {
 // Test for #2267
 func (s *DockerSuite) TestCliRunWriteHostsFileAndNotCommit(c *check.C) {
 	// Cannot run on Windows as Windows does not support diff.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	name := "writehosts"
 	out, _ := dockerCmd(c, "run", "--name", name, "busybox", "sh", "-c", "echo test2267 >> /etc/hosts && cat /etc/hosts")
@@ -747,9 +794,10 @@ func sliceEq(a, b []string) bool {
 // Test for #2267
 func (s *DockerSuite) TestCliRunWriteHostnameFileAndNotCommit(c *check.C) {
 	// Cannot run on Windows as Windows does not support diff.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	name := "writehostname"
 	out, _ := dockerCmd(c, "run", "--name", name, "busybox", "sh", "-c", "echo test2267 >> /etc/hostname && cat /etc/hostname")
@@ -768,9 +816,10 @@ func (s *DockerSuite) TestCliRunWriteHostnameFileAndNotCommit(c *check.C) {
 // Test for #2267
 func (s *DockerSuite) TestCliRunWriteResolvFileAndNotCommit(c *check.C) {
 	// Cannot run on Windows as Windows does not support diff.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	name := "writeresolv"
 	out, _ := dockerCmd(c, "run", "--name", name, "busybox", "sh", "-c", "echo test2267 >> /etc/resolv.conf && cat /etc/resolv.conf")
@@ -789,6 +838,8 @@ func (s *DockerSuite) TestCliRunWriteResolvFileAndNotCommit(c *check.C) {
 func (s *DockerSuite) TestCliRunEntrypoint(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	name := "entrypoint"
 
@@ -812,8 +863,7 @@ func (s *DockerSuite) TestCliRunEntrypoint(c *check.C) {
 // Perform this test by making `docker run` fail
 func (s *DockerSuite) TestCliRunCidFileCleanupIfEmpty(c *check.C) {
 	/* FIXME
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	tmpDir, err := ioutil.TempDir("", "TestRunCidFile")
 	if err != nil {
 		c.Fatal(err)
@@ -846,6 +896,8 @@ func (s *DockerSuite) TestCliRunCidFileCleanupIfEmpty(c *check.C) {
 func (s *DockerSuite) TestCliRunCidFileCheckIDLength(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	tmpDir, err := ioutil.TempDir("", "TestRunCidFile")
 	if err != nil {
 		c.Fatal(err)
@@ -873,9 +925,10 @@ func (s *DockerSuite) TestCliRunCidFileCheckIDLength(c *check.C) {
 // Regression test for #7792
 func (s *DockerSuite) TestCliRunMountOrdering(c *check.C) {
 	// TODO Windows: Post TP4. Updated, but Windows does not support nested mounts currently.
-	testRequires(c, SameHostDaemon, DaemonIsLinux, NotUserNamespace)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, SameHostDaemon, DaemonIsLinux, NotUserNamespace)
+
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
 
 	tmpDir, err := ioutil.TempDir("", "docker_nested_mount_test")
@@ -918,6 +971,10 @@ func (s *DockerSuite) TestCliRunMountOrdering(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliRunNoOutputFromPullInStdout(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	// just run with unknown image
 	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "asdfsg")
 	stdout := bytes.NewBuffer(nil)
@@ -936,8 +993,7 @@ func (s *DockerSuite) TestCliRunSlowStdoutConsumer(c *check.C) {
 	// TODO Windows: This should be able to run on Windows if can find an
 	// alternate to /dev/zero and /dev/stdout.
 	testRequires(c, DaemonIsLinux)
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
 	cont := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "--rm", "busybox", "/bin/sh", "-c", "dd if=/dev/zero of=/dev/stdout bs=1024 count=2000 | catv")
 
@@ -961,12 +1017,13 @@ func (s *DockerSuite) TestCliRunSlowStdoutConsumer(c *check.C) {
 	*/
 }
 
-func (s *DockerSuite) TestCliRunAllowPortRangeThroughExpose(c *check.C) {
+func (s *DockerSuite) TestCliRunAllowPortRangeThroughExposeBasic(c *check.C) {
 	// TODO Windows: -P is not currently supported. Also network
 	// settings are not propagated back.
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	_, exitCode := dockerCmd(c, "pull", rangePortImage)
 	if exitCode != 0 {
 		c.Fatalf("pull image %s failed", rangePortImage)
@@ -993,6 +1050,8 @@ func (s *DockerSuite) TestCliRunAllowPortRangeThroughExpose(c *check.C) {
 func (s *DockerSuite) TestCliRunUnknownCommand(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _, _ := dockerCmdWithStdoutStderr(c, "create", "busybox", "/bin/nada")
 
@@ -1020,9 +1079,9 @@ func (s *DockerSuite) TestCliRunUnknownCommand(c *check.C) {
 
 func (s *DockerSuite) TestCliRunModePidHost(c *check.C) {
 	// Not applicable on Windows as uses Unix-specific capabilities
-	testRequires(c, SameHostDaemon, DaemonIsLinux, NotUserNamespace)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, SameHostDaemon, DaemonIsLinux, NotUserNamespace)
 
 	hostPid, err := os.Readlink("/proc/1/ns/pid")
 	if err != nil {
@@ -1045,8 +1104,7 @@ func (s *DockerSuite) TestCliRunModePidHost(c *check.C) {
 
 func (s *DockerSuite) TestCliRunTLSverify(c *check.C) {
 	/* FIXME
-	printTestCaseName()
-	defer printTestDuration(time.Now())
+	printTestCaseName(); defer printTestDuration(time.Now())
 	if out, code, err := dockerCmdWithError("ps"); err != nil || code != 0 {
 		c.Fatalf("Should have worked: %v:\n%v", err, out)
 	}
@@ -1068,6 +1126,9 @@ func (s *DockerSuite) TestCliRunTLSverify(c *check.C) {
 func (s *DockerSuite) TestCliRunTTYWithPipe(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	errChan := make(chan error)
 	go func() {
 		defer close(errChan)
@@ -1099,6 +1160,9 @@ func (s *DockerSuite) TestCliRunTTYWithPipe(c *check.C) {
 func (s *DockerSuite) TestCliRunSetDefaultRestartPolicy(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "--name", "test", "busybox", "sleep", "30")
 	out := inspectField(c, "test", "HostConfig.RestartPolicy.Name")
 	if out != "no" {
@@ -1109,29 +1173,34 @@ func (s *DockerSuite) TestCliRunSetDefaultRestartPolicy(c *check.C) {
 func (s *DockerSuite) TestCliRunRestartMaxRetries(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 
-	RETRY_COUNT := "3"
-	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:" + RETRY_COUNT, "busybox", "sh", "-c", "sleep 35; false")
+	RetryCount := "3"
+	out, _ := dockerCmd(c, "run", "-d", "--restart=on-failure:"+RetryCount, "busybox", "sh", "-c", "sleep 35; false")
 	timeout := 120 * time.Second
 
 	time.Sleep(timeout)
 	id := strings.TrimSpace(string(out))
 
 	count := inspectField(c, id, "RestartCount")
-	if count != RETRY_COUNT {
-		c.Fatalf("Container was restarted %s times, expected %d", count, RETRY_COUNT)
+	if count != RetryCount {
+		c.Fatalf("Container was restarted %s times, expected %s", count, RetryCount)
 	}
 
 	MaximumRetryCount := inspectField(c, id, "HostConfig.RestartPolicy.MaximumRetryCount")
-	if MaximumRetryCount != RETRY_COUNT {
-		c.Fatalf("Container Maximum Retry Count is %s, expected %s", MaximumRetryCount, RETRY_COUNT)
+	if MaximumRetryCount != RetryCount {
+		c.Fatalf("Container Maximum Retry Count is %s, expected %s", MaximumRetryCount, RetryCount)
 	}
 }
 
 func (s *DockerSuite) TestCliRunContainerWithWritableRootfs(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "--rm", "busybox", "touch", "/file")
 }
 
@@ -1139,6 +1208,8 @@ func (s *DockerSuite) TestCliRunContainerWithWritableRootfs(c *check.C) {
 func (s *DockerSuite) TestCliRunContainerWithRmFlagExitCodeNotEqualToZero(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	name := "flowers"
 	out, _, err := dockerCmdWithError("run", "--name", name, "--rm", "busybox", "ls", "/notexists")
@@ -1159,6 +1230,8 @@ func (s *DockerSuite) TestCliRunContainerWithRmFlagExitCodeNotEqualToZero(c *che
 func (s *DockerSuite) TestCliRunContainerWithRmFlagCannotStartContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	name := "sparkles"
 	out, _, err := dockerCmdWithError("run", "--name", name, "--rm", "busybox", "commandNotFound")
@@ -1178,9 +1251,11 @@ func (s *DockerSuite) TestCliRunContainerWithRmFlagCannotStartContainer(c *check
 
 func (s *DockerSuite) TestCliRunWriteToProcAsound(c *check.C) {
 	// Not applicable on Windows as uses Unix specific functionality
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	_, code, err := dockerCmdWithError("run", "busybox", "sh", "-c", "echo 111 >> /proc/asound/version")
 	if err == nil || code == 0 {
 		c.Fatal("standard container should not be able to write to /proc/asound")
@@ -1189,10 +1264,11 @@ func (s *DockerSuite) TestCliRunWriteToProcAsound(c *check.C) {
 
 func (s *DockerSuite) TestCliRunReadProcTimer(c *check.C) {
 	// Not applicable on Windows as uses Unix specific functionality
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
-	pullImageIfNotExist("busybox")
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	out, code, err := dockerCmdWithError("run", "busybox", "cat", "/proc/timer_stats")
 	if code != 0 {
 		return
@@ -1207,9 +1283,10 @@ func (s *DockerSuite) TestCliRunReadProcTimer(c *check.C) {
 
 func (s *DockerSuite) TestCliRunReadProcLatency(c *check.C) {
 	// Not applicable on Windows as uses Unix specific functionality
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	// some kernels don't have this configured so skip the test if this file is not found
 	// on the host running the tests.
@@ -1231,9 +1308,10 @@ func (s *DockerSuite) TestCliRunReadProcLatency(c *check.C) {
 
 func (s *DockerSuite) TestCliRunNetworkFilesBindMount(c *check.C) {
 	// Not applicable on Windows as uses Unix specific functionality
-	testRequires(c, SameHostDaemon, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, SameHostDaemon, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 
 	expected := "test123"
@@ -1253,10 +1331,11 @@ func (s *DockerSuite) TestCliRunNetworkFilesBindMount(c *check.C) {
 
 func (s *DockerSuite) TestCliRunNetworkFilesBindMountRO(c *check.C) {
 	// Not applicable on Windows as uses Unix specific functionality
-	testRequires(c, SameHostDaemon, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, SameHostDaemon, DaemonIsLinux)
 
+	pullImageIfNotExist("busybox")
 	filename := createTmpFile(c, "test123")
 	defer os.Remove(filename)
 
@@ -1272,9 +1351,10 @@ func (s *DockerSuite) TestCliRunNetworkFilesBindMountRO(c *check.C) {
 
 func (s *DockerTrustSuite) TestCliRunWhenCertExpired(c *check.C) {
 	// Windows does not support this functionality
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	c.Skip("Currently changes system time, causing instability")
 	repoName := s.setupTrustedImage(c, "trusted-run-expired")
 
@@ -1312,9 +1392,10 @@ func (s *DockerTrustSuite) TestCliRunWhenCertExpired(c *check.C) {
 
 func (s *DockerSuite) TestCliRunPtraceContainerProcsFromHost(c *check.C) {
 	// Not applicable on Windows as uses Unix specific functionality
-	testRequires(c, DaemonIsLinux, SameHostDaemon)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux, SameHostDaemon)
+
 	pullImageIfNotExist("busybox")
 
 	out, _ := dockerCmd(c, "run", "-d", "busybox", "top")
@@ -1331,9 +1412,10 @@ func (s *DockerSuite) TestCliRunPtraceContainerProcsFromHost(c *check.C) {
 // run create container failed should clean up the container
 func (s *DockerSuite) TestCliRunCreateContainerFailedCleanUp(c *check.C) {
 	// TODO Windows. This may be possible to enable once link is supported
-	testRequires(c, DaemonIsLinux)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	name := "unique_name"
 	_, _, err := dockerCmdWithError("run", "--name", name, "--link", "nothing:nothing", "busybox")
 	c.Assert(err, check.NotNil, check.Commentf("Expected docker run to fail!"))
@@ -1347,6 +1429,9 @@ func (s *DockerSuite) TestCliRunCreateContainerFailedCleanUp(c *check.C) {
 func (s *DockerSuite) TestCliRunStdinBlockedAfterContainerExit(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-i", "--name=test", "busybox", "true")
 	in, err := cmd.StdinPipe()
 	c.Assert(err, check.IsNil)
@@ -1370,6 +1455,9 @@ func (s *DockerSuite) TestCliRunStdinBlockedAfterContainerExit(c *check.C) {
 func (s *DockerSuite) TestCliRunNonExecutableCmd(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	name := "test-non-executable-cmd"
 	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "--name", name, "busybox", "foo")
 	_, exit, _ := runCommandWithOutput(runCmd)
@@ -1383,6 +1471,9 @@ func (s *DockerSuite) TestCliRunNonExecutableCmd(c *check.C) {
 func (s *DockerSuite) TestCliRunNonExistingCmd(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	name := "test-non-existing-cmd"
 	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "--name", name, "busybox", "/bin/foo")
 	_, exit, _ := runCommandWithOutput(runCmd)
@@ -1398,6 +1489,9 @@ func (s *DockerSuite) TestCliRunNonExistingCmd(c *check.C) {
 func (s *DockerSuite) TestCliRunCmdCannotBeInvoked(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	expected := 126
 	if daemonPlatform == "windows" {
 		expected = 127
@@ -1415,6 +1509,8 @@ func (s *DockerSuite) TestCliRunCmdCannotBeInvoked(c *check.C) {
 func (s *DockerSuite) TestCliRunNonExistingImage(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "foo")
 	out, exit, err := runCommandWithOutput(runCmd)
 	if !(err != nil && exit == 125 && strings.Contains(out, "Unable to find image")) {
@@ -1426,6 +1522,9 @@ func (s *DockerSuite) TestCliRunNonExistingImage(c *check.C) {
 func (s *DockerSuite) TestCliRunDockerFails(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-foo", "busybox")
 	out, exit, err := runCommandWithOutput(runCmd)
 	if !(err != nil && exit == 125) {
@@ -1437,6 +1536,8 @@ func (s *DockerSuite) TestCliRunDockerFails(c *check.C) {
 func (s *DockerSuite) TestCliRunInvalidReference(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, exit, _ := dockerCmdWithError("run", "busybox@foo")
 	if exit == 0 {
 		c.Fatalf("expected non-zero exist code; received %d", exit)
@@ -1450,9 +1551,9 @@ func (s *DockerSuite) TestCliRunInvalidReference(c *check.C) {
 func (s *DockerSuite) TestCliRunVolumesMountedAsSlave(c *check.C) {
 	// Volume propagation is linux only. Also it creates directories for
 	// bind mounting, so needs to be same host.
-	testRequires(c, DaemonIsLinux, SameHostDaemon, NotUserNamespace)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux, SameHostDaemon, NotUserNamespace)
 
 	// Prepare a source directory to bind mount
 	tmpDir, err := ioutil.TempDir("", "volume-source")
@@ -1509,9 +1610,10 @@ func (s *DockerSuite) TestCliRunVolumesMountedAsSlave(c *check.C) {
 }
 
 func (s *DockerSuite) TestCliRunNamedVolumesMountedAsShared(c *check.C) {
-	testRequires(c, DaemonIsLinux, NotUserNamespace)
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux, NotUserNamespace)
+
 	pullImageIfNotExist("busybox")
 	out, exitcode, _ := dockerCmdWithError("run", "-v", "foo:/test:shared", "busybox", "touch", "/test/somefile")
 
@@ -1527,6 +1629,8 @@ func (s *DockerSuite) TestCliRunNamedVolumesMountedAsShared(c *check.C) {
 func (s *DockerSuite) TestCliRunNamedVolumeNotRemoved(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
 
@@ -1547,6 +1651,8 @@ func (s *DockerSuite) TestCliRunNamedVolumeNotRemoved(c *check.C) {
 func (s *DockerSuite) TestRunProtectionContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "--protection=true", "-d", "busybox", "top")
 	id := strings.TrimSpace(out)
@@ -1579,6 +1685,8 @@ func (s *DockerSuite) TestRunProtectionContainer(c *check.C) {
 func (s *DockerSuite) TestCreateProtectionContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "create", "--protection=true", "busybox", "top")
 	id := strings.TrimSpace(out)

@@ -14,8 +14,9 @@ import (
 func (s *DockerSuite) TestCliPortList(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-	pullImageIfNotExist("busybox")
 	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	// one port
 	out, _ := dockerCmd(c, "run", "-d", "-p", "9876:80", "busybox", "top")
 	firstID := strings.TrimSpace(out)
@@ -176,8 +177,9 @@ func stopRemoveContainer(id string, c *check.C) {
 func (s *DockerSuite) TestCliPortUnpublishedPortsInPsOutput(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-	pullImageIfNotExist("busybox")
 	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	// Run busybox with command line expose (equivalent to EXPOSE in image's Dockerfile) for the following ports
 	port1 := 80
 	port2 := 443
@@ -241,11 +243,12 @@ func (s *DockerSuite) TestCliPortUnpublishedPortsInPsOutput(c *check.C) {
 	c.Assert(out, checker.Contains, expBnd2)
 }
 
-func (s *DockerSuite) TestCliPortHostBinding(c *check.C) {
+func (s *DockerSuite) TestCliPortHostBindingBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-	pullImageIfNotExist("busybox")
 	testRequires(c, DaemonIsLinux, NotUserNamespace)
+
+	pullImageIfNotExist("busybox")
 	out, _ := dockerCmd(c, "run", "-d", "-p", "9876:80", "busybox",
 		"nc", "-l", "-p", "80")
 	firstID := strings.TrimSpace(out)

@@ -12,6 +12,8 @@ import (
 func (s *DockerSuite) TestCliSnapshotCreate(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
 	name := strings.TrimSpace(out)
 	c.Assert(name, check.Equals, "test")
@@ -30,6 +32,8 @@ func (s *DockerSuite) TestCliSnapshotCreate(c *check.C) {
 func (s *DockerSuite) TestCliSnapshotInspect(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	c.Assert(
 		exec.Command(dockerBinary, "snapshot", "inspect", "doesntexist").Run(),
 		check.Not(check.IsNil),
@@ -56,6 +60,8 @@ func (s *DockerSuite) TestCliSnapshotInspect(c *check.C) {
 func (s *DockerSuite) TestCliSnapshotInspectMulti(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
 	name := strings.TrimSpace(out)
 	c.Assert(name, check.Equals, "test")
@@ -82,6 +88,8 @@ func (s *DockerSuite) TestCliSnapshotInspectMulti(c *check.C) {
 func (s *DockerSuite) TestCliSnapshotLs(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
 	name := strings.TrimSpace(out)
 	c.Assert(name, check.Equals, "test")
@@ -106,6 +114,8 @@ func (s *DockerSuite) TestCliSnapshotLs(c *check.C) {
 func (s *DockerSuite) TestCliSnapshotRm(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
 	name := strings.TrimSpace(out)
 	c.Assert(name, check.Equals, "test")
@@ -131,6 +141,8 @@ func (s *DockerSuite) TestCliSnapshotRm(c *check.C) {
 func (s *DockerSuite) TestCliSnapshotNoArgs(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, _ := dockerCmd(c, "snapshot")
 	// no args should produce the cmd usage output
 	usage := "Usage:	hyper snapshot [OPTIONS] [COMMAND]"
@@ -151,6 +163,8 @@ func (s *DockerSuite) TestCliSnapshotNoArgs(c *check.C) {
 func (s *DockerSuite) TestCliSnapshotInspectTmplError(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
 	name := strings.TrimSpace(out)
 	c.Assert(name, check.Equals, "test")
@@ -166,9 +180,11 @@ func (s *DockerSuite) TestCliSnapshotInspectTmplError(c *check.C) {
 	dockerCmd(c, "volume", "rm", "test")
 }
 
-func (s *DockerSuite) TestCliSnapshotCreateVol(c *check.C) {
+func (s *DockerSuite) TestCliSnapshotCreateVolBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
 	name := strings.TrimSpace(out)
 	c.Assert(name, check.Equals, "test")
@@ -196,6 +212,8 @@ func (s *DockerSuite) TestCliSnapshotCreateVol(c *check.C) {
 func (s *DockerSuite) TestCliSnapshotRmBasedVol(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	out, _ := dockerCmd(c, "volume", "create", "--name=test")
 	name := strings.TrimSpace(out)
 	c.Assert(name, check.Equals, "test")

@@ -77,6 +77,9 @@ case $1 in
         -e AWS_SECRET_KEY=${AWS_SECRET_KEY} \
         -e URL_WITH_BASIC_AUTH=${URL_WITH_BASIC_AUTH} \
         -e MONGODB_URL=${MONGODB_URL} \
+        -e DOCKERHUB_EMAIL=${DOCKERHUB_EMAIL} \
+        -e DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME} \
+        -e DOCKERHUB_PASSWD=${DOCKERHUB_PASSWD} \
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
         ${IMAGE_NAME}:dev zsh
     ;;
@@ -92,6 +95,9 @@ case $1 in
         -e DOCKER_HOST=${HYPER_HOST} \
         -e ACCESS_KEY=${ACCESS_KEY} \
         -e SECRET_KEY=${SECRET_KEY} \
+        -e DOCKERHUB_EMAIL=${DOCKERHUB_EMAIL} \
+        -e DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME} \
+        -e DOCKERHUB_PASSWD=${DOCKERHUB_PASSWD} \
         ${IMAGE_NAME}:qa go test -check.f TestCli -timeout 180m
     ;;
   test)

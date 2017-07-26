@@ -18,6 +18,9 @@ import (
 func (s *DockerSuite) TestCliRunRedirectStdout(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	checkRedirect := func(command string) {
 		_, tty, err := pty.Open()
 		c.Assert(err, checker.IsNil, check.Commentf("Could not open pty"))
@@ -44,11 +47,13 @@ func (s *DockerSuite) TestCliRunRedirectStdout(c *check.C) {
 	checkRedirect(dockerBinary + " -H " + os.Getenv("DOCKER_HOST") + " run busybox cat /etc/passwd | grep -q root")
 }
 
-func (s *DockerSuite) TestCliRunAttachDetach(c *check.C) {
+func (s *DockerSuite) TestCliRunAttachDetachBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-	name := "attach-detach"
+	testRequires(c, DaemonIsLinux)
 
+	pullImageIfNotExist("busybox")
+	name := "attach-detach"
 	dockerCmd(c, "run", "--name", name, "-itd", "busybox", "cat")
 
 	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "attach", name)

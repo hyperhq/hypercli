@@ -1,13 +1,19 @@
 package main
 
 import (
+	"time"
+
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/engine-api/types"
 	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliInspectNamedMountPoint(c *check.C) {
+func (s *DockerSuite) TestCliInspectNamedMountPointBasic(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
 	dockerCmd(c, "run", "-d", "--name", "test", "-v", "data:/data", "busybox", "cat")
 
 	vol := inspectFieldJSON(c, "test", "Mounts")

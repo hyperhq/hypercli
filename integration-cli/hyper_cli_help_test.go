@@ -13,7 +13,7 @@ import (
 	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliHelpTextVerify(c *check.C) {
+func (s *DockerSuite) TestCliHelpTextVerifyBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 

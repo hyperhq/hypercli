@@ -8,9 +8,25 @@ import (
 	"github.com/go-check/check"
 )
 
-func (s *DockerSuite) TestCliRmiWithContainerFails(c *check.C) {
+func (s *DockerSuite) TestCliRmiBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
+	pullImageIfNotExist("busybox")
+
+	_, _, err := dockerCmdWithError("rmi", "busybox")
+	c.Assert(err, checker.IsNil)
+
+	images, _ := dockerCmd(c, "images")
+	c.Assert(images, checker.Not(checker.Contains), "busybox")
+}
+
+func (s *DockerSuite) TestCliRmiWithContainerFailsBasic(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	errSubstr := "is using it"
 
 	// create a container
@@ -35,6 +51,8 @@ func (s *DockerSuite) TestCliRmiWithContainerFails(c *check.C) {
 func (s *DockerSuite) TestCliRmiBlank(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	// try to delete a blank image name
 	out, _, err := dockerCmdWithError("rmi", "")
 	// Should have failed to delete '' image
@@ -55,10 +73,11 @@ func (s *DockerSuite) TestCliRmiBlank(c *check.C) {
 func (s *DockerSuite) TestCliRmiByIDHardConflict(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
+	testRequires(c, DaemonIsLinux)
+
 	// TODO Windows CI. This will work on a TP5 compatible docker which
 	// has content addressibility fixes. Do not run this on TP4 as it
 	// will end up deleting the busybox image causing subsequent tests to fail.
-	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "create", "busybox")
 
 	imgID := inspectField(c, "busybox:latest", "Id")
