@@ -31,7 +31,7 @@ func (s *DockerSuite) TestCliFipAssociateUsedIP(c *check.C) {
 	c.Assert(out, checker.Equals, firstIP+"\n")
 }
 
-func (s *DockerSuite) TestCliFipAssociateConfedContainer(c *check.C) {
+func (s *DockerSuite) TestCliFipAttachConfedContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
@@ -55,7 +55,7 @@ func (s *DockerSuite) TestCliFipAssociateConfedContainer(c *check.C) {
 	c.Assert(out, checker.Equals, firstIP+"\n")
 }
 
-func (s *DockerSuite) TestCliFipDisattachUnconfedContainer(c *check.C) {
+func (s *DockerSuite) TestCliFipDettachUnconfedContainer(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
 
@@ -96,4 +96,40 @@ func (s *DockerSuite) TestCliFipReleaseInvalidIP(c *check.C) {
 
 	out, _, err = dockerCmdWithError("fip", "release", "0.0.0.0")
 	c.Assert(err, checker.NotNil, check.Commentf("Should fail.", out, err))
+}
+
+func (s *DockerSuite) TestCliFipName(c *check.C) {
+	printTestCaseName()
+	defer printTestDuration(time.Now())
+
+	out, _ := dockerCmd(c, "fip", "allocate", "-y", "1")
+	firstIP := strings.TrimSpace(out)
+	fipList := []string{firstIP}
+
+	out, _ = dockerCmd(c, "fip", "allocate", "-y", "1")
+	secondIP := strings.TrimSpace(out)
+	fipList = append(fipList, secondIP)
+
+	defer releaseFip(c, fipList)
+
+	pullImageIfNotExist("busybox")
+	out, _ = runSleepingContainer(c, "-d")
+	firstContainerID := strings.TrimSpace(out)
+
+	// multiple FIPs without name, attach one with container
+	dockerCmd(c, "fip", "attach", secondIP, firstContainerID)
+	out, _ = dockerCmd(c, "fip", "detach", firstContainerID)
+	c.Assert(out, checker.Equals, secondIP+"\n")
+
+	// multiple FIPs (one FIP has name), attach one with container
+	dockerCmd(c, "fip", "name", secondIP, "ip2")
+	dockerCmd(c, "fip", "attach", secondIP, firstContainerID)
+	out, _ = dockerCmd(c, "fip", "detach", firstContainerID)
+	c.Assert(out, checker.Equals, secondIP+"\n")
+
+	// multiple FIPs (two FIPs have name), attach one with container
+	dockerCmd(c, "fip", "name", firstIP, "ip1")
+	dockerCmd(c, "fip", "attach", secondIP, firstContainerID)
+	out, _ = dockerCmd(c, "fip", "detach", firstContainerID)
+	c.Assert(out, checker.Equals, secondIP+"\n")
 }
