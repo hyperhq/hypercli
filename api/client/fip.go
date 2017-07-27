@@ -217,7 +217,7 @@ func fipUsage() string {
 	fipCommands := [][]string{
 		{"allocate", "Allocate a or some IPs"},
 		{"attach", "Attach floating IP to container"},
-		{"detach", "Detach floating IP from conainer"},
+		{"detach", "Detach floating IP from container"},
 		{"ls", "List all floating IPs"},
 		{"release", "Release a floating IP"},
 		{"name", "Name a floating IP"},
