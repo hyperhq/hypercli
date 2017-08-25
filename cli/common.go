@@ -11,7 +11,7 @@ type CommonFlags struct {
 	PostParse func()
 
 	Debug      bool
-	Hosts      []string
+	Region     string
 	LogLevel   string
 	TLS        bool
 	TLSVerify  bool

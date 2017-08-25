@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 
@@ -46,8 +47,9 @@ type DockerCli struct {
 	// client is the http client that performs all API operations
 	client client.APIClient
 	// state holds the terminal state
-	state *term.State
-	host  string
+	state  *term.State
+	region string
+	host   string
 }
 
 // Initialize calls the init function that will setup the configuration for the client
@@ -134,7 +136,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		}
 		cli.configFile = configFile
 
-		host, err := getServerHost(clientFlags.Common.Hosts, clientFlags.Common.TLSOptions)
+		host, err := cli.getServerHost(clientFlags.Common.Region, clientFlags.Common.TLSOptions)
 		if err != nil {
 			return err
 		}
@@ -160,8 +162,14 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 			cloudConfig.AccessKey = cc.AccessKey
 			cloudConfig.SecretKey = cc.SecretKey
 		} else {
-			cloudConfig.AccessKey = os.Getenv("HYPER_ACCESS")
-			cloudConfig.SecretKey = os.Getenv("HYPER_SECRET")
+			cc, ok := configFile.CloudConfig[cliconfig.DefaultHyperFormat]
+			if ok {
+				cloudConfig.AccessKey = cc.AccessKey
+				cloudConfig.SecretKey = cc.SecretKey
+			} else {
+				cloudConfig.AccessKey = os.Getenv("HYPER_ACCESS")
+				cloudConfig.SecretKey = os.Getenv("HYPER_SECRET")
+			}
 		}
 		if cloudConfig.AccessKey == "" || cloudConfig.SecretKey == "" {
 			fmt.Fprintf(cli.err, "WARNING: null cloud config\n")
@@ -173,6 +181,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		}
 		cli.client = client
 		cli.host = host
+		cli.region = clientFlags.Common.Region
 
 		if cli.in != nil {
 			cli.inFd, cli.isTerminalIn = term.GetFdInfo(cli.in)
@@ -187,14 +196,14 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 	return cli
 }
 
-func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (host string, err error) {
-	switch len(hosts) {
-	case 0:
-		host = cliconfig.DefaultHyperServer
-	case 1:
-		host = hosts[0]
-	default:
-		return "", errors.New("Please specify only one -H")
+func (cli *DockerCli) getServerHost(region string, tlsOptions *tlsconfig.Options) (host string, err error) {
+	host = region
+	if host == "" {
+		host = os.Getenv("HYPER_DEFAULT_REGION")
+		region = cli.getDefaultRegion()
+	}
+	if _, err := url.ParseRequestURI(host); err != nil {
+		host = "tcp://" + region + "." + cliconfig.DefaultHyperEndpoint
 	}
 
 	host, err = opts.ParseHost(tlsOptions != nil, host)

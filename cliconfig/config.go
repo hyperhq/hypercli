@@ -24,7 +24,9 @@ const (
 	// assumed to be this value.
 	defaultIndexserver = "https://index.docker.io/v1/"
 
-	DefaultHyperServer = "tcp://us-west-1.hyper.sh:443"
+	DefaultHyperFormat   = "tcp://*.hyper.sh:443"
+	DefaultHyperRegion   = "us-west-1"
+	DefaultHyperEndpoint = "hyper.sh:443"
 )
 
 var (
@@ -50,6 +52,7 @@ func SetConfigDir(dir string) {
 type CloudConfig struct {
 	AccessKey string `json:"accesskey"`
 	SecretKey string `json:"secretkey"`
+	Region    string `json:"region"`
 }
 
 // ConfigFile ~/.docker/config.json file info
