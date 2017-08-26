@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -515,5 +515,5 @@ func getBaseDir() string {
 	if err != nil {
 		return ""
 	}
-	return path.Base(file)
+	return filepath.Base(file)
 }
