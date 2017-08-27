@@ -400,7 +400,7 @@ func (cli *DockerCli) CmdFuncCall(args ...string) error {
 		}
 	}
 
-	body, err := cli.client.FuncCall(context.Background(), name, stdin, *sync)
+	body, err := cli.client.FuncCall(context.Background(), cli.region, name, stdin, *sync)
 	if err != nil {
 		return err
 	}
@@ -435,7 +435,7 @@ func (cli *DockerCli) CmdFuncGet(args ...string) error {
 
 	callId := cmd.Arg(0)
 
-	body, err := cli.client.FuncGet(context.Background(), callId, *wait)
+	body, err := cli.client.FuncGet(context.Background(), cli.region, callId, *wait)
 	if err != nil {
 		return err
 	}
@@ -463,7 +463,7 @@ func (cli *DockerCli) CmdFuncLogs(args ...string) error {
 	name := cmd.Arg(0)
 	name = strings.Replace(name, "/", "", -1)
 
-	reader, err := cli.client.FuncLogs(context.Background(), name, *callId, *follow, *tail)
+	reader, err := cli.client.FuncLogs(context.Background(), cli.region, name, *callId, *follow, *tail)
 	if err != nil {
 		return err
 	}
@@ -503,7 +503,6 @@ func (cli *DockerCli) CmdFuncLogs(args ...string) error {
 			}
 		}
 	}
-	return nil
 }
 
 // CmdFuncStatus Status the return of a func call
@@ -520,7 +519,7 @@ func (cli *DockerCli) CmdFuncStatus(args ...string) error {
 	name := cmd.Arg(0)
 	name = strings.Replace(name, "/", "", -1)
 
-	status, err := cli.client.FuncStatus(context.Background(), name)
+	status, err := cli.client.FuncStatus(context.Background(), cli.region, name)
 	if err != nil {
 		return err
 	}
