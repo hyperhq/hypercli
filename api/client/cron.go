@@ -103,7 +103,7 @@ func (cli *DockerCli) CmdCronCreate(args ...string) error {
 		entrypoint = strslice.StrSlice{*flEntrypoint}
 	}
 
-	if _, _, err = cli.client.ImageInspectWithRaw(context.Background(), image, false); err != nil {
+	if _, _, err = cli.client.ImageInspectWithRaw(context.Background(), image, false); err != nil && strings.Contains(err.Error(), "No such image") {
 		if err := cli.pullImage(context.Background(), image); err != nil {
 			return err
 		}
