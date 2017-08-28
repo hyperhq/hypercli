@@ -90,7 +90,7 @@ func (cli *DockerCli) CmdServiceCreate(args ...string) error {
 		image      = cmd.Arg(0)
 	)
 
-	if _, _, err = cli.client.ImageInspectWithRaw(context.Background(), image, false); err != nil {
+	if _, _, err = cli.client.ImageInspectWithRaw(context.Background(), image, false); err != nil && strings.Contains(err.Error(), "No such image") {
 		if err := cli.pullImage(context.Background(), image); err != nil {
 			return err
 		}
@@ -319,8 +319,10 @@ func (cli *DockerCli) CmdServiceRolling_update(args ...string) error {
 	}
 
 	ctx := context.Background()
-	if err := cli.pullImage(ctx, *flImage); err != nil {
-		return err
+	if _, _, err := cli.client.ImageInspectWithRaw(ctx, *flImage, false); err != nil && strings.Contains(err.Error(), "No such image") {
+		if err := cli.pullImage(ctx, *flImage); err != nil {
+			return err
+		}
 	}
 
 	for _, sr := range cmd.Args() {
