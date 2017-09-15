@@ -33,6 +33,7 @@ ENV BRANCH="master"
 
 ENV ACCESS_KEY=
 ENV SECRET_KEY=
+ENV REGION=
 
 RUN mkdir -p /go/src/github.com/hyperhq
 WORKDIR /go/src/github.com/hyperhq

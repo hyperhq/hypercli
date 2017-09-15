@@ -112,7 +112,7 @@ func init() {
 
 	//set flag_host
 	if os.Getenv("DOCKER_HOST") != "" {
-		flag_host = "--host=" + os.Getenv("DOCKER_HOST")
+		flag_host = "--region=" + os.Getenv("DOCKER_HOST")
 	}
 }
 
@@ -242,7 +242,7 @@ func (d *Daemon) StartWithLogFile(out *os.File, providedArgs ...string) error {
 		fmt.Sprintf("--userland-proxy=%t", d.userlandProxy),
 	)
 	if !(d.useDefaultHost || d.useDefaultTLSHost) {
-		args = append(args, []string{"--host", os.Getenv("DOCKER_HOST")}...)
+		args = append(args, []string{"--region", os.Getenv("DOCKER_HOST")}...)
 	}
 	if root := os.Getenv("DOCKER_REMAP_ROOT"); root != "" {
 		args = append(args, []string{"--userns-remap", root}...)
@@ -477,14 +477,14 @@ func (d *Daemon) queryRootDir() (string, error) {
 //}
 
 func (d *Daemon) waitRun(contID string) error {
-	args := []string{"--host", os.Getenv("DOCKER_HOST")}
+	args := []string{"--region", os.Getenv("DOCKER_HOST")}
 	return waitInspectWithArgs(contID, "{{.State.Running}}", "true", 10*time.Second, args...)
 }
 
 // Cmd will execute a docker CLI command against this Daemon.
 // Example: d.Cmd("version") will run docker -H unix://path/to/unix.sock version
 func (d *Daemon) Cmd(name string, arg ...string) (string, error) {
-	args := []string{"--host", os.Getenv("DOCKER_HOST"), name}
+	args := []string{"--region", os.Getenv("DOCKER_HOST"), name}
 	args = append(args, arg...)
 	c := exec.Command(dockerBinary, args...)
 	b, err := c.CombinedOutput()
@@ -669,7 +669,7 @@ func readBody(b io.ReadCloser) ([]byte, error) {
 
 func deleteContainer(container string) error {
 	container = strings.TrimSpace(strings.Replace(container, "\n", " ", -1))
-	rmArgs := strings.Split(fmt.Sprintf("--host=%v rm -fv %v", os.Getenv("DOCKER_HOST"), container), " ")
+	rmArgs := strings.Split(fmt.Sprintf("--region=%v rm -fv %v", os.Getenv("DOCKER_HOST"), container), " ")
 	exitCode, err := runCommand(exec.Command(dockerBinary, rmArgs...))
 	// set error manually if not set
 	if exitCode != 0 && err == nil {
@@ -979,41 +979,41 @@ func pathExist(_path string) bool {
 }
 
 func dockerCmdWithError(args ...string) (string, int, error) {
-	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	arg := []string{"--region=" + os.Getenv("DOCKER_HOST")}
 	args = append(arg, args...)
 	return integration.DockerCmdWithError(dockerBinary, args...)
 }
 
 func dockerCmdWithStdoutStderr(c *check.C, args ...string) (string, string, int) {
-	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	arg := []string{"--region=" + os.Getenv("DOCKER_HOST")}
 	args = append(arg, args...)
 	return integration.DockerCmdWithStdoutStderr(dockerBinary, c, args...)
 }
 
 func dockerCmd(c *check.C, args ...string) (string, int) {
-	//append -H (--host)
-	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	//append -H (--region)
+	arg := []string{"--region=" + os.Getenv("DOCKER_HOST")}
 	args = append(arg, args...)
 	return integration.DockerCmd(dockerBinary, c, args...)
 }
 
 // execute a docker command with a timeout
 func dockerCmdWithTimeout(timeout time.Duration, args ...string) (string, int, error) {
-	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	arg := []string{"--region=" + os.Getenv("DOCKER_HOST")}
 	args = append(arg, args...)
 	return integration.DockerCmdWithTimeout(dockerBinary, timeout, args...)
 }
 
 // execute a docker command in a directory
 func dockerCmdInDir(c *check.C, path string, args ...string) (string, int, error) {
-	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	arg := []string{"--region=" + os.Getenv("DOCKER_HOST")}
 	args = append(arg, args...)
 	return integration.DockerCmdInDir(dockerBinary, path, args...)
 }
 
 // execute a docker command in a directory with a timeout
 func dockerCmdInDirWithTimeout(timeout time.Duration, path string, args ...string) (string, int, error) {
-	arg := []string{"--host=" + os.Getenv("DOCKER_HOST")}
+	arg := []string{"--region=" + os.Getenv("DOCKER_HOST")}
 	args = append(arg, args...)
 	return integration.DockerCmdInDirWithTimeout(dockerBinary, timeout, path, args...)
 }
@@ -1794,7 +1794,7 @@ func createTmpFile(c *check.C, content string) string {
 
 func buildImageWithOutInDamon(socket string, name, dockerfile string, useCache bool) (string, error) {
 	fmt.Printf("[buildImageWithOutInDamon] socket: %v\n", socket)
-	args := []string{"--host", flag_host}
+	args := []string{"--region", flag_host}
 	buildCmd := buildImageCmdArgs(args, name, dockerfile, useCache)
 	out, exitCode, err := runCommandWithOutput(buildCmd)
 	if err != nil || exitCode != 0 {

@@ -40,7 +40,7 @@ func (s *DockerSuite) TestCliExecBasic(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "--name", "test", "busybox", "sh", "-c", "echo test > /tmp/file && top")
 
-	execCmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", "-i", "test", "sh")
+	execCmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "exec", "-i", "test", "sh")
 	stdin, err := execCmd.StdinPipe()
 	c.Assert(err, checker.IsNil)
 	stdout, err := execCmd.StdoutPipe()
@@ -113,7 +113,7 @@ func (s *DockerSuite) TestCliExecExitStatus(c *check.C) {
 	runSleepingContainer(c, "-d", "--name", "top")
 
 	// Test normal (non-detached) case first
-	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", "top", "sh", "-c", "exit 23")
+	cmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "exec", "top", "sh", "-c", "exit 23")
 	ec, _ := runCommand(cmd)
 	c.Assert(ec, checker.Equals, 23)
 }
@@ -127,7 +127,7 @@ func (s *DockerSuite) TestCliExecExitStatus(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "-it", "--name", "test", "busybox")
 
-	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", "-i", "test", "cat")
+	cmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "exec", "-i", "test", "cat")
 	stdinRw, err := cmd.StdinPipe()
 	c.Assert(err, checker.IsNil)
 
@@ -158,7 +158,7 @@ func (s *DockerSuite) TestCliExecTTYWithoutStdin(c *check.C) {
 	go func() {
 		defer close(errChan)
 
-		cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", "-ti", id, "true")
+		cmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "exec", "-ti", id, "true")
 		if _, err := cmd.StdinPipe(); err != nil {
 			errChan <- err
 			return
@@ -192,7 +192,7 @@ func (s *DockerSuite) TestCliExecParseError(c *check.C) {
 	dockerCmd(c, "run", "-d", "--name", "top", "busybox", "top")
 
 	// Test normal (non-detached) case first
-	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", "top")
+	cmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "exec", "top")
 	_, stderr, _, err := runCommandWithStdoutStderr(cmd)
 	c.Assert(err, checker.NotNil)
 	c.Assert(stderr, checker.Contains, "See '"+dockerBinary+" exec --help'")
@@ -207,7 +207,7 @@ func (s *DockerSuite) TestCliExecStopNotHanging(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "--name", "test", "busybox", "top")
 
-	err := exec.Command(dockerBinary, "exec", "--host="+os.Getenv("DOCKER_HOST"), "test", "top").Start()
+	err := exec.Command(dockerBinary, "exec", "--region="+os.Getenv("DOCKER_HOST"), "test", "top").Start()
 	c.Assert(err, checker.IsNil)
 
 	type dstop struct {
@@ -217,7 +217,7 @@ func (s *DockerSuite) TestCliExecStopNotHanging(c *check.C) {
 
 	ch := make(chan dstop)
 	go func() {
-		out, err := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "stop", "test").CombinedOutput()
+		out, err := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "stop", "test").CombinedOutput()
 		ch <- dstop{out, err}
 		close(ch)
 	}()
@@ -369,7 +369,7 @@ func (s *DockerSuite) TestCliExecRunMutableNetworkFiles(c *check.C) {
 	for _, fn := range []string{"resolv.conf", "hosts"} {
 		deleteAllContainers()
 
-		content, err := runCommandAndReadContainerFile(fn, exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "run", "-d", "--name", "c1", "busybox", "sh", "-c", fmt.Sprintf("echo success >/etc/%s && top", fn)))
+		content, err := runCommandAndReadContainerFile(fn, exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "run", "-d", "--name", "c1", "busybox", "sh", "-c", fmt.Sprintf("echo success >/etc/%s && top", fn)))
 		c.Assert(err, checker.IsNil)
 
 		c.Assert(strings.TrimSpace(string(content)), checker.Equals, "success", check.Commentf("Content was not what was modified in the container", string(content)))
@@ -430,7 +430,7 @@ func (s *DockerSuite) TestCliExecInspectID(c *check.C) {
 	c.Assert(out, checker.Equals, "[]", check.Commentf("ExecIDs should be empty, got: %s", out))
 
 	// Start an exec, have it block waiting so we can do some checking
-	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", id, "sh", "-c",
+	cmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "exec", id, "sh", "-c",
 		"while ! test -e /execid1; do sleep 1; done")
 
 	err := cmd.Start()
@@ -454,7 +454,7 @@ func (s *DockerSuite) TestCliExecInspectID(c *check.C) {
 	c.Assert(err, checker.IsNil, check.Commentf("failed to get the exec id"))
 
 	// End the exec by creating the missing file
-	err = exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", id,
+	err = exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "exec", id,
 		"sh", "-c", "touch /execid1").Run()
 
 	c.Assert(err, checker.IsNil, check.Commentf("failed to run the 2nd exec cmd"))

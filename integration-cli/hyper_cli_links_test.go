@@ -43,8 +43,8 @@ func (s *DockerSuite) TestCliLinksPingLinkedContainersBasic(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
-	dockerCmd(c, "run", "-d", "--name", "container1", "--hostname", "fred", "busybox", "top")
-	dockerCmd(c, "run", "-d", "--name", "container2", "--hostname", "wilma", "busybox", "top")
+	dockerCmd(c, "run", "-d", "--name", "container1", "--regionname", "fred", "busybox", "top")
+	dockerCmd(c, "run", "-d", "--name", "container2", "--regionname", "wilma", "busybox", "top")
 
 	runArgs := []string{"run", "--rm", "--link", "container1:alias1", "--link", "container2:alias2", "busybox", "sh", "-c"}
 	pingCmd := "ping -c 1 %s -W 5 && ping -c 1 %s -W 5"

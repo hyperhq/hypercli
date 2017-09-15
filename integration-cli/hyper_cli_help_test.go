@@ -122,7 +122,7 @@ func (s *DockerSuite) TestCliHelpTextVerifyBasic(c *check.C) {
 		for _, cmd := range cmdsToTest {
 			var stderr string
 
-			args := strings.Split("--host="+os.Getenv("DOCKER_HOST")+" "+cmd+" --help", " ")
+			args := strings.Split("--region="+os.Getenv("DOCKER_HOST")+" "+cmd+" --help", " ")
 
 			// Check the full usage text
 			helpCmd := exec.Command(dockerBinary, args...)
@@ -206,14 +206,14 @@ func (s *DockerSuite) TestCliHelpTextVerifyBasic(c *check.C) {
 
 				ec := 0
 				if _, ok := skipNoArgs[cmd]; !ok {
-					args = strings.Split("--host="+os.Getenv("DOCKER_HOST")+" "+cmd, " ")
+					args = strings.Split("--region="+os.Getenv("DOCKER_HOST")+" "+cmd, " ")
 					dCmd = exec.Command(dockerBinary, args...)
 					stdout, stderr, ec, err = runCommandWithStdoutStderr(dCmd)
 				}
 
 				// If its ok w/o any args then try again with an arg
 				if ec == 0 {
-					args = strings.Split("--host="+os.Getenv("DOCKER_HOST")+" "+cmd+" badArg", " ")
+					args = strings.Split("--region="+os.Getenv("DOCKER_HOST")+" "+cmd+" badArg", " ")
 					dCmd = exec.Command(dockerBinary, args...)
 					stdout, stderr, ec, err = runCommandWithStdoutStderr(dCmd)
 				}
