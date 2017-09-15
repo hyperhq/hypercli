@@ -112,5 +112,9 @@ func (cli *DockerCli) checkCloudConfig() error {
 }
 
 func (cli *DockerCli) getDefaultRegion() string {
+	cc, ok := cli.configFile.CloudConfig[cliconfig.DefaultHyperFormat]
+	if ok {
+		return cc.Region
+	}
 	return cliconfig.DefaultHyperRegion
 }
