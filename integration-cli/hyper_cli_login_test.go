@@ -12,7 +12,7 @@ import (
 func (s *DockerSuite) TestCliLoginWithoutTTYBasic(c *check.C) {
 	printTestCaseName()
 	defer printTestDuration(time.Now())
-	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "login")
+	cmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "login")
 
 	// Send to stdin so the process does not get the TTY
 	cmd.Stdin = bytes.NewBufferString("buffer test string \n")

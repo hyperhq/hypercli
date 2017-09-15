@@ -111,7 +111,7 @@ func (s *DockerSuite) TestCliRunStdinPipe(c *check.C) {
 	// TODO Windows: This needs some work to make compatible.
 	testRequires(c, DaemonIsLinux)
 	printTestCaseName(); defer printTestDuration(time.Now())
-	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-i", "-a", "stdin", "busybox", "cat")
+	runCmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "-i", "-a", "stdin", "busybox", "cat")
 	runCmd.Stdin = strings.NewReader("blahblah")
 	out, _, _, err := runCommandWithStdoutStderr(runCmd)
 	if err != nil {
@@ -328,7 +328,7 @@ func (s *DockerSuite) TestCliRunEnvironment(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	printTestCaseName(); defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
-	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-h", "testing", "-e=FALSE=true", "-e=TRUE=", "-e=TRICKY=", "-e=HOME=", "busybox", "env")
+	cmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "-h", "testing", "-e=FALSE=true", "-e=TRUE=", "-e=TRICKY=", "-e=HOME=", "busybox", "env")
 	cmd.Env = append(os.Environ(),
 		"TRUE=false",
 		"TRICKY=tri\ncky\n",
@@ -376,7 +376,7 @@ func (s *DockerSuite) TestCliRunEnvironmentErase(c *check.C) {
 	// not set in our local env that they're removed (if present) in
 	// the container
 
-	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-e", "FOO", "-e", "HOSTNAME", "busybox", "env")
+	cmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "-e", "FOO", "-e", "HOSTNAME", "busybox", "env")
 	cmd.Env = appendBaseEnv([]string{})
 
 	out, _, err := runCommandWithOutput(cmd)
@@ -415,7 +415,7 @@ func (s *DockerSuite) TestCliRunEnvironmentOverride(c *check.C) {
 	// Test to make sure that when we use -e on env vars that are
 	// already in the env that we're overriding them
 
-	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-e", "HOSTNAME", "-e", "HOME=/root2", "busybox", "env")
+	cmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "-e", "HOSTNAME", "-e", "HOME=/root2", "busybox", "env")
 	cmd.Env = appendBaseEnv([]string{"HOSTNAME=bar"})
 
 	out, _, err := runCommandWithOutput(cmd)
@@ -693,7 +693,7 @@ func (s *DockerSuite) TestCliRunExitOnStdinClose(c *check.C) {
 		meow = "cat"
 		delay = 60
 	}
-	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "--name", name, "-i", "busybox", meow)
+	runCmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "--name", name, "-i", "busybox", meow)
 
 	stdin, err := runCmd.StdinPipe()
 	if err != nil {
@@ -976,7 +976,7 @@ func (s *DockerSuite) TestCliRunNoOutputFromPullInStdout(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
 	// just run with unknown image
-	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "asdfsg")
+	cmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "asdfsg")
 	stdout := bytes.NewBuffer(nil)
 	cmd.Stdout = stdout
 	if err := cmd.Run(); err == nil {
@@ -995,7 +995,7 @@ func (s *DockerSuite) TestCliRunSlowStdoutConsumer(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	printTestCaseName(); defer printTestDuration(time.Now())
 	pullImageIfNotExist("busybox")
-	cont := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "--rm", "busybox", "/bin/sh", "-c", "dd if=/dev/zero of=/dev/stdout bs=1024 count=2000 | catv")
+	cont := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "--rm", "busybox", "/bin/sh", "-c", "dd if=/dev/zero of=/dev/stdout bs=1024 count=2000 | catv")
 
 	stdout, err := cont.StdoutPipe()
 	if err != nil {
@@ -1133,7 +1133,7 @@ func (s *DockerSuite) TestCliRunTTYWithPipe(c *check.C) {
 	go func() {
 		defer close(errChan)
 
-		cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-ti", "busybox", "true")
+		cmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "-ti", "busybox", "true")
 		if _, err := cmd.StdinPipe(); err != nil {
 			errChan <- err
 			return
@@ -1363,7 +1363,7 @@ func (s *DockerTrustSuite) TestCliRunWhenCertExpired(c *check.C) {
 
 	runAtDifferentDate(elevenYearsFromNow, func() {
 		// Try run
-		runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", repoName)
+		runCmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", repoName)
 		s.trustedCmd(runCmd)
 		out, _, err := runCommandWithOutput(runCmd)
 		if err == nil {
@@ -1377,7 +1377,7 @@ func (s *DockerTrustSuite) TestCliRunWhenCertExpired(c *check.C) {
 
 	runAtDifferentDate(elevenYearsFromNow, func() {
 		// Try run
-		runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "--disable-content-trust", repoName)
+		runCmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "--disable-content-trust", repoName)
 		s.trustedCmd(runCmd)
 		out, _, err := runCommandWithOutput(runCmd)
 		if err != nil {
@@ -1432,7 +1432,7 @@ func (s *DockerSuite) TestCliRunStdinBlockedAfterContainerExit(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
-	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-i", "--name=test", "busybox", "true")
+	cmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "-i", "--name=test", "busybox", "true")
 	in, err := cmd.StdinPipe()
 	c.Assert(err, check.IsNil)
 	defer in.Close()
@@ -1459,7 +1459,7 @@ func (s *DockerSuite) TestCliRunNonExecutableCmd(c *check.C) {
 
 	pullImageIfNotExist("busybox")
 	name := "test-non-executable-cmd"
-	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "--name", name, "busybox", "foo")
+	runCmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "--name", name, "busybox", "foo")
 	_, exit, _ := runCommandWithOutput(runCmd)
 	stateExitCode := findContainerExitCode(c, name)
 	if !(exit == 127 && strings.Contains(stateExitCode, "127")) {
@@ -1475,7 +1475,7 @@ func (s *DockerSuite) TestCliRunNonExistingCmd(c *check.C) {
 
 	pullImageIfNotExist("busybox")
 	name := "test-non-existing-cmd"
-	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "--name", name, "busybox", "/bin/foo")
+	runCmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "--name", name, "busybox", "/bin/foo")
 	_, exit, _ := runCommandWithOutput(runCmd)
 	stateExitCode := findContainerExitCode(c, name)
 	if !(exit == 127 && strings.Contains(stateExitCode, "127")) {
@@ -1497,7 +1497,7 @@ func (s *DockerSuite) TestCliRunCmdCannotBeInvoked(c *check.C) {
 		expected = 127
 	}
 	name := "test-cmd-cannot-be-invoked"
-	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "--name", name, "busybox", "/etc")
+	runCmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "--name", name, "busybox", "/etc")
 	_, exit, _ := runCommandWithOutput(runCmd)
 	stateExitCode := findContainerExitCode(c, name)
 	if !(exit == expected && strings.Contains(stateExitCode, strconv.Itoa(expected))) {
@@ -1511,7 +1511,7 @@ func (s *DockerSuite) TestCliRunNonExistingImage(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "foo")
+	runCmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "foo")
 	out, exit, err := runCommandWithOutput(runCmd)
 	if !(err != nil && exit == 125 && strings.Contains(out, "Unable to find image")) {
 		c.Fatalf("Run non-existing image should have errored with 'Unable to find image' code 125, but we got out: %s, exit: %d, err: %s", out, exit, err)
@@ -1525,7 +1525,7 @@ func (s *DockerSuite) TestCliRunDockerFails(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
 	pullImageIfNotExist("busybox")
-	runCmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "run", "-foo", "busybox")
+	runCmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "run", "-foo", "busybox")
 	out, exit, err := runCommandWithOutput(runCmd)
 	if !(err != nil && exit == 125) {
 		c.Fatalf("Docker run with flag not defined should exit with 125, but we got out: %s, exit: %d, err: %s", out, exit, err)

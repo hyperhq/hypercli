@@ -1421,7 +1421,7 @@ func (s *DockerDaemonSuite) TestHttpsInfo(c *check.C) {
 	)
 
 	if err := s.d.Start("--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/server-cert.pem",
-		"--tlskey", "fixtures/https/server-key.pem", "-H", testDaemonHTTPSAddr); err != nil {
+		"--tlskey", "fixtures/https/server-key.pem", "--region", testDaemonHTTPSAddr); err != nil {
 		c.Fatalf("Could not start daemon with busybox: %v", err)
 	}
 
@@ -1440,7 +1440,7 @@ func (s *DockerDaemonSuite) TestHttpsRun(c *check.C) {
 	)
 
 	if err := s.d.StartWithBusybox("--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/server-cert.pem",
-		"--tlskey", "fixtures/https/server-key.pem", "-H", testDaemonHTTPSAddr); err != nil {
+		"--tlskey", "fixtures/https/server-key.pem", "--region", testDaemonHTTPSAddr); err != nil {
 		c.Fatalf("Could not start daemon with busybox: %v", err)
 	}
 
@@ -1472,7 +1472,7 @@ func (s *DockerDaemonSuite) TestHttpsInfoRogueCert(c *check.C) {
 	)
 
 	if err := s.d.Start("--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/server-cert.pem",
-		"--tlskey", "fixtures/https/server-key.pem", "-H", testDaemonHTTPSAddr); err != nil {
+		"--tlskey", "fixtures/https/server-key.pem", "--region", testDaemonHTTPSAddr); err != nil {
 		c.Fatalf("Could not start daemon with busybox: %v", err)
 	}
 
@@ -1491,7 +1491,7 @@ func (s *DockerDaemonSuite) TestHttpsInfoRogueServerCert(c *check.C) {
 		testDaemonRogueHTTPSAddr = "tcp://localhost:4272"
 	)
 	if err := s.d.Start("--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/server-rogue-cert.pem",
-		"--tlskey", "fixtures/https/server-rogue-key.pem", "-H", testDaemonRogueHTTPSAddr); err != nil {
+		"--tlskey", "fixtures/https/server-rogue-key.pem", "--region", testDaemonRogueHTTPSAddr); err != nil {
 		c.Fatalf("Could not start daemon with busybox: %v", err)
 	}
 
@@ -1640,8 +1640,8 @@ func (s *DockerDaemonSuite) TestDaemonRestartCleanupNetns(c *check.C) {
 // tests regression detailed in #13964 where DOCKER_TLS_VERIFY env is ignored
 func (s *DockerDaemonSuite) TestDaemonNoTlsCliTlsVerifyWithEnv(c *check.C) {
 	host := "tcp://localhost:4271"
-	c.Assert(s.d.Start("-H", host), check.IsNil)
-	cmd := exec.Command(dockerBinary, "-H", host, "info")
+	c.Assert(s.d.Start("--region", host), check.IsNil)
+	cmd := exec.Command(dockerBinary, "--region", host, "info")
 	cmd.Env = []string{"DOCKER_TLS_VERIFY=1", "DOCKER_CERT_PATH=fixtures/https"}
 	out, _, err := runCommandWithOutput(cmd)
 	c.Assert(err, check.Not(check.IsNil), check.Commentf("%s", out))

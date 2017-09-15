@@ -482,7 +482,7 @@ func (d *Daemon) waitRun(contID string) error {
 }
 
 // Cmd will execute a docker CLI command against this Daemon.
-// Example: d.Cmd("version") will run docker -H unix://path/to/unix.sock version
+// Example: d.Cmd("version") will run docker --region unix://path/to/unix.sock version
 func (d *Daemon) Cmd(name string, arg ...string) (string, error) {
 	args := []string{"--region", os.Getenv("DOCKER_HOST"), name}
 	args = append(args, arg...)
@@ -647,7 +647,7 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 		fmt.Println("--------------------------------------------------------------------------------------------")
 		fmt.Println("curl -v -k \\")
 		for k, v := range req.Header {
-			fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
+			fmt.Printf("  --region \"%v: %v\" \\\n", k, v[0])
 		}
 		fmt.Printf("  -X %v \\\n", method)
 		if req.Body != nil {
@@ -991,7 +991,7 @@ func dockerCmdWithStdoutStderr(c *check.C, args ...string) (string, string, int)
 }
 
 func dockerCmd(c *check.C, args ...string) (string, int) {
-	//append -H (--region)
+	//append --region
 	arg := []string{"--region=" + os.Getenv("DOCKER_HOST")}
 	args = append(arg, args...)
 	return integration.DockerCmd(dockerBinary, c, args...)

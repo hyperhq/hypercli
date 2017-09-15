@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "${REGION}" == "" ];then
+    REGION="us-west-1"
+fi
+
 if [ "$@" != "./build.sh" ];then
     #ensure config for hyper cli
     mkdir -p ~/.hyper
@@ -21,7 +25,7 @@ EOF
     echo "Current hyper config: ~/.hyper/config.json"
     echo "----------------------------------------------------------------------------------------------"
     cat ~/.hyper/config.json \
-      | sed 's/"secretkey":.*/"secretkey": "******************************"/g' \
+      | sed 's/"secretkey":.*/"secretkey": "******************************",/g' \
       | sed 's/"auth":.*/"auth": "******************************"/g'
     echo "----------------------------------------------------------------------------------------------"
 
@@ -37,7 +41,7 @@ Run in container(example):
   -----------------------------------------------------------
   cd integration-cli && go test             # start autotest
 
-# 'hypercli' is the alias of 'hyper -H \${DOCKER_HOST}'
+# 'hypercli' is the alias of 'hyper --region \${DOCKER_HOST}'
 
 EOF
 fi

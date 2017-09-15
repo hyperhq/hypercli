@@ -2,6 +2,10 @@
 
 env
 
+if [ "${REGION}" == "" ];then
+    REGION="us-west-1"
+fi
+
 # set default value of DOCKER_HOST and BRANCH
 if [[ "$DOCKER_HOST" == "" ]];then
   DOCKER_HOST="tcp://us-west-1.hyper.sh:443"
@@ -74,7 +78,7 @@ fi
 ./build.sh
 ln -s /go/src/github.com/hyperhq/hypercli /go/src/github.com/docker/docker
 ln -s /go/src/github.com/hyperhq/hypercli/hyper/hyper /usr/bin/hyper
-echo alias hypercli=\"hyper -H \${DOCKER_HOST}\" >> /root/.bashrc
+echo alias hypercli=\"hyper --region \${DOCKER_HOST}\" >> /root/.bashrc
 source /root/.bashrc
 
 echo "##############################################################################################"
@@ -84,7 +88,7 @@ echo "##########################################################################
 echo "Current hyper config: ~/.hyper/config.json"
 echo "----------------------------------------------------------------------------------------------"
 cat ~/.hyper/config.json \
-  | sed 's/"secretkey":.*/"secretkey": "******************************"/g' \
+  | sed 's/"secretkey":.*/"secretkey": "******************************",/g' \
   | sed 's/"auth":.*/"auth": "******************************"/g'
 echo "----------------------------------------------------------------------------------------------"
 

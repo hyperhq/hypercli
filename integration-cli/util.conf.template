@@ -13,6 +13,7 @@ export HYPER_HOST="tcp://us-west-1.hyper.sh:443"  #zenlayer
 #Hyper Credentials
 export ACCESS_KEY="xxxxxx"
 export SECRET_KEY="xxxxxx"
+export REGION="us-west-1"
 
 #########################################
 ## AWS Credentials(option)

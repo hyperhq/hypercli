@@ -29,11 +29,11 @@ ENV DOCKER_TLS_VERIFY=
 ENV DOCKER_HOST=
 ENV ACCESS_KEY=
 ENV SECRET_KEY=
-
+ENV REGION=
 
 ## Ensure /usr/bin/hyper
 RUN ln -s /go/src/github.com/hyperhq/hypercli/hyper/hyper /usr/bin/hyper
-RUN echo alias hypercli=\"hyper -H \${DOCKER_HOST}\" >> /root/.bashrc
+RUN echo alias hypercli=\"hyper --region \${DOCKER_HOST}\" >> /root/.bashrc
 
 
 ## Ensure /go/src/github.com/docker/docker
@@ -51,7 +51,7 @@ ENTRYPOINT ["hack/generate-hyper-conf-dev.sh"]
 RUN yum install -y zsh
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 RUN sed -i "s/^ZSH_THEME=.*/ZSH_THEME=\"gianu\"/g" /root/.zshrc
-RUN echo alias hypercli=\"hyper -H \${DOCKER_HOST}\" >> /root/.zshrc
+RUN echo alias hypercli=\"hyper --region \${DOCKER_HOST}\" >> /root/.zshrc
 
 # config git
 RUN git config --global color.ui true; \
