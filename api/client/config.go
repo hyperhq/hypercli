@@ -106,7 +106,10 @@ func (cli *DockerCli) configureCloud(serverAddress, flRegion, flAccesskey, flSec
 func (cli *DockerCli) checkCloudConfig() error {
 	_, ok := cli.configFile.CloudConfig[cli.host]
 	if !ok {
-		return fmt.Errorf("Config info for the host is not found, please run 'hyper config %s' first.", cli.host)
+		_, ok = cli.configFile.CloudConfig[cliconfig.DefaultHyperFormat]
+		if !ok {
+			return fmt.Errorf("Config info for the host is not found, please run 'hyper config %s' first.", cli.host)
+		}
 	}
 	return nil
 }
