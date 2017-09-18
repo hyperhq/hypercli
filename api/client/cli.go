@@ -136,7 +136,7 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		}
 		cli.configFile = configFile
 
-		host, err := cli.getServerHost(clientFlags.Common.Region, clientFlags.Common.TLSOptions)
+		host, dft, err := cli.getServerHost(clientFlags.Common.Region, clientFlags.Common.TLSOptions)
 		if err != nil {
 			return err
 		}
@@ -158,11 +158,11 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		}
 		var cloudConfig cliconfig.CloudConfig
 		cc, ok := configFile.CloudConfig[host]
-		if ok {
+		if ok && !dft {
 			cloudConfig.AccessKey = cc.AccessKey
 			cloudConfig.SecretKey = cc.SecretKey
 		} else {
-			cc, ok := configFile.CloudConfig[cliconfig.DefaultHyperFormat]
+			cc, ok = configFile.CloudConfig[cliconfig.DefaultHyperFormat]
 			if ok {
 				cloudConfig.AccessKey = cc.AccessKey
 				cloudConfig.SecretKey = cc.SecretKey
@@ -182,6 +182,11 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		cli.client = client
 		cli.host = host
 		cli.region = clientFlags.Common.Region
+		if cli.region == "" {
+			if cli.region = cc.Region; cli.region == "" {
+				cli.region = cli.getDefaultRegion()
+			}
+		}
 
 		if cli.in != nil {
 			cli.inFd, cli.isTerminalIn = term.GetFdInfo(cli.in)
@@ -196,7 +201,8 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 	return cli
 }
 
-func (cli *DockerCli) getServerHost(region string, tlsOptions *tlsconfig.Options) (host string, err error) {
+func (cli *DockerCli) getServerHost(region string, tlsOptions *tlsconfig.Options) (host string, dft bool, err error) {
+	dft = false
 	host = region
 	if host == "" {
 		host = os.Getenv("HYPER_DEFAULT_REGION")
@@ -204,6 +210,7 @@ func (cli *DockerCli) getServerHost(region string, tlsOptions *tlsconfig.Options
 	}
 	if _, err := url.ParseRequestURI(host); err != nil {
 		host = "tcp://" + region + "." + cliconfig.DefaultHyperEndpoint
+		dft = true
 	}
 
 	host, err = opts.ParseHost(tlsOptions != nil, host)
