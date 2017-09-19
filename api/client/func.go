@@ -218,7 +218,7 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(cli.out, "%s is created with the address of https://us-west-1.hyperfunc.io/call/%s/%s\n", fn.Name, fn.Name, fn.UUID)
+	fmt.Fprintf(cli.out, "%s is created with the address of https://%s.hyperfunc.io/call/%s/%s\n", fn.Name, cli.region, fn.Name, fn.UUID)
 	return nil
 }
 
