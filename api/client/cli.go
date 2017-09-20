@@ -157,12 +157,12 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 			return err
 		}
 		var cloudConfig cliconfig.CloudConfig
-		cc, ok := configFile.CloudConfig[host]
-		if ok && !dft {
+		cc, ok := configFile.CloudConfig[cliconfig.DefaultHyperFormat]
+		if ok && dft {
 			cloudConfig.AccessKey = cc.AccessKey
 			cloudConfig.SecretKey = cc.SecretKey
 		} else {
-			cc, ok = configFile.CloudConfig[cliconfig.DefaultHyperFormat]
+			cc, ok = configFile.CloudConfig[host]
 			if ok {
 				cloudConfig.AccessKey = cc.AccessKey
 				cloudConfig.SecretKey = cc.SecretKey
