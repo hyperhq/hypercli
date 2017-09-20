@@ -36,6 +36,10 @@ if [[ "$@" != "./build.sh" ]];then
     "clouds": {
         "${DOCKER_HOST}": {
             "accesskey": "${ACCESS_KEY}",
+            "secretkey": "${SECRET_KEY}"
+        },
+        "tcp://*.hyper.sh:443": {
+            "accesskey": "${ACCESS_KEY}",
             "secretkey": "${SECRET_KEY}",
             "region": "${REGION}"
         }
