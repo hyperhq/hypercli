@@ -9,7 +9,6 @@ import (
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/cliconfig"
-	"github.com/hyperhq/hypercli/opts"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
 )
 
@@ -50,7 +49,7 @@ func init() {
 	cmd.StringVar(&tlsOptions.CertFile, []string{}, filepath.Join(dockerCertPath, defaultCertFile), "Path to TLS certificate file")
 	cmd.StringVar(&tlsOptions.KeyFile, []string{}, filepath.Join(dockerCertPath, defaultKeyFile), "Path to TLS key file")
 
-	cmd.Var(opts.NewNamedListOptsRef("hosts", &commonFlags.Hosts, opts.ValidateHost), []string{"H", "-host"}, "Daemon socket(s) to connect to")
+	cmd.StringVar(&commonFlags.Region, []string{"R", "-region"}, "", "Set the region of hyper.sh")
 }
 
 func postParseCommon() {

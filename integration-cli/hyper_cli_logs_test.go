@@ -206,8 +206,8 @@ func (s *DockerSuite) TestCliLogsSince(c *check.C) {
 	// Test with default value specified and parameter omitted
 	expected := []string{"log1", "log2", "log3"}
 	for _, cmd := range []*exec.Cmd{
-		exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "logs", "-t", name),
-		exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "logs", "-t", "--since=0", name),
+		exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "logs", "-t", name),
+		exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "logs", "-t", "--since=0", name),
 	} {
 		out, _, err = runCommandWithOutput(cmd)
 		c.Assert(err, checker.IsNil, check.Commentf("failed to log container: %s", out))
@@ -263,7 +263,7 @@ func (s *DockerSuite) TestCliLogsSinceFutureFollow(c *check.C) {
 
 	nroutines := getNGoroutines()
 
-	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "logs", "-f", id)
+	cmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "logs", "-f", id)
 	r, w := io.Pipe()
 	cmd.Stdout = w
 	c.Assert(cmd.Start(), checker.IsNil)
@@ -318,7 +318,7 @@ func (s *DockerSuite) TestCliLogsFollowGoroutinesNoOutput(c *check.C) {
 
 	nroutines := getNGoroutines()
 
-	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "logs", "-f", id)
+	cmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "logs", "-f", id)
 	c.Assert(cmd.Start(), checker.IsNil)
 	time.Sleep(200 * time.Millisecond)
 	c.Assert(cmd.Process.Kill(), checker.IsNil)

@@ -25,7 +25,7 @@ func (s *DockerSuite) TestCliExecInteractiveStdinClose(c *check.C) {
 	out, _ := dockerCmd(c, "run", "-itd", "busybox", "/bin/cat")
 	contID := strings.TrimSpace(out)
 
-	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", "-i", contID, "echo", "-n", "hello")
+	cmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "exec", "-i", contID, "echo", "-n", "hello")
 	p, err := pty.Start(cmd)
 	c.Assert(err, checker.IsNil)
 
@@ -52,7 +52,7 @@ func (s *DockerSuite) TestCliExecTTY(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "--name=test", "busybox", "sh", "-c", "echo hello > /foo && top")
 
-	cmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "exec", "-it", "test", "sh")
+	cmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "exec", "-it", "test", "sh")
 	p, err := pty.Start(cmd)
 	c.Assert(err, checker.IsNil)
 	defer p.Close()

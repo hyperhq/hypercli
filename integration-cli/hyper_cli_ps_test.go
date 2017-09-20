@@ -152,7 +152,7 @@ func assertContainerList(out string, expected []string) bool {
 	id, err := getIDByName(name)
 	c.Assert(err, checker.IsNil)
 
-	runCmd := exec.Command(dockerBinary, "--host="+os.Getenv("DOCKER_HOST"), "ps", "-s", "-n=1")
+	runCmd := exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "ps", "-s", "-n=1")
 
 	wait := make(chan struct{})
 	go func() {

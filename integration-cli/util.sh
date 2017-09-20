@@ -73,6 +73,7 @@ case $1 in
         -e DOCKER_HOST=${HYPER_HOST} \
         -e ACCESS_KEY=${ACCESS_KEY} \
         -e SECRET_KEY=${SECRET_KEY} \
+        -e REGION=${REGION} \
         -e AWS_ACCESS_KEY=${AWS_ACCESS_KEY} \
         -e AWS_SECRET_KEY=${AWS_SECRET_KEY} \
         -e URL_WITH_BASIC_AUTH=${URL_WITH_BASIC_AUTH} \

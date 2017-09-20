@@ -511,7 +511,7 @@ func (s *DockerDaemonSuite) TestDaemonAllocatesListeningPort(c *check.C) {
 
 	cmdArgs := make([]string, 0, len(listeningPorts)*2)
 	for _, hostDirective := range listeningPorts {
-		cmdArgs = append(cmdArgs, "--host", fmt.Sprintf("tcp://%s:%s", hostDirective[0], hostDirective[2]))
+		cmdArgs = append(cmdArgs, "--region", fmt.Sprintf("tcp://%s:%s", hostDirective[0], hostDirective[2]))
 	}
 
 	if err := s.d.StartWithBusybox(cmdArgs...); err != nil {
@@ -1303,7 +1303,7 @@ func (s *DockerDaemonSuite) TestDaemonUnixSockCleanedUp(c *check.C) {
 	defer os.RemoveAll(dir)
 
 	sockPath := filepath.Join(dir, "docker.sock")
-	if err := s.d.Start("--host", "unix://"+sockPath); err != nil {
+	if err := s.d.Start("--region", "unix://"+sockPath); err != nil {
 		c.Fatal(err)
 	}
 
@@ -1421,11 +1421,11 @@ func (s *DockerDaemonSuite) TestHttpsInfo(c *check.C) {
 	)
 
 	if err := s.d.Start("--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/server-cert.pem",
-		"--tlskey", "fixtures/https/server-key.pem", "-H", testDaemonHTTPSAddr); err != nil {
+		"--tlskey", "fixtures/https/server-key.pem", "--region", testDaemonHTTPSAddr); err != nil {
 		c.Fatalf("Could not start daemon with busybox: %v", err)
 	}
 
-	daemonArgs := []string{"--host", testDaemonHTTPSAddr, "--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/client-cert.pem", "--tlskey", "fixtures/https/client-key.pem"}
+	daemonArgs := []string{"--region", testDaemonHTTPSAddr, "--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/client-cert.pem", "--tlskey", "fixtures/https/client-key.pem"}
 	out, err := s.d.CmdWithArgs(daemonArgs, "info")
 	if err != nil {
 		c.Fatalf("Error Occurred: %s and output: %s", err, out)
@@ -1440,11 +1440,11 @@ func (s *DockerDaemonSuite) TestHttpsRun(c *check.C) {
 	)
 
 	if err := s.d.StartWithBusybox("--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/server-cert.pem",
-		"--tlskey", "fixtures/https/server-key.pem", "-H", testDaemonHTTPSAddr); err != nil {
+		"--tlskey", "fixtures/https/server-key.pem", "--region", testDaemonHTTPSAddr); err != nil {
 		c.Fatalf("Could not start daemon with busybox: %v", err)
 	}
 
-	daemonArgs := []string{"--host", testDaemonHTTPSAddr, "--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/client-cert.pem", "--tlskey", "fixtures/https/client-key.pem"}
+	daemonArgs := []string{"--region", testDaemonHTTPSAddr, "--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/client-cert.pem", "--tlskey", "fixtures/https/client-key.pem"}
 	out, err := s.d.CmdWithArgs(daemonArgs, "run", "busybox", "echo", "TLS response")
 	if err != nil {
 		c.Fatalf("Error Occurred: %s and output: %s", err, out)
@@ -1472,11 +1472,11 @@ func (s *DockerDaemonSuite) TestHttpsInfoRogueCert(c *check.C) {
 	)
 
 	if err := s.d.Start("--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/server-cert.pem",
-		"--tlskey", "fixtures/https/server-key.pem", "-H", testDaemonHTTPSAddr); err != nil {
+		"--tlskey", "fixtures/https/server-key.pem", "--region", testDaemonHTTPSAddr); err != nil {
 		c.Fatalf("Could not start daemon with busybox: %v", err)
 	}
 
-	daemonArgs := []string{"--host", testDaemonHTTPSAddr, "--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/client-rogue-cert.pem", "--tlskey", "fixtures/https/client-rogue-key.pem"}
+	daemonArgs := []string{"--region", testDaemonHTTPSAddr, "--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/client-rogue-cert.pem", "--tlskey", "fixtures/https/client-rogue-key.pem"}
 	out, err := s.d.CmdWithArgs(daemonArgs, "info")
 	if err == nil || !strings.Contains(out, errBadCertificate) {
 		c.Fatalf("Expected err: %s, got instead: %s and output: %s", errBadCertificate, err, out)
@@ -1491,11 +1491,11 @@ func (s *DockerDaemonSuite) TestHttpsInfoRogueServerCert(c *check.C) {
 		testDaemonRogueHTTPSAddr = "tcp://localhost:4272"
 	)
 	if err := s.d.Start("--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/server-rogue-cert.pem",
-		"--tlskey", "fixtures/https/server-rogue-key.pem", "-H", testDaemonRogueHTTPSAddr); err != nil {
+		"--tlskey", "fixtures/https/server-rogue-key.pem", "--region", testDaemonRogueHTTPSAddr); err != nil {
 		c.Fatalf("Could not start daemon with busybox: %v", err)
 	}
 
-	daemonArgs := []string{"--host", testDaemonRogueHTTPSAddr, "--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/client-rogue-cert.pem", "--tlskey", "fixtures/https/client-rogue-key.pem"}
+	daemonArgs := []string{"--region", testDaemonRogueHTTPSAddr, "--tlsverify", "--tlscacert", "fixtures/https/ca.pem", "--tlscert", "fixtures/https/client-rogue-cert.pem", "--tlskey", "fixtures/https/client-rogue-key.pem"}
 	out, err := s.d.CmdWithArgs(daemonArgs, "info")
 	if err == nil || !strings.Contains(out, errCaUnknown) {
 		c.Fatalf("Expected err: %s, got instead: %s and output: %s", errCaUnknown, err, out)
@@ -1505,7 +1505,7 @@ func (s *DockerDaemonSuite) TestHttpsInfoRogueServerCert(c *check.C) {
 func pingContainers(c *check.C, d *Daemon, expectFailure bool) {
 	var dargs []string
 	if d != nil {
-		dargs = []string{"--host", d.sock()}
+		dargs = []string{"--region", d.sock()}
 	}
 
 	args := append(dargs, "run", "-d", "--name", "container1", "busybox", "top")
@@ -1640,8 +1640,8 @@ func (s *DockerDaemonSuite) TestDaemonRestartCleanupNetns(c *check.C) {
 // tests regression detailed in #13964 where DOCKER_TLS_VERIFY env is ignored
 func (s *DockerDaemonSuite) TestDaemonNoTlsCliTlsVerifyWithEnv(c *check.C) {
 	host := "tcp://localhost:4271"
-	c.Assert(s.d.Start("-H", host), check.IsNil)
-	cmd := exec.Command(dockerBinary, "-H", host, "info")
+	c.Assert(s.d.Start("--region", host), check.IsNil)
+	cmd := exec.Command(dockerBinary, "--region", host, "info")
 	cmd.Env = []string{"DOCKER_TLS_VERIFY=1", "DOCKER_CERT_PATH=fixtures/https"}
 	out, _, err := runCommandWithOutput(cmd)
 	c.Assert(err, check.Not(check.IsNil), check.Commentf("%s", out))

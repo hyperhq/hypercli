@@ -66,6 +66,7 @@ Functional test for hyper cli.
 - [x] cli_ps_test
 - [x] cli_pull_test
 - [x] cli_push_test
+- [x] cli_region_test
 - [x] cli_rename_test
 - [x] cli_restart_test
 - [x] cli_rm_test
@@ -374,4 +375,19 @@ $ docker run -it --rm \
     -e http_proxy=${http_proxy} \
     -e https_proxy=${https_proxy} \
     hyperhq/hypercli-auto-test:qa go test -check.f TestCliInfo
+    
+//test with region(region name could be us-west-1/eu-central-1)
+$ docker run -it --rm \
+    -e ACCESS_KEY=${ACCESS_KEY} \
+    -e SECRET_KEY=${SECRET_KEY} \
+    -e REGION=${REGION} \
+    -e http_proxy=${http_proxy} \
+    -e https_proxy=${https_proxy} \
+    hyperhq/hypercli-auto-test:qa go test -check.f TestCliInfo
+
+//test basic test case only
+$ docker run -it --rm \
+    -e ACCESS_KEY=${ACCESS_KEY} \
+    -e SECRET_KEY=${SECRET_KEY} \
+    hyperhq/hypercli-auto-test:qa go test -check.f "TestCli.*Basic" -timeout 180m
 ```

@@ -18,7 +18,7 @@ func (s *DockerSuite) TestCliLoadFromLocalDocker(c *check.C) {
 	testImage := "hello-world:latest"
 
 	//local docker pull image
-	pullCmd := exec.Command("docker", "-H", os.Getenv("LOCAL_DOCKER_HOST"), "pull", testImage)
+	pullCmd := exec.Command("docker", "--region", os.Getenv("LOCAL_DOCKER_HOST"), "pull", testImage)
 	output, exitCode, err := runCommandWithOutput(pullCmd)
 	c.Assert(err, checker.IsNil)
 	c.Assert(exitCode, checker.Equals, 0)

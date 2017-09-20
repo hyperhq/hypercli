@@ -43,8 +43,8 @@ func (s *DockerSuite) TestCliRunRedirectStdout(c *check.C) {
 		}
 	}
 
-	checkRedirect(dockerBinary + " -H " + os.Getenv("DOCKER_HOST") + " run -it busybox cat /etc/passwd | grep -q root")
-	checkRedirect(dockerBinary + " -H " + os.Getenv("DOCKER_HOST") + " run busybox cat /etc/passwd | grep -q root")
+	checkRedirect(dockerBinary + " --region " + os.Getenv("DOCKER_HOST") + " run -it busybox cat /etc/passwd | grep -q root")
+	checkRedirect(dockerBinary + " --region " + os.Getenv("DOCKER_HOST") + " run busybox cat /etc/passwd | grep -q root")
 }
 
 func (s *DockerSuite) TestCliRunAttachDetachBasic(c *check.C) {
@@ -56,7 +56,7 @@ func (s *DockerSuite) TestCliRunAttachDetachBasic(c *check.C) {
 	name := "attach-detach"
 	dockerCmd(c, "run", "--name", name, "-itd", "busybox", "cat")
 
-	cmd := exec.Command(dockerBinary, "-H", os.Getenv("DOCKER_HOST"), "attach", name)
+	cmd := exec.Command(dockerBinary, "--region", os.Getenv("DOCKER_HOST"), "attach", name)
 	stdout, err := cmd.StdoutPipe()
 	c.Assert(err, checker.IsNil)
 	cpty, tty, err := pty.Open()

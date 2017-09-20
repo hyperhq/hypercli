@@ -90,7 +90,7 @@ func (s *DockerSuite) TestApiDockerApiVersion(c *check.C) {
 	defer server.Close()
 
 	// Test using the env var first
-	cmd := exec.Command(dockerBinary, "-H="+server.URL[7:], "version")
+	cmd := exec.Command(dockerBinary, "--region="+server.URL[7:], "version")
 	cmd.Env = append([]string{"DOCKER_API_VERSION=xxx"}, os.Environ()...)
 	out, _, _ := runCommandWithOutput(cmd)
 
