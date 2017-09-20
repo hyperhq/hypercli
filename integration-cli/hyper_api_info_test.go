@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"time"
+	"os"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
@@ -14,7 +15,7 @@ func (s *DockerSuite) TestApiInfo(c *check.C) {
 
 	endpoint := "/info"
 
-	status, body, err := sockRequest("GET", endpoint, nil)
+	status, body, err := sockRequest("GET", endpoint, nil, os.Getenv("REGION"))
 	c.Assert(status, checker.Equals, http.StatusOK)
 	c.Assert(err, checker.IsNil)
 

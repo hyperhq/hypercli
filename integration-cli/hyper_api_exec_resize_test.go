@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"os"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
@@ -23,7 +24,7 @@ func (s *DockerSuite) TestApiExecResizeHeightWidthNoInt(c *check.C) {
 	cleanedContainerID := strings.TrimSpace(out)
 
 	endpoint := "/exec/" + cleanedContainerID + "/resize?h=foo&w=bar"
-	status, _, err := sockRequest("POST", endpoint, nil)
+	status, _, err := sockRequest("POST", endpoint, nil, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusNotFound)
 }
@@ -44,7 +45,7 @@ func (s *DockerSuite) TestApiExecResizeImmediatelyAfterExecStart(c *check.C) {
 			"Cmd":         []string{"/bin/sh"},
 		}
 		uri := fmt.Sprintf("/containers/%s/exec", name)
-		status, body, err := sockRequest("POST", uri, data)
+		status, body, err := sockRequest("POST", uri, data, os.Getenv("REGION"))
 		if err != nil {
 			return err
 		}
@@ -70,7 +71,7 @@ func (s *DockerSuite) TestApiExecResizeImmediatelyAfterExecStart(c *check.C) {
 		}
 		defer conn.Close()
 
-		_, rc, err := sockRequestRaw("POST", fmt.Sprintf("/exec/%s/resize?h=24&w=80", execID), nil, "text/plain")
+		_, rc, err := sockRequestRaw("POST", fmt.Sprintf("/exec/%s/resize?h=24&w=80", execID), nil, "text/plain", os.Getenv("REGION"))
 		// It's probably a panic of the daemon if io.ErrUnexpectedEOF is returned.
 		if err == io.ErrUnexpectedEOF {
 			return fmt.Errorf("The daemon might have crashed.")

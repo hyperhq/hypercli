@@ -35,7 +35,7 @@ func (s *DockerSuite) TestCliRmContainerWithVolume(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	deleteAllContainers()
+	deleteAllContainers(os.Getenv("REGION"))
 	prefix, slash := getPrefixAndSlashFromDaemonPlatform()
 
 	pullImageIfNotExist("busybox")
@@ -49,7 +49,7 @@ func (s *DockerSuite) TestCliRmContainerRunningBasic(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	deleteAllContainers()
+	deleteAllContainers(os.Getenv("REGION"))
 	createRunningContainer(c, "foo")
 
 	_, _, err := dockerCmdWithError("rm", "foo")
@@ -61,7 +61,7 @@ func (s *DockerSuite) TestCliRmContainerForceRemoveRunningBasic(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	deleteAllContainers()
+	deleteAllContainers(os.Getenv("REGION"))
 	createRunningContainer(c, "foo")
 
 	// Stop then remove with -s

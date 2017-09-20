@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"time"
+	"os"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
@@ -15,7 +16,7 @@ func (s *DockerSuite) TestApiImagesSearchJSONContentType(c *check.C) {
 
 	testRequires(c, Network)
 
-	res, b, err := sockRequestRaw("GET", "/images/search?term=test", nil, "application/json")
+	res, b, err := sockRequestRaw("GET", "/images/search?term=test", nil, "application/json", os.Getenv("REGION"))
 	c.Assert(err, check.IsNil)
 	b.Close()
 	c.Assert(res.StatusCode, checker.Equals, http.StatusOK)
@@ -32,7 +33,7 @@ func (s *DockerSuite) TestApiImagesLoad(c *check.C) {
 	}
 	//debugEndpoint = "/images/load"
 
-	status, resp, err := sockRequest("POST", "/images/load", postData)
+	status, resp, err := sockRequest("POST", "/images/load", postData, os.Getenv("REGION"))
 	c.Assert(err, check.IsNil)
 	c.Assert(status, check.Equals, http.StatusOK)
 

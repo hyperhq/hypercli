@@ -5,6 +5,7 @@ import (
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
 	"time"
+	"os"
 )
 
 /// test invalid url //////////////////////////////////////////////////////////////////////////
@@ -109,7 +110,7 @@ func (s *DockerSuite) TestCliLoadFromUrlInvalidContentIncomplete(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	deleteAllImages()
+	deleteAllImages(os.Getenv("REGION"))
 	url := "http://image-tarball.s3.amazonaws.com/test/public/helloworld-no-repositories.tgz"
 	output, exitCode, err := dockerCmdWithError("load", "-i", url)
 	c.Assert(output, checker.Contains, "has been loaded.")
@@ -119,7 +120,7 @@ func (s *DockerSuite) TestCliLoadFromUrlInvalidContentIncomplete(c *check.C) {
 	images, _ := dockerCmd(c, "images", "hello-world")
 	c.Assert(images, checker.Contains, "hello-world")
 
-	deleteAllImages()
+	deleteAllImages(os.Getenv("REGION"))
 
 	//// load this image will be OK, but after delete this image, there is a residual image with <none> tag occur.
 	//url = "http://image-tarball.s3.amazonaws.com/test/public/helloworld-no-manifest.tgz"
@@ -142,7 +143,7 @@ func (s *DockerSuite) TestCliLoadFromUrlInvalidContentIncomplete(c *check.C) {
 	images, _ = dockerCmd(c, "images", "hello-world")
 	c.Assert(images, check.Not(checker.Contains), "hello-world")
 
-	deleteAllImages()
+	deleteAllImages(os.Getenv("REGION"))
 }
 
 //test normal///////////////////////////////////////////////////////////////////////////

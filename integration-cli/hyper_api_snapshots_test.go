@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/engine-api/types"
@@ -12,7 +13,7 @@ import (
 func (s *DockerSuite) TestApiSnapshotsCreate(c *check.C) {
 	dockerCmd(c, "volume", "create", "--name", "test")
 
-	status, b, err := sockRequest("POST", "/snapshots/create?name=snap-test&volume=test", nil)
+	status, b, err := sockRequest("POST", "/snapshots/create?name=snap-test&volume=test", nil, os.Getenv("REGION"))
 	c.Assert(err, check.IsNil)
 	c.Assert(status, check.Equals, http.StatusCreated, check.Commentf(string(b)))
 
@@ -24,9 +25,9 @@ func (s *DockerSuite) TestApiSnapshotsCreate(c *check.C) {
 func (s *DockerSuite) TestApiSnapshotsList(c *check.C) {
 	dockerCmd(c, "volume", "create", "--name", "test")
 
-	sockRequest("POST", "/snapshots/create?name=snap-test&volume=test", nil)
+	sockRequest("POST", "/snapshots/create?name=snap-test&volume=test", nil, os.Getenv("REGION"))
 
-	status, b, err := sockRequest("GET", "/snapshots", nil)
+	status, b, err := sockRequest("GET", "/snapshots", nil, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusOK)
 
@@ -39,9 +40,9 @@ func (s *DockerSuite) TestApiSnapshotsList(c *check.C) {
 func (s *DockerSuite) TestApiSnapshotsRemove(c *check.C) {
 	dockerCmd(c, "volume", "create", "--name", "test")
 
-	sockRequest("POST", "/snapshots/create?name=snap-test&volume=test", nil)
+	sockRequest("POST", "/snapshots/create?name=snap-test&volume=test", nil, os.Getenv("REGION"))
 
-	status, b, err := sockRequest("GET", "/snapshots", nil)
+	status, b, err := sockRequest("GET", "/snapshots", nil, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusOK)
 
@@ -50,7 +51,7 @@ func (s *DockerSuite) TestApiSnapshotsRemove(c *check.C) {
 	c.Assert(len(snapshots.Snapshots), checker.Equals, 1, check.Commentf("\n%v", snapshots.Snapshots))
 
 	snap := snapshots.Snapshots[0]
-	status, data, err := sockRequest("DELETE", "/snapshots/"+snap.Name, nil)
+	status, data, err := sockRequest("DELETE", "/snapshots/"+snap.Name, nil, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusNoContent, check.Commentf(string(data)))
 }
@@ -58,9 +59,9 @@ func (s *DockerSuite) TestApiSnapshotsRemove(c *check.C) {
 func (s *DockerSuite) TestApiSnapshotsInspect(c *check.C) {
 	dockerCmd(c, "volume", "create", "--name", "test")
 
-	sockRequest("POST", "/snapshots/create?name=snap-test&volume=test", nil)
+	sockRequest("POST", "/snapshots/create?name=snap-test&volume=test", nil, os.Getenv("REGION"))
 
-	status, b, err := sockRequest("GET", "/snapshots", nil)
+	status, b, err := sockRequest("GET", "/snapshots", nil, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusOK)
 
@@ -69,7 +70,7 @@ func (s *DockerSuite) TestApiSnapshotsInspect(c *check.C) {
 	c.Assert(len(snapshots.Snapshots), checker.Equals, 1, check.Commentf("\n%v", snapshots.Snapshots))
 
 	var snap types.Snapshot
-	status, b, err = sockRequest("GET", "/snapshots/snap-test", nil)
+	status, b, err = sockRequest("GET", "/snapshots/snap-test", nil, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusOK, check.Commentf(string(b)))
 	c.Assert(json.Unmarshal(b, &snap), checker.IsNil)

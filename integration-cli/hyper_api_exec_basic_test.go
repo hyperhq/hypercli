@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"os"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/go-check/check"
@@ -22,7 +23,7 @@ func (s *DockerSuite) TestApiExecBasicCreateNoCmd(c *check.C) {
 	name := "exec-test"
 	dockerCmd(c, "run", "-d", "-t", "--name", name, "busybox", "top")
 
-	status, body, err := sockRequest("POST", fmt.Sprintf("/containers/%s/exec", name), map[string]interface{}{"Cmd": nil})
+	status, body, err := sockRequest("POST", fmt.Sprintf("/containers/%s/exec", name), map[string]interface{}{"Cmd": nil}, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusBadRequest)
 
@@ -42,7 +43,7 @@ func (s *DockerSuite) TestApiExecBasicCreateNoValidContentType(c *check.C) {
 		c.Fatalf("Can not encode data to json %s", err)
 	}
 
-	res, body, err := sockRequestRaw("POST", fmt.Sprintf("/containers/%s/exec", name), jsonData, "text/plain")
+	res, body, err := sockRequestRaw("POST", fmt.Sprintf("/containers/%s/exec", name), jsonData, "text/plain", os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(res.StatusCode, checker.Equals, http.StatusInternalServerError)
 
@@ -100,7 +101,7 @@ func (s *DockerSuite) TestApiExecBasicApiStartMultipleTimesError(c *check.C) {
 }*/
 
 func createExec(c *check.C, name string) string {
-	_, b, err := sockRequest("POST", fmt.Sprintf("/containers/%s/exec", name), map[string]interface{}{"Cmd": []string{"true"}})
+	_, b, err := sockRequest("POST", fmt.Sprintf("/containers/%s/exec", name), map[string]interface{}{"Cmd": []string{"true"}}, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil, check.Commentf(string(b)))
 
 	createResp := struct {
@@ -111,7 +112,7 @@ func createExec(c *check.C, name string) string {
 }
 
 func startExec(c *check.C, id string, code int) {
-	resp, body, err := sockRequestRaw("POST", fmt.Sprintf("/exec/%s/start", id), strings.NewReader(`{"Detach": true}`), "application/json")
+	resp, body, err := sockRequestRaw("POST", fmt.Sprintf("/exec/%s/start", id), strings.NewReader(`{"Detach": true}`), "application/json", os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 
 	b, err := readBody(body)
@@ -121,7 +122,7 @@ func startExec(c *check.C, id string, code int) {
 }
 
 func inspectExec(c *check.C, id string, out interface{}) {
-	resp, body, err := sockRequestRaw("GET", fmt.Sprintf("/exec/%s/json", id), nil, "")
+	resp, body, err := sockRequestRaw("GET", fmt.Sprintf("/exec/%s/json", id), nil, "", os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	defer body.Close()
 	c.Assert(resp.StatusCode, checker.Equals, http.StatusOK)

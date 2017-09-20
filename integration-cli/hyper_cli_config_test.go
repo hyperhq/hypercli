@@ -31,6 +31,13 @@ func (s *DockerSuite) TestCliConfigAndRewrite(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].AccessKey, checker.Equals, "yy", check.Commentf("Should get yy, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].AccessKey))
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey, checker.Equals, "yyyy", check.Commentf("Should get yyyy, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6443"].SecretKey))
+
+	//patch
+	out, _ = dockerCmd(c, "config", "--default-region" , os.Getenv("REGION"), "--accesskey", os.Getenv("ACCESS_KEY"), "--secretkey", os.Getenv("SECRET_KEY"), os.Getenv("DOCKER_HOST"))
+	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in "+homedir.Get()+"/.hyper/config.json")
+
+	out, _ = dockerCmd(c, "config", "--default-region" , os.Getenv("REGION"), "--accesskey", os.Getenv("ACCESS_KEY"), "--secretkey", os.Getenv("SECRET_KEY"))
+	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in "+homedir.Get()+"/.hyper/config.json")
 }
 
 func (s *DockerSuite) TestCliConfigMultiHostBasic(c *check.C) {
@@ -53,4 +60,11 @@ func (s *DockerSuite) TestCliConfigMultiHostBasic(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6444"].AccessKey, checker.Equals, "yy", check.Commentf("Should get yy, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6444"].AccessKey))
 	c.Assert(conf.CloudConfig["tcp://127.0.0.1:6444"].SecretKey, checker.Equals, "yyyy", check.Commentf("Should get yyyy, but get %s\n", conf.CloudConfig["tcp://127.0.0.1:6444"].SecretKey))
+
+	//patch
+	out, _ = dockerCmd(c, "config", "--default-region" , os.Getenv("REGION"), "--accesskey", os.Getenv("ACCESS_KEY"), "--secretkey", os.Getenv("SECRET_KEY"), os.Getenv("DOCKER_HOST"))
+	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in "+homedir.Get()+"/.hyper/config.json")
+
+	out, _ = dockerCmd(c, "config", "--default-region" , os.Getenv("REGION"), "--accesskey", os.Getenv("ACCESS_KEY"), "--secretkey", os.Getenv("SECRET_KEY"))
+	c.Assert(out, checker.Contains, "WARNING: Your login credentials has been saved in "+homedir.Get()+"/.hyper/config.json")
 }

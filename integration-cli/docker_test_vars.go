@@ -120,7 +120,7 @@ func init() {
 		DockerRootDir string
 	}
 	var i Info
-	status, b, err := sockRequest("GET", "/info", nil)
+	status, b, err := sockRequest("GET", "/info", nil, os.Getenv("REGION"))
 	if err == nil && status == 200 {
 		if err = json.Unmarshal(b, &i); err == nil {
 			dockerBasePath = i.DockerRootDir

@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-    "time"
-    "fmt"
+	"time"
+	"fmt"
+	"os"
 
 	"github.com/docker/docker/dockerversion"
 	"github.com/docker/docker/pkg/integration/checker"
@@ -15,7 +16,7 @@ import (
 func (s *DockerSuite) TestApiGetVersion(c *check.C) {
     printTestCaseName()
     defer printTestDuration(time.Now())
-	status, body, err := sockRequest("GET", "/version", nil)
+	status, body, err := sockRequest("GET", "/version", nil, os.Getenv("REGION"))
 	c.Assert(status, checker.Equals, http.StatusOK)
 	c.Assert(err, checker.IsNil)
 
@@ -31,7 +32,7 @@ func (s *DockerSuite) TestApiSimpleCreate(c *check.C) {
         "Image": "busybox",
         "Cmd": []string{"/bin/sh"},
     }
-    status, b, err := sockRequest("POST", "/containers/create", config)
+    status, b, err := sockRequest("POST", "/containers/create", config, os.Getenv("REGION"))
     c.Assert(err, checker.IsNil)
     type createResp struct {
         ID string

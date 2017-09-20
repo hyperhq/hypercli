@@ -63,7 +63,7 @@ func init() {
 	// Obtain the daemon platform so that it can be used by tests to make
 	// intelligent decisions about how to configure themselves, and validate
 	// that the target platform is valid.
-	res, _, err := sockRequestRaw("GET", "/version", nil, "application/json")
+	res, _, err := sockRequestRaw("GET", "/version", nil, "application/json", os.Getenv("REGION"))
 	if err != nil || res == nil || (res != nil && res.StatusCode != http.StatusOK) {
 		panic(fmt.Errorf("Init failed to get version: %s. Res=%v", err.Error(), res))
 	}
@@ -90,7 +90,7 @@ func init() {
 	}
 
 	// Now we know the daemon platform, can set paths used by tests.
-	_, body, err := sockRequest("GET", "/info", nil)
+	_, body, err := sockRequest("GET", "/info", nil, os.Getenv("REGION"))
 	if err != nil {
 		panic(err)
 	}
@@ -568,13 +568,13 @@ func sockConn(timeout time.Duration) (net.Conn, error) {
 	}
 }
 
-func sockRequest(method, endpoint string, data interface{}) (int, []byte, error) {
+func sockRequest(method, endpoint string, data interface{}, region string) (int, []byte, error) {
 	jsonData := bytes.NewBuffer(nil)
 	if err := json.NewEncoder(jsonData).Encode(data); err != nil {
 		return -1, nil, err
 	}
 
-	res, body, err := sockRequestRaw(method, endpoint, jsonData, "application/json")
+	res, body, err := sockRequestRaw(method, endpoint, jsonData, "application/json", region)
 	if err != nil {
 		return -1, nil, err
 	}
@@ -582,8 +582,8 @@ func sockRequest(method, endpoint string, data interface{}) (int, []byte, error)
 	return res.StatusCode, b, err
 }
 
-func sockRequestRaw(method, endpoint string, data io.Reader, ct string) (*http.Response, io.ReadCloser, error) {
-	req, client, err := newRequestClient(method, endpoint, data, ct)
+func sockRequestRaw(method, endpoint string, data io.Reader, ct string, region string) (*http.Response, io.ReadCloser, error) {
+	req, client, err := newRequestClient(method, endpoint, data, ct, region)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -602,7 +602,7 @@ func sockRequestRaw(method, endpoint string, data io.Reader, ct string) (*http.R
 }
 
 func sockRequestHijack(method, endpoint string, data io.Reader, ct string) (net.Conn, *bufio.Reader, error) {
-	req, client, err := newRequestClient(method, endpoint, data, ct)
+	req, client, err := newRequestClient(method, endpoint, data, ct, os.Getenv("REGION"))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -612,7 +612,7 @@ func sockRequestHijack(method, endpoint string, data io.Reader, ct string) (net.
 	return conn, br, nil
 }
 
-func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http.Request, *httputil.ClientConn, error) {
+func newRequestClient(method, endpoint string, data io.Reader, ct string, region string) (*http.Request, *httputil.ClientConn, error) {
 	c, err := sockConn(time.Duration(10 * time.Second))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not dial docker daemon: %v", err)
@@ -630,7 +630,13 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 	}
 
 	//init
-	req.URL.Host = strings.Split(os.Getenv("DOCKER_HOST"), "://")[1]
+	if region == "" {
+		req.URL.Host = strings.Split(os.Getenv("DOCKER_HOST"), "://")[1]
+	} else if region == "us-west-1"{
+		req.URL.Host = "us-west-1.hyper.sh:443"
+	} else if region == "eu-central-1" {
+		req.URL.Host = "eu-central-1.hyper.sh:443"
+	}
 
 	if ct != "" {
 		req.Header.Set("Content-Type", ct)
@@ -667,9 +673,9 @@ func readBody(b io.ReadCloser) ([]byte, error) {
 	return ioutil.ReadAll(b)
 }
 
-func deleteContainer(container string) error {
+func deleteContainer(region, container string) error {
 	container = strings.TrimSpace(strings.Replace(container, "\n", " ", -1))
-	rmArgs := strings.Split(fmt.Sprintf("--region=%v rm -fv %v", os.Getenv("DOCKER_HOST"), container), " ")
+	rmArgs := strings.Split(fmt.Sprintf("--region=%v rm -fv %v", region, container), " ")
 	exitCode, err := runCommand(exec.Command(dockerBinary, rmArgs...))
 	// set error manually if not set
 	if exitCode != 0 && err == nil {
@@ -679,8 +685,8 @@ func deleteContainer(container string) error {
 	return err
 }
 
-func getAllContainers() (string, error) {
-	getContainersCmd := exec.Command(dockerBinary, flag_host, "ps", "-q", "-a")
+func getAllContainers(region string) (string, error) {
+	getContainersCmd := exec.Command(dockerBinary, "--region", region, "ps", "-q", "-a")
 	//fmt.Printf("[getAllContainers] - getContainersCmd: %s\n", getContainersCmd)
 	out, exitCode, err := runCommandWithOutput(getContainersCmd)
 	if exitCode != 0 && err == nil {
@@ -690,15 +696,15 @@ func getAllContainers() (string, error) {
 	return out, err
 }
 
-func deleteAllContainers() error {
-	containers, err := getAllContainers()
+func deleteAllContainers(region string) error {
+	containers, err := getAllContainers(region)
 	if err != nil {
 		fmt.Println(containers)
 		return err
 	}
 
 	if containers != "" {
-		if err = deleteContainer(containers); err != nil {
+		if err = deleteContainer(region, containers); err != nil {
 			return err
 		}
 	}
@@ -715,7 +721,7 @@ func deleteAllNetworks() error {
 		if n.Name == "bridge" || n.Name == "none" || n.Name == "host" {
 			continue
 		}
-		status, b, err := sockRequest("DELETE", "/networks/"+n.Name, nil)
+		status, b, err := sockRequest("DELETE", "/networks/"+n.Name, nil, os.Getenv("REGION"))
 		if err != nil {
 			errors = append(errors, err.Error())
 			continue
@@ -732,7 +738,7 @@ func deleteAllNetworks() error {
 
 func getAllNetworks() ([]types.NetworkResource, error) {
 	var networks []types.NetworkResource
-	_, b, err := sockRequest("GET", "/networks", nil)
+	_, b, err := sockRequest("GET", "/networks", nil, os.Getenv("REGION"))
 	if err != nil {
 		return nil, err
 	}
@@ -742,15 +748,15 @@ func getAllNetworks() ([]types.NetworkResource, error) {
 	return networks, nil
 }
 
-func deleteAllSnapshots() error {
-	snapshots, err := getAllSnapshots()
+func deleteAllSnapshots(region string) error {
+	snapshots, err := getAllSnapshots(region)
 	if err != nil {
 		return err
 	}
 
 	var errors []string
 	for _, s := range snapshots {
-		status, b, err := sockRequest("DELETE", "/snapshots/"+s.Name, nil)
+		status, b, err := sockRequest("DELETE", "/snapshots/"+s.Name, nil, region)
 		if err != nil {
 			errors = append(errors, err.Error())
 			continue
@@ -765,9 +771,9 @@ func deleteAllSnapshots() error {
 	return nil
 }
 
-func getAllSnapshots() ([]*types.Snapshot, error) {
+func getAllSnapshots(region string) ([]*types.Snapshot, error) {
 	var snapshots types.SnapshotsListResponse
-	_, b, err := sockRequest("GET", "/snapshots", nil)
+	_, b, err := sockRequest("GET", "/snapshots", nil, region)
 	if err != nil {
 		return nil, err
 	}
@@ -777,14 +783,14 @@ func getAllSnapshots() ([]*types.Snapshot, error) {
 	return snapshots.Snapshots, nil
 }
 
-func deleteAllVolumes() error {
-	volumes, err := getAllVolumes()
+func deleteAllVolumes(region string) error {
+	volumes, err := getAllVolumes(region)
 	if err != nil {
 		return err
 	}
 	var errors []string
 	for _, v := range volumes {
-		status, b, err := sockRequest("DELETE", "/volumes/"+v.Name, nil)
+		status, b, err := sockRequest("DELETE", "/volumes/"+v.Name, nil, region)
 		if err != nil {
 			errors = append(errors, err.Error())
 			continue
@@ -799,9 +805,9 @@ func deleteAllVolumes() error {
 	return nil
 }
 
-func getAllVolumes() ([]*types.Volume, error) {
+func getAllVolumes(region string) ([]*types.Volume, error) {
 	var volumes types.VolumesListResponse
-	_, b, err := sockRequest("GET", "/volumes", nil)
+	_, b, err := sockRequest("GET", "/volumes", nil, region)
 	if err != nil {
 		return nil, err
 	}
@@ -813,8 +819,8 @@ func getAllVolumes() ([]*types.Volume, error) {
 
 var protectedImages = map[string]struct{}{}
 
-func deleteAllImages() error {
-	out, err := exec.Command(dockerBinary, flag_host, "images").CombinedOutput()
+func deleteAllImages(region string) error {
+	out, err := exec.Command(dockerBinary, "--region", region, "images").CombinedOutput()
 	if err != nil {
 		return err
 	}
@@ -837,15 +843,15 @@ func deleteAllImages() error {
 	if len(imgs) == 0 {
 		return nil
 	}
-	args := append([]string{flag_host, "rmi", "-f"}, imgs...)
+	args := append([]string{"--region", region, "rmi", "-f"}, imgs...)
 	if err := exec.Command(dockerBinary, args...).Run(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func deleteAllFips() error {
-	fips, err := getAllFips()
+func deleteAllFips(region string) error {
+	fips, err := getAllFips(region)
 	if err != nil {
 		return err
 	}
@@ -855,7 +861,7 @@ func deleteAllFips() error {
 			continue
 		}
 		fip := strings.Trim(v, " ")
-		releaseFipCmd := exec.Command(dockerBinary, flag_host, "fip", "release", fip)
+		releaseFipCmd := exec.Command(dockerBinary, "--region", region, "fip", "release", fip)
 		out, exitCode, err := runCommandWithOutput(releaseFipCmd)
 		if exitCode != 0 && err == nil {
 			err = fmt.Errorf("failed to release fip: %v\n", out)
@@ -865,9 +871,9 @@ func deleteAllFips() error {
 	return nil
 }
 
-func getAllFips() (string, error) {
+func getAllFips(region string) (string, error) {
 	//load via pipe
-	getFipsCmd := exec.Command(dockerBinary, flag_host, "fip", "ls")
+	getFipsCmd := exec.Command(dockerBinary, "--region", region, "fip", "ls")
 	grepCmd := exec.Command("grep", "-v", "^Floating IP")
 
 	getFipOut, err := getFipsCmd.StdoutPipe()
@@ -1246,7 +1252,7 @@ func (f *remoteFileServer) Close() error {
 	if f.container == "" {
 		return nil
 	}
-	return deleteContainer(f.container)
+	return deleteContainer(os.Getenv("REGION"), f.container)
 }
 
 func newRemoteFileServer(ctx *FakeContext) (*remoteFileServer, error) {
@@ -1720,7 +1726,7 @@ func daemonTime(c *check.C) time.Time {
 		return time.Now()
 	}
 
-	status, body, err := sockRequest("GET", "/info", nil)
+	status, body, err := sockRequest("GET", "/info", nil, os.Getenv("REGION"))
 	c.Assert(err, check.IsNil)
 	c.Assert(status, check.Equals, http.StatusOK)
 
@@ -1885,7 +1891,7 @@ func waitInspectWithArgs(name, expr, expected string, timeout time.Duration, arg
 
 func getInspectBody(c *check.C, version, id string) []byte {
 	endpoint := fmt.Sprintf("/%s/containers/%s/json", version, id)
-	status, body, err := sockRequest("GET", endpoint, nil)
+	status, body, err := sockRequest("GET", endpoint, nil, os.Getenv("REGION"))
 	c.Assert(err, check.IsNil)
 	c.Assert(status, check.Equals, http.StatusOK)
 	return body
@@ -1893,7 +1899,7 @@ func getInspectBody(c *check.C, version, id string) []byte {
 
 func getInspectBodyWithoutVersion(c *check.C, id string) []byte {
 	endpoint := fmt.Sprintf("/containers/%s/json", id)
-	status, body, err := sockRequest("GET", endpoint, nil)
+	status, body, err := sockRequest("GET", endpoint, nil, os.Getenv("REGION"))
 	c.Assert(err, check.IsNil)
 	c.Assert(status, check.Equals, http.StatusOK)
 	return body
@@ -1959,7 +1965,7 @@ func generateS3PreSignedURL(region, s3bucket, s3key string) (string, error) {
 }
 
 func getImageInspect(c *check.C, imageName string) *types.ImageInspect {
-	status, b, err := sockRequest("GET", "/images/"+imageName+"/json", nil)
+	status, b, err := sockRequest("GET", "/images/"+imageName+"/json", nil, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusOK)
 

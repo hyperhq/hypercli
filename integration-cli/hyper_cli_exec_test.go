@@ -367,7 +367,7 @@ func (s *DockerSuite) TestCliExecRunMutableNetworkFiles(c *check.C) {
 	testRequires(c, SameHostDaemon, DaemonIsLinux)
 	pullImageIfNotExist("busybox")
 	for _, fn := range []string{"resolv.conf", "hosts"} {
-		deleteAllContainers()
+		deleteAllContainers(os.Getenv("REGION"))
 
 		content, err := runCommandAndReadContainerFile(fn, exec.Command(dockerBinary, "--region="+os.Getenv("DOCKER_HOST"), "run", "-d", "--name", "c1", "busybox", "sh", "-c", fmt.Sprintf("echo success >/etc/%s && top", fn)))
 		c.Assert(err, checker.IsNil)
@@ -475,7 +475,7 @@ func (s *DockerSuite) TestCliExecInspectID(c *check.C) {
 	}
 
 	// But we should still be able to query the execID
-	sc, body, err := sockRequest("GET", "/exec/"+execID+"/json", nil)
+	sc, body, err := sockRequest("GET", "/exec/"+execID+"/json", nil, os.Getenv("REGION"))
 	c.Assert(sc, checker.Equals, http.StatusOK, check.Commentf("received status != 200 OK: %d\n%s", sc, body))
 
 	//TODO: fix receive 500

@@ -1217,7 +1217,7 @@ func (s *DockerSuite) TestCliRunContainerWithRmFlagExitCodeNotEqualToZero(c *che
 		c.Fatal("Expected docker run to fail", out, err)
 	}
 
-	out, err = getAllContainers()
+	out, err = getAllContainers(os.Getenv("REGION"))
 	if err != nil {
 		c.Fatal(out, err)
 	}
@@ -1239,7 +1239,7 @@ func (s *DockerSuite) TestCliRunContainerWithRmFlagCannotStartContainer(c *check
 		c.Fatal("Expected docker run to fail", out, err)
 	}
 
-	out, err = getAllContainers()
+	out, err = getAllContainers(os.Getenv("REGION"))
 	if err != nil {
 		c.Fatal(out, err)
 	}
@@ -1672,7 +1672,7 @@ func (s *DockerSuite) TestRunProtectionContainer(c *check.C) {
 
 	dockerCmd(c, "rm", "-f", id)
 
-	out, err := getAllContainers()
+	out, err := getAllContainers(os.Getenv("REGION"))
 	if err != nil {
 		c.Fatal(out, err)
 	}
@@ -1706,7 +1706,7 @@ func (s *DockerSuite) TestCreateProtectionContainer(c *check.C) {
 
 	dockerCmd(c, "rm", "-f", id)
 
-	out, err := getAllContainers()
+	out, err := getAllContainers(os.Getenv("REGION"))
 	if err != nil {
 		c.Fatal(out, err)
 	}

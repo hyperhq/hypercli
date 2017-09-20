@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"os"
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/docker/pkg/version"
@@ -24,7 +25,7 @@ func (s *DockerSuite) TestApiStatsNoStreamGetCpu(c *check.C) {
 	id := strings.TrimSpace(out)
 	c.Assert(waitRun(id), checker.IsNil)
 
-	resp, body, err := sockRequestRaw("GET", fmt.Sprintf("/containers/%s/stats?stream=false", id), nil, "")
+	resp, body, err := sockRequestRaw("GET", fmt.Sprintf("/containers/%s/stats?stream=false", id), nil, "", os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(resp.StatusCode, checker.Equals, http.StatusOK)
 	c.Assert(resp.Header.Get("Content-Type"), checker.Equals, "application/json")
@@ -113,7 +114,7 @@ func (s *DockerSuite) TestApiStatsNetworkStatsVersioning(c *check.C) {
 func getNetworkStats(c *check.C, id string) map[string]types.NetworkStats {
 	var st *types.StatsJSON
 
-	_, body, err := sockRequestRaw("GET", fmt.Sprintf("/containers/%s/stats?stream=false", id), nil, "")
+	_, body, err := sockRequestRaw("GET", fmt.Sprintf("/containers/%s/stats?stream=false", id), nil, "", os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 
 	err = json.NewDecoder(body).Decode(&st)
@@ -130,7 +131,7 @@ func getNetworkStats(c *check.C, id string) map[string]types.NetworkStats {
 func getVersionedStats(c *check.C, id string, apiVersion string) map[string]interface{} {
 	stats := make(map[string]interface{})
 
-	_, body, err := sockRequestRaw("GET", fmt.Sprintf("/%s/containers/%s/stats?stream=false", apiVersion, id), nil, "")
+	_, body, err := sockRequestRaw("GET", fmt.Sprintf("/%s/containers/%s/stats?stream=false", apiVersion, id), nil, "", os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	defer body.Close()
 
@@ -183,11 +184,11 @@ func jsonBlobHasGTE121NetworkStats(blob map[string]interface{}) bool {
 func (s *DockerSuite) TestApiStatsContainerNotFound(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
-	status, _, err := sockRequest("GET", "/containers/nonexistent/stats", nil)
+	status, _, err := sockRequest("GET", "/containers/nonexistent/stats", nil, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusNotFound)
 
-	status, _, err = sockRequest("GET", "/containers/nonexistent/stats?stream=0", nil)
+	status, _, err = sockRequest("GET", "/containers/nonexistent/stats?stream=0", nil, os.Getenv("REGION"))
 	c.Assert(err, checker.IsNil)
 	c.Assert(status, checker.Equals, http.StatusNotFound)
 }
