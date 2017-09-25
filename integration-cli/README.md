@@ -31,6 +31,7 @@ Functional test for hyper cli.
 		- [run test in docker container](#run-test-in-docker-container)
 			- [run test via util.sh](#run-test-via-utilsh)
 			- [run test via docker cli](#run-test-via-docker-cli)
+			- [run test via hyper cli](#run-test-via-hyper-cli)
 
 <!-- /TOC -->
 
@@ -332,20 +333,27 @@ $ ./util.sh qa "#222"
 
 #### run test via docker cli
 
-> ACCESS_KEY and SECRET_KEY are required
+Required parameters:
+
+`APIROUTER`: apirouter entrypoint  
+`REGION`: could be us-west-1(zl2), eu-central-1(eu1), RegionOne(packet)  
+`ACCESS_KEY`,`SECRET_KEY`: Hyper credential for test  
+`BRANCH`: hyper cli branch name or PR number  
 
 ```
-//test `master` branch with `zenlayer` apirouter
-$ export ACCESS_KEY="xxxxxxxx"
-$ export SECRET_KEY="xxxxxxxxxxxxxxxxxxxx"
+//test `master` branch of hypercli with `eu-west-1` apirouter
 $ docker run -it --rm \
     -e ACCESS_KEY=${ACCESS_KEY} \
     -e SECRET_KEY=${SECRET_KEY} \
+    -e DOCKER_HOST=tcp://us-west-1.hyper.sh:443 \
+    -e REGION=us-west-1 \
+    -e BRANCH=master \
     hyperhq/hypercli-auto-test:qa go test -check.f TestCli -timeout 180m
-
 
 //test `specified PR`
 $ docker run -it --rm \
+    -e DOCKER_HOST=${APIROUTER} \
+    -e REGION=${REGION} \
     -e ACCESS_KEY=${ACCESS_KEY} \
     -e SECRET_KEY=${SECRET_KEY} \
     -e BRANCH="#221" \
@@ -354,40 +362,47 @@ $ docker run -it --rm \
 
 //test `specified case name`
 $ docker run -it --rm \
+    -e DOCKER_HOST=${APIROUTER} \
+    -e REGION=${REGION} \
     -e ACCESS_KEY="${ACCESS_KEY}" \
     -e SECRET_KEY="${SECRET_KEY}" \
+    -e BRANCH=${BRANCH} \
     hyperhq/hypercli-auto-test:qa go test -check.f 'TestCliInfo|TestCliFip' -timeout 180m
 
 
-//test `specified branch` with `packet` apirouter
+//test with `packet` apirouter
 $ docker run -it --rm \
     -e ACCESS_KEY=${ACCESS_KEY} \
     -e SECRET_KEY=${SECRET_KEY} \
-    -e BRANCH=integration-test \
+    -e BRANCH=${BRANCH} \
     -e DOCKER_HOST=tcp://147.75.x.x:6443 \
+    -e REGION=RegionOne \
     hyperhq/hypercli-auto-test:qa go test -check.f TestCli -timeout 180m
 
 
 //test with http proxy
 $ docker run -it --rm \
+    -e DOCKER_HOST=${APIROUTER} \
+    -e REGION=${REGION} \
     -e ACCESS_KEY=${ACCESS_KEY} \
     -e SECRET_KEY=${SECRET_KEY} \
+    -e BRANCH=${BRANCH} \
     -e http_proxy=${http_proxy} \
     -e https_proxy=${https_proxy} \
     hyperhq/hypercli-auto-test:qa go test -check.f TestCliInfo
     
-//test with region(region name could be us-west-1/eu-central-1)
-$ docker run -it --rm \
-    -e ACCESS_KEY=${ACCESS_KEY} \
-    -e SECRET_KEY=${SECRET_KEY} \
-    -e REGION=${REGION} \
-    -e http_proxy=${http_proxy} \
-    -e https_proxy=${https_proxy} \
-    hyperhq/hypercli-auto-test:qa go test -check.f TestCliInfo
 
 //test basic test case only
 $ docker run -it --rm \
+    -e DOCKER_HOST=${APIROUTER} \
+    -e REGION=${REGION} \
     -e ACCESS_KEY=${ACCESS_KEY} \
     -e SECRET_KEY=${SECRET_KEY} \
+    -e BRANCH=${BRANCH} \
     hyperhq/hypercli-auto-test:qa go test -check.f "TestCli.*Basic" -timeout 180m
+
 ```
+
+#### run test via hyper cli
+
+Just replace `docker` with `hyper` in command line.
