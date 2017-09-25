@@ -7,12 +7,12 @@ function show_usage() {
     cat <<EOF
 Usage: ./util.sh <action>
 <action>:
-    build-dev    # build docker image 'hyperhq/hypercl' from Dockerfile.dev
-    build-qa     # build docker image 'hyperhq/hypercl' from Dockerfile.qa
-    make         # make hyper cli in container
-    enter        # enter container from hyperhq/hhypercli-auto-test:dev
-    qa <branch>  # run test case in hyperhq/hhypercli-auto-test:qa, default branch is 'master'
-    test         # test on host
+    build-dev          # build docker image 'hyperhq/hypercl' from Dockerfile.dev
+    build-qa           # build docker image 'hyperhq/hypercl' from Dockerfile.qa
+    make               # make hyper cli in container
+    enter-dev          # enter container from hyperhq/hhypercli-auto-test:dev
+    enter-qa <branch>  # enter container from hyperhq/hhypercli-auto-test:qa, default branch is 'master'
+    test               # test on host
 EOF
 }
 
@@ -68,12 +68,12 @@ case $1 in
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
         ${IMAGE_NAME}:dev ./build.sh
     ;;
-  enter)
+  enter-dev)
     docker run -it --rm \
         -e DOCKER_HOST=${HYPER_HOST} \
+        -e REGION=${REGION} \
         -e ACCESS_KEY=${ACCESS_KEY} \
         -e SECRET_KEY=${SECRET_KEY} \
-        -e REGION=${REGION} \
         -e AWS_ACCESS_KEY=${AWS_ACCESS_KEY} \
         -e AWS_SECRET_KEY=${AWS_SECRET_KEY} \
         -e URL_WITH_BASIC_AUTH=${URL_WITH_BASIC_AUTH} \
@@ -84,7 +84,7 @@ case $1 in
         -v $(pwd)/../:/go/src/github.com/hyperhq/hypercli \
         ${IMAGE_NAME}:dev zsh
     ;;
-  qa)
+  enter-qa)
     BRANCH=$2
     if [ "$BRANCH" == "" ];then
       BRANCH="master"
@@ -92,14 +92,16 @@ case $1 in
     docker run -it --rm \
         -e http_proxy=${http_proxy} \
         -e https_proxy=${https_proxy} \
-        -e BRANCH=${BRANCH} \
         -e DOCKER_HOST=${HYPER_HOST} \
+        -e REGION=${REGION} \
+        -e BRANCH=${BRANCH} \
         -e ACCESS_KEY=${ACCESS_KEY} \
         -e SECRET_KEY=${SECRET_KEY} \
         -e DOCKERHUB_EMAIL=${DOCKERHUB_EMAIL} \
         -e DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME} \
         -e DOCKERHUB_PASSWD=${DOCKERHUB_PASSWD} \
-        ${IMAGE_NAME}:qa go test -check.f TestCli -timeout 180m
+        ${IMAGE_NAME}:qa /bin/bash
+#        ${IMAGE_NAME}:qa go test -check.f TestCli -timeout 180m
     ;;
   test)
     export DOCKER_HOST=${HYPER_HOST}

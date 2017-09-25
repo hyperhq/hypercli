@@ -28,23 +28,10 @@ func (s *DockerSuite) TestCliRegionBasic(c *check.C) {
 		anotherRegion = "us-west-1"
 	}
 
-	//delete busybox
-	cmd := exec.Command(dockerBinary, "rmi", "-f", "busybox")
-	runCommandWithOutput(cmd)
-	cmd = exec.Command(dockerBinary, "images", "busybox")
-	out, _, _ := runCommandWithOutput(cmd)
-	c.Assert(out, checker.Not(checker.Contains), "busybox")
-	//delete ubuntu
-	cmd = exec.Command(dockerBinary, "--region", anotherRegion, "rmi", "-f", "ubuntu")
-	runCommandWithOutput(cmd)
-	cmd = exec.Command(dockerBinary, "--region", anotherRegion, "images", "ubuntu")
-	out, _, _ = runCommandWithOutput(cmd)
-	c.Assert(out, checker.Not(checker.Contains), "ubuntu")
-
 	////////////////////////////////////////////
 	//pull image with default region
-	cmd = exec.Command(dockerBinary, "pull", "busybox")
-	out, _, err = runCommandWithOutput(cmd)
+	cmd := exec.Command(dockerBinary, "pull", "busybox")
+	out, _, err := runCommandWithOutput(cmd)
 	if err != nil {
 		c.Fatal(err, out)
 	}
