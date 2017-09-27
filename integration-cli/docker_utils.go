@@ -36,6 +36,7 @@ import (
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/go-check/check"
+	"github.com/hyperhq/hypercli/cliconfig"
 )
 
 var flag_host = ""
@@ -636,8 +637,12 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 		req.Header.Set("Content-Type", ct)
 	}
 
+	region := os.Getenv("REGION")
+	if region == "" {
+		region = cliconfig.DefaultHyperRegion
+	}
 	//calculate sign4 for apirouter
-	req = HyperCli.Sign4(os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"), req)
+	req = HyperCli.Sign4(os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"), req, region)
 
 	//for debug
 	if endpoint == debugEndpoint {
@@ -850,7 +855,7 @@ func deleteAllFips() error {
 		return err
 	}
 
-	for _, v := range strings.Split(fips,"\n") {
+	for _, v := range strings.Split(fips, "\n") {
 		if v == "" {
 			continue
 		}
