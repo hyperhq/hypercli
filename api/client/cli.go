@@ -174,20 +174,24 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientF
 		if cloudConfig.AccessKey == "" || cloudConfig.SecretKey == "" {
 			fmt.Fprintf(cli.err, "WARNING: null cloud config\n")
 		}
-
-		client, err := client.NewClient(host, verStr, httpClient, customHeaders, cloudConfig.AccessKey, cloudConfig.SecretKey)
-		if err != nil {
-			return err
-		}
-		cli.client = client
-		cli.host = host
 		cli.region = clientFlags.Common.Region
 		if cli.region == "" {
 			if cli.region = cc.Region; cli.region == "" {
 				cli.region = cli.getDefaultRegion()
 			}
 		}
+		if !dft {
+			if cli.region = cc.Region; cli.region == "" {
+				cli.region = cliconfig.DefaultHyperRegion
+			}
+		}
 
+		client, err := client.NewClient(host, verStr, httpClient, customHeaders, cloudConfig.AccessKey, cloudConfig.SecretKey, cli.region)
+		if err != nil {
+			return err
+		}
+		cli.client = client
+		cli.host = host
 		if cli.in != nil {
 			cli.inFd, cli.isTerminalIn = term.GetFdInfo(cli.in)
 		}
