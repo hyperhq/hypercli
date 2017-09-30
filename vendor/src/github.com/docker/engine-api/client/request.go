@@ -101,7 +101,7 @@ func (cli *Client) sendClientRequest(ctx context.Context, method, path string, q
 		req.Header.Set("Content-Type", "text/plain")
 	}
 
-	req = Sign4(cli.accessKey, cli.secretKey, req)
+	req = Sign4(cli.accessKey, cli.secretKey, req, cli.region)
 	resp, err := cancellable.Do(ctx, cli.transport, req)
 
 	if err != nil {
