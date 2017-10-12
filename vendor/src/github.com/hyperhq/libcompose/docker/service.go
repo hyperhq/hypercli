@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/engine-api/client"
+	"github.com/hyperhq/hyper-api/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/hyperhq/libcompose/config"
 	"github.com/hyperhq/libcompose/labels"

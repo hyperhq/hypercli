@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/docker/engine-api/types"
+	"github.com/hyperhq/hyper-api/types"
 	"github.com/hyperhq/libcompose/labels"
 	"github.com/hyperhq/libcompose/test"
 	"golang.org/x/net/context"

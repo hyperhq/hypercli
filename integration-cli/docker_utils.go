@@ -31,11 +31,11 @@ import (
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/stringutils"
-	HyperCli "github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/go-check/check"
+	HyperCli "github.com/hyperhq/hyper-api/client"
+	"github.com/hyperhq/hyper-api/types"
 	"github.com/hyperhq/hypercli/cliconfig"
 )
 

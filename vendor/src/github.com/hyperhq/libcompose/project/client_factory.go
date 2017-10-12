@@ -1,6 +1,6 @@
 package project
 
-import "github.com/docker/engine-api/client"
+import "github.com/hyperhq/hyper-api/client"
 
 // ClientFactory is a factory to create docker clients.
 type ClientFactory interface {
