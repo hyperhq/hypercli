@@ -34,7 +34,7 @@ import (
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/go-check/check"
-	HyperCli "github.com/hyperhq/hyper-api/client"
+	"github.com/hyperhq/hyper-api/signature"
 	"github.com/hyperhq/hyper-api/types"
 	"github.com/hyperhq/hypercli/cliconfig"
 )
@@ -642,7 +642,7 @@ func newRequestClient(method, endpoint string, data io.Reader, ct string) (*http
 		region = cliconfig.DefaultHyperRegion
 	}
 	//calculate sign4 for apirouter
-	req = HyperCli.Sign4(os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"), req, region)
+	req = signature.Sign4(os.Getenv("ACCESS_KEY"), os.Getenv("SECRET_KEY"), req, region)
 
 	//for debug
 	if endpoint == debugEndpoint {
