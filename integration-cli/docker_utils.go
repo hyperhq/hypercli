@@ -1771,7 +1771,7 @@ func appendBaseEnv(env []string) []string {
 	preserveList := []string{
 		// preserve remote test host
 		"DOCKER_HOST",
-
+		"HYPER_CONFIG",
 		// windows: requires preserving SystemRoot, otherwise dial tcp fails
 		// with "GetAddrInfoW: A non-recoverable error occurred during a database lookup."
 		"SystemRoot",
