@@ -3,9 +3,9 @@ package docker
 import (
 	"strings"
 
-	"github.com/docker/engine-api/types/container"
-	"github.com/docker/engine-api/types/network"
-	"github.com/docker/engine-api/types/strslice"
+	"github.com/hyperhq/hyper-api/types/container"
+	"github.com/hyperhq/hyper-api/types/network"
+	"github.com/hyperhq/hyper-api/types/strslice"
 	"github.com/hyperhq/libcompose/config"
 	"github.com/hyperhq/libcompose/project"
 	"github.com/hyperhq/libcompose/utils"

@@ -1,9 +1,9 @@
 package docker
 
 import (
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
+	"github.com/hyperhq/hyper-api/client"
+	"github.com/hyperhq/hyper-api/types"
+	"github.com/hyperhq/hyper-api/types/filters"
 	"golang.org/x/net/context"
 )
 

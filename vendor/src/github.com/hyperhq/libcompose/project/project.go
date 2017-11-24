@@ -8,8 +8,8 @@ import (
 	"golang.org/x/net/context"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
+	"github.com/hyperhq/hyper-api/types"
+	"github.com/hyperhq/hyper-api/types/filters"
 	"github.com/hyperhq/libcompose/config"
 	"github.com/hyperhq/libcompose/labels"
 	"github.com/hyperhq/libcompose/logger"

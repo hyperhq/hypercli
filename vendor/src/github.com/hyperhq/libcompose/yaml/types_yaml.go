@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/engine-api/types/strslice"
+	"github.com/hyperhq/hyper-api/types/strslice"
 	"github.com/flynn/go-shlex"
 )
 

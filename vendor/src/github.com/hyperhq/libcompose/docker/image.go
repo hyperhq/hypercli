@@ -10,8 +10,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
+	"github.com/hyperhq/hyper-api/client"
+	"github.com/hyperhq/hyper-api/types"
 	"github.com/hyperhq/hypercli/pkg/jsonmessage"
 	"github.com/hyperhq/hypercli/pkg/term"
 	"github.com/hyperhq/hypercli/reference"

@@ -3,7 +3,7 @@ package project
 import (
 	"strings"
 
-	"github.com/docker/engine-api/types/container"
+	"github.com/hyperhq/hyper-api/types/container"
 )
 
 // DefaultDependentServices return the dependent services (as an array of ServiceRelationship)

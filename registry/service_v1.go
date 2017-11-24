@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hyperhq/hypercli/reference"
 	"github.com/docker/go-connections/tlsconfig"
+	"github.com/hyperhq/hypercli/reference"
 )
 
 func (s *Service) lookupV1Endpoints(repoName reference.Named) (endpoints []APIEndpoint, err error) {
