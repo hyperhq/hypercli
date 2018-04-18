@@ -4,7 +4,7 @@ import (
 	"crypto/x509"
 	"errors"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // X509MemStore implements X509Store as an in-memory object with no persistence

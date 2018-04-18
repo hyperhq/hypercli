@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hypercli/pkg/idtools"
 	"github.com/hyperhq/hypercli/pkg/pools"
 	"github.com/hyperhq/hypercli/pkg/system"

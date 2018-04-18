@@ -6,7 +6,7 @@ import (
 	"syscall"
 
 	"github.com/Microsoft/go-winio"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // CreateProcessParams is used as both the input of CreateProcessInComputeSystem

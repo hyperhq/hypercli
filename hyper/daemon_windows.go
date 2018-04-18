@@ -7,7 +7,7 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	apiserver "github.com/hyperhq/hypercli/api/server"
 	"github.com/hyperhq/hypercli/daemon"
 	"github.com/hyperhq/hypercli/pkg/mflag"

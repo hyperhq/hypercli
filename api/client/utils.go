@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/dutchcoders/goftp"
 	"github.com/hyperhq/hyper-api/client"
 	"github.com/hyperhq/hyper-api/types"

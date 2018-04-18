@@ -2,7 +2,7 @@ package data
 
 import (
 	"fmt"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"path"
 	"regexp"
 	"strings"

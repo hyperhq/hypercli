@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/notary/client/changelist"
 	tuf "github.com/docker/notary/tuf"
 	"github.com/docker/notary/tuf/data"

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/libcompose/config"
 	"github.com/hyperhq/libcompose/lookup"
 	"github.com/hyperhq/libcompose/project"

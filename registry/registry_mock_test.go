@@ -20,7 +20,7 @@ import (
 	"github.com/hyperhq/hypercli/opts"
 	"github.com/hyperhq/hypercli/reference"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 var (

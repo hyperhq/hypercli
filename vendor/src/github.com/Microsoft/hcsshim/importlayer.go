@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // ImportLayer will take the contents of the folder at importFolderPath and import
 // that into a layer with the id layerId.  Note that in order to correctly populate

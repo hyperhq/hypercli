@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/distribution/digest"
 	"github.com/hyperhq/hypercli/daemon/graphdriver"
 	"github.com/hyperhq/hypercli/pkg/archive"

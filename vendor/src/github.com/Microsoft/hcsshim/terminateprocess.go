@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // TerminateProcessInComputeSystem kills a process in a running container.
 func TerminateProcessInComputeSystem(id string, processid uint32) (err error) {

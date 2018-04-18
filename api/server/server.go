@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/go-connections/sockets"
 	"github.com/gorilla/mux"
 	"github.com/hyperhq/hypercli/api/server/httputils"

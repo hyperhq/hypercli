@@ -3,7 +3,7 @@ package daemon
 import (
 	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/libnetwork"
 	derr "github.com/hyperhq/hypercli/errors"
 )

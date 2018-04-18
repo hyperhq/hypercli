@@ -33,7 +33,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/hyperhq/hypercli/daemon/graphdriver"
 	"github.com/hyperhq/hypercli/pkg/archive"

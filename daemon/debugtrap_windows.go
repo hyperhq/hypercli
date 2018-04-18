@@ -5,7 +5,7 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	psignal "github.com/hyperhq/hypercli/pkg/signal"
 	"github.com/hyperhq/hypercli/pkg/system"
 )

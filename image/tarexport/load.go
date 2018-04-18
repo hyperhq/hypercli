@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hypercli/image"
 	"github.com/hyperhq/hypercli/image/v1"
 	"github.com/hyperhq/hypercli/layer"

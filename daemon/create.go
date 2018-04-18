@@ -1,7 +1,7 @@
 package daemon
 
 import (
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hyper-api/types"
 	containertypes "github.com/hyperhq/hyper-api/types/container"
 	networktypes "github.com/hyperhq/hyper-api/types/network"

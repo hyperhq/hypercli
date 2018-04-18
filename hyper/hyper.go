@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hypercli/api/client"
 	"github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/dockerversion"

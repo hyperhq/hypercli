@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/go-units"
 	"github.com/hyperhq/hypercli/daemon/logger"
 	"github.com/hyperhq/hypercli/daemon/logger/loggerutils"

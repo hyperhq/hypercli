@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/libtrust"
 	"github.com/hyperhq/hyper-api/types"
 	"github.com/hyperhq/hypercli/pkg/system"

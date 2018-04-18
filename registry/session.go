@@ -18,7 +18,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/distribution/registry/api/errcode"
 	"github.com/hyperhq/hyper-api/types"
 	registrytypes "github.com/hyperhq/hyper-api/types/registry"

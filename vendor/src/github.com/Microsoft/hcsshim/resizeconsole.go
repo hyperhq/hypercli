@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // ResizeConsoleInComputeSystem updates the height and width of the console
 // session for the process with the given id in the container with the given id.

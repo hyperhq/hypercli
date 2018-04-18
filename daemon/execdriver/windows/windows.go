@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hyper-api/types/container"
 	"github.com/hyperhq/hypercli/daemon/execdriver"
 	"github.com/hyperhq/hypercli/dockerversion"

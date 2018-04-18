@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hypercli/layer"
 	"github.com/hyperhq/hypercli/pkg/progress"
 	"golang.org/x/net/context"

@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // StartComputeSystem starts a container that has previously been created via
 // CreateComputeSystem.

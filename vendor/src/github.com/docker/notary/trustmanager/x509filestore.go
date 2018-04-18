@@ -6,7 +6,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // X509FileStore implements X509Store that persists on disk

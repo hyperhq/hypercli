@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hypercli/container"
 	"github.com/hyperhq/hypercli/daemon/logger"
 	"github.com/hyperhq/hypercli/daemon/logger/jsonfilelog"

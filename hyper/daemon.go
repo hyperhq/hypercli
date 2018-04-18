@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/distribution/uuid"
 	"github.com/docker/go-connections/tlsconfig"
 	apiserver "github.com/hyperhq/hypercli/api/server"

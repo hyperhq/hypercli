@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/coreos/go-systemd/journal"
 	"github.com/hyperhq/hypercli/daemon/logger"
 	"github.com/hyperhq/hypercli/daemon/logger/loggerutils"

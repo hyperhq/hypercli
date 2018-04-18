@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hypercli/daemon/logger"
 	"github.com/hyperhq/hypercli/pkg/filenotify"
 	"github.com/hyperhq/hypercli/pkg/ioutils"

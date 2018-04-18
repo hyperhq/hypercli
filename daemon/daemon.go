@@ -19,7 +19,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/distribution/digest"
 	"github.com/hyperhq/hyper-api/types"
 	containertypes "github.com/hyperhq/hyper-api/types/container"

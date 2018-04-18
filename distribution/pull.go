@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hyper-api/types"
 	"github.com/hyperhq/hypercli/api"
 	"github.com/hyperhq/hypercli/distribution/metadata"

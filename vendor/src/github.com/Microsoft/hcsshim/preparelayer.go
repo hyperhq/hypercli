@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // PrepareLayer finds a mounted read-write layer matching layerId and enables the
 // the filesystem filter for use on that layer.  This requires the paths to all

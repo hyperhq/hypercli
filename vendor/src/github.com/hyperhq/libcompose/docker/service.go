@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hyper-api/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/hyperhq/libcompose/config"

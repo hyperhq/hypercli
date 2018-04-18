@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // WaitForProcessInComputeSystem waits for a process ID to terminate and returns
 // the exit code. Returns exitcode, errno, error

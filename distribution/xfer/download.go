@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hypercli/image"
 	"github.com/hyperhq/hypercli/layer"
 	"github.com/hyperhq/hypercli/pkg/archive"

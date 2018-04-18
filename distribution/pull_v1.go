@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/distribution/registry/client/transport"
 	"github.com/hyperhq/hypercli/distribution/metadata"
 	"github.com/hyperhq/hypercli/distribution/xfer"

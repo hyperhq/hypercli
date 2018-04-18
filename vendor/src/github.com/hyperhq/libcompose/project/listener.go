@@ -3,7 +3,7 @@ package project
 import (
 	"bytes"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/libcompose/project/events"
 )
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/hyperhq/hypercli/cli"
 	"github.com/hyperhq/hypercli/daemon"

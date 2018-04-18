@@ -3,7 +3,7 @@ package graphdriver
 import (
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/hyperhq/hypercli/pkg/archive"
 	"github.com/hyperhq/hypercli/pkg/chrootarchive"

@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // CreateComputeSystem creates a container, initializing its configuration in
 // the Host Compute Service such that it can be started by a call to the

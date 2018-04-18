@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	yaml "github.com/cloudfoundry-incubator/candiedyaml"
 	"github.com/hyperhq/libcompose/utils"
 )

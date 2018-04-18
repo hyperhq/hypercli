@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // CopyLayer performs a commit of the srcId (which is expected to be a read-write
 // layer) into a new read-only layer at dstId.  This requires the full list of

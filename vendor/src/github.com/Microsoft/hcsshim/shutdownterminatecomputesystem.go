@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // TerminateComputeSystem force terminates a container.
 func TerminateComputeSystem(id string, timeout uint32, context string) (uint32, error) {

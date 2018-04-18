@@ -1,6 +1,6 @@
 package hcsshim
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // ExportLayer will create a folder at exportFolderPath and fill that folder with
 // the transport format version of the layer identified by layerId. This transport

@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	"github.com/Microsoft/hcsshim"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hypercli/daemon/execdriver"
 )
 

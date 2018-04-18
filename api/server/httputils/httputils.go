@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/distribution/registry/api/errcode"
 	"github.com/hyperhq/hypercli/api"
 	"github.com/hyperhq/hypercli/pkg/version"

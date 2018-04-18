@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/hyperhq/hypercli/opts"
 	"github.com/hyperhq/hypercli/pkg/discovery"
 	flag "github.com/hyperhq/hypercli/pkg/mflag"
