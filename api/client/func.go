@@ -228,7 +228,7 @@ func (cli *DockerCli) CmdFuncCreate(args ...string) error {
 func (cli *DockerCli) CmdFuncUpdate(args ...string) error {
 	cmd := Cli.Subcmd("func update", []string{"NAME"}, "Update a function", false)
 	var (
-		flContainerSize = cmd.String([]string{"-size"}, "", "The size of function containers to run the funciton (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
+		flContainerSize = cmd.String([]string{"-size"}, "", "The size of function containers to run the function (e.g. s1, s2, s3, s4, m1, m2, m3, l1, l2, l3)")
 		flEnv           = ropts.NewListOpts(opts.ValidateEnv)
 		flEnvFile       = ropts.NewListOpts(nil)
 		flRefresh       = cmd.Bool([]string{"-refresh"}, false, "Whether to regenerate the uuid of function")
