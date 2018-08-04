@@ -46,6 +46,8 @@ func (s *DockerSuite) TestCliLinksPingLinkedContainersBasic(c *check.C) {
 	dockerCmd(c, "run", "-d", "--name", "container1", "--hostname", "fred", "busybox", "top")
 	dockerCmd(c, "run", "-d", "--name", "container2", "--hostname", "wilma", "busybox", "top")
 
+	time.Sleep(time.Duration(5)*time.Second)
+
 	runArgs := []string{"run", "--rm", "--link", "container1:alias1", "--link", "container2:alias2", "busybox", "sh", "-c"}
 	pingCmd := "ping -c 1 %s -W 5 && ping -c 1 %s -W 5"
 
