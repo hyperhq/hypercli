@@ -86,13 +86,13 @@ func (s *DockerSuite) TestCliLoadFromLocalTarNoTag(c *check.C) {
 
 	//load image tar
 	output, exitCode, err = dockerCmdWithError("load", "-i", imagePath)
-	c.Assert(output, checker.Contains, "sha256:c75bebcdd211f41b3a460c7bf82970ed6c75acaab9cd4c9a4e125b03ca113798 has been loaded.")
+	c.Assert(output, checker.Contains, "sha256:59788edf1f3e78cd0ebe6ce1446e9d10788225db3dedcfd1a59f764bad2b2690 has been loaded.")
 	c.Assert(err, checker.IsNil)
 	c.Assert(exitCode, checker.Equals, 0)
 
 	//check image
 	images, _ := dockerCmd(c, "images")
-	c.Assert(images, checker.Contains, "c75bebcdd211")
+	c.Assert(images, checker.Contains, "59788edf1f3e")
 }
 
 func (s *DockerSuite) TestCliLoadFromLocalTarDelta(c *check.C) {
@@ -131,8 +131,8 @@ func (s *DockerSuite) TestCliLoadFromLocalTarDelta(c *check.C) {
 	c.Assert(exitCode, checker.Equals, 0)
 
 	// //check image
-	ensureImageIDExist(c, "busybox", "sha256:c75bebcdd211f41b3a460c7bf82970ed6c75acaab9cd4c9a4e125b03ca113798")
-	ensureImageIDExist(c, "busybox2", "sha256:50a48a50d85a126c96d01528bb836e62ad08555e740b44f299abf3416656bdb5")
+	ensureImageIDExist(c, "busybox", "sha256:c30178c5239f2937c21c261b0365efcda25be4921ccb95acd63beeeb78786f27")
+	ensureImageIDExist(c, "busybox2", "sha256:6ad733544a6317992a6fac4eb19fe1df577d4dec7529efec28a5bd0edad0fd30")
 }
 
 func (s *DockerSuite) TestCliLoadFromLocalCompressedArchive(c *check.C) {
@@ -282,7 +282,7 @@ func (s *DockerSuite) TestCliLoadFromLocalTarLegacy(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/old/ubuntu_1.8.tar.gz"
+	publicURL := "http://image-tarball.s3.amazonaws.com/test/public/old/busybox_1.8.tar.gz"
 	imagePath := fmt.Sprintf("%s/ubuntu_1.8.tar.gz", os.Getenv("IMAGE_DIR"))
 
 	//download image tar

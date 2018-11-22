@@ -40,7 +40,7 @@ func (s *DockerSuite) TestCliLoadFromUrlInvalidUrlPath(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 
 	output, exitCode, err := dockerCmdWithError("load", "-i", "http://image-tarball.s3.amazonaws.com/test/public/notexist.tar")
-	c.Assert(output, checker.Equals, "Error response from daemon: Bad request parameters: Got HTTP status code >= 400: 403 Forbidden\n")
+	c.Assert(output, checker.Equals, "Error response from daemon: Bad request parameters: Got HTTP status code >= 400: 404 Not Found\n")
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 }
@@ -135,7 +135,7 @@ func (s *DockerSuite) TestCliLoadFromUrlInvalidContentIncomplete(c *check.C) {
 
 	url = "http://image-tarball.s3.amazonaws.com/test/public/helloworld-no-layer.tgz"
 	output, exitCode, err = dockerCmdWithError("load", "-i", url)
-	c.Assert(output, checker.Contains, "json: no such file or directory")
+	c.Assert(output, checker.Contains, "no such file or directory")
 	c.Assert(exitCode, checker.Equals, 1)
 	c.Assert(err, checker.NotNil)
 
