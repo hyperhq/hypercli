@@ -12,9 +12,9 @@ func (s *DockerSuite) TestCliLoadFromUrlLegacyImageArchiveFile(c *check.C) {
 	defer printTestDuration(time.Now())
 	testRequires(c, DaemonIsLinux)
 
-	imageName := "ubuntu"
-	legacyImageURL := "http://image-tarball.s3.amazonaws.com/test/public/old/ubuntu_1.8.tar.gz"
-	imageURL := "http://image-tarball.s3.amazonaws.com/test/public/ubuntu.tar.gz"
+	imageName := "busybox"
+	legacyImageURL := "http://image-tarball.s3.amazonaws.com/test/public/old/busybox_1.8.tar.gz"
+	imageURL := "http://image-tarball.s3.amazonaws.com/test/public/busybox.tar.gz"
 
 	//load legacy image(saved by docker 1.8)
 	output, exitCode, err := dockerCmdWithError("load", "-i", legacyImageURL)
@@ -37,7 +37,7 @@ func (s *DockerSuite) TestCliLoadFromUrlLegacyImageArchiveFile(c *check.C) {
 
 	output, _ = dockerCmd(c, "images")
 	c.Assert(output, checker.Contains, imageName)
-	c.Assert(len(strings.Split(output, "\n")), checker.Equals, 3)
+	c.Assert(len(strings.Split(output, "\n")), checker.Equals, 4)
 
 	/////////////////////////////////////////////////////////////////////
 	//delete single layer
@@ -56,7 +56,7 @@ func (s *DockerSuite) TestCliLoadFromUrlLegacyImageArchiveFile(c *check.C) {
 
 	output, _ = dockerCmd(c, "images", "-a")
 	c.Assert(output, checker.Contains, "<none>")
-	c.Assert(len(strings.Split(output, "\n")), checker.Equals, 6)
+	c.Assert(len(strings.Split(output, "\n")), checker.Equals, 4)
 
 	/////////////////////////////////////////////////////////////////////
 	//delete all rest layer
