@@ -30,6 +30,12 @@ then
     export TARGET_NAME="pkt"
     export REGION="RegionOne"
     export DOCKER_HOST="tcp://147.75.195.39:6443"
+elif [ "${TARGET_REGION}" = "zl2-preview" ]
+then
+    #test packet with zl2-preview container
+    export TARGET_NAME="zl2-preview"
+    export REGION="zl2-preview"
+    export DOCKER_HOST="tcp://zl2-preview.hyper.sh:6443"
 else
     echo "unknow TARGET_REGION:${TARGET_REGION}"
     exit 1
